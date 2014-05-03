@@ -1,0 +1,262 @@
+﻿{{define "item"}}
+{{template "header"}}
+
+<!-- Kladr api -->
+<link rel="stylesheet"
+      href="/css/jquery.kladr.min.css">
+
+<script type="text/javascript"
+        src="/js/jquery.kladr.min.js"></script>
+
+<script type="text/javascript"
+        src="/js/kladr.js"></script>
+
+<script type="text/javascript">
+var types = [
+    "date",
+    "region",
+    "district",
+    "city",
+    "street",
+    "building",
+    "input",
+    "radio",
+    "checkbox",
+    "textarea"
+];
+
+var E = [];
+var T = [];
+var F = [];
+var P = [];
+
+function drawParam(data) {
+    var block;
+    /*alert(types[data["type"]])*/
+    switch (types[data["type"]]) {
+        case "date":
+            block = $("<input/>", {
+                id: "date",
+                name: "date",
+                type: "text"
+            });
+            break;
+        case "region":
+            block = $("<input/>", {
+                id: "region",
+                name: "region",
+                type: "text"
+            });
+            break;
+        case "district":
+            block = $("<input/>", {
+                id: "district",
+                name: "district",
+                type: "text"
+            });
+            break;
+        case "city":
+            block = $("<input/>", {
+                id: "city",
+                name: "city",
+                type: "text"
+            });
+            break;
+        case "street":
+            block = $("<input/>", {
+                id: "street",
+                name: "street",
+                type: "text"
+            });
+            break;
+        case "building":
+            block = $("<input/>", {
+                id: "building",
+                name: "building",
+                type: "text"
+            });
+            break;
+        case "input":
+            block = $("<input/>", {
+                id: "input",
+                name: "input",
+                type: "text"
+            });
+            break;
+        case "textarea":
+            block = $("<textarea/>", {
+                id: "textarea",
+            });
+            break;
+        case "radio":
+            block = $("<input/>", {
+                id: "input",
+                name: "input",
+                type: "radio"
+            });
+            break;
+        case "checkbox":
+            block = $("<input/>", {
+                id: "input",
+                name: "input",
+                type: "checkbox"
+            });
+            break;
+    }
+    var lable = $("<label/>", {
+        for: data["name"],
+        id: "label-" + data["name"],
+        text: data["name"]
+    });
+
+    var p = $("<p/>", {});
+
+    $(p).append(lable).append("<br/>").append(block);
+    return p;
+}
+</script>
+
+<!-- E init ------------------------------------------------------------>
+{{with .E}}
+    {{range $index, $elmt := .}}
+        <script>E[{{$index}}] = {};</script>
+        {{range $i, $v := $elmt}}
+            <script>E[{{$index}}]["{{$i}}"] = "{{$v}}";</script>
+        {{end}}
+    {{end}}
+{{end}}
+<!-- end T init -------------------------------------------------------->
+
+<!-- T init ------------------------------------------------------------>
+{{with .T}}
+    {{range $index, $elmt := .}}
+        <script>T[{{$index}}] = {};</script>
+        {{range $i, $v := $elmt}}
+            <script>T[{{$index}}]["{{$i}}"] = "{{$v}}";</script>
+        {{end}}
+    {{end}}
+{{end}}
+<!-- end T init -------------------------------------------------------->
+
+<!-- F init ------------------------------------------------------------>
+{{with .F}}
+    {{range $index, $elmt := .}}
+        <script>F[{{$index}}] = [];</script>
+        {{range $i, $v := $elmt}}
+            <script>F[{{$index}}][{{$i}}] = {};</script>
+            {{range $j, $k := $v}}
+                <script>F[{{$index}}][{{$i}}]["{{$j}}"] = "{{$k}}";</script>
+            {{end}}
+        {{end}}
+    {{end}}
+{{end}}
+<!-- end F init -------------------------------------------------------->
+
+<!-- P init ------------------------------------------------------------>
+{{with .P}}
+    {{range $index, $elmt := .}}
+        <script>P[{{$index}}] = [];</script>
+        {{range $i, $v := $elmt}}
+            <script>P[{{$index}}][{{$i}}] = [];</script>
+            {{range $j, $k := $v}}
+                <script>P[{{$index}}][{{$i}}][{{$j}}] = {};</script>
+                {{range $m, $n := $k}}
+                    <script>P[{{$index}}][{{$i}}][{{$j}}]["{{$m}}"] = "{{$n}}";</script>
+                {{end}}
+            {{end}}
+        {{end}}
+    {{end}}
+{{end}}
+<!-- end P init -------------------------------------------------------->
+
+<div id="container">
+    <ul>
+        <li><a id="event" href="#events"></a></li>
+     </ul>
+    <div id="events"></div>
+</div>
+
+<script type="text/javascript">
+    $("#event").text(E[0]["name"]);
+
+    /* div - wrapper for event_types */
+    var div_types = $("<div/>", {id: "event-" + E[0]["id"]});
+
+    /* list of event_types */
+    var ul_types = $("<ul/>", {});
+
+    $(div_types).append(ul_types);
+    $(div_types).appendTo("#events");
+
+    for (var i = 0; i < T.length; ++i) {
+
+        var li_type = $("<li/>", {});
+        var a_type = $("<a/>", {href: "#type-" + T[i]["id"]}).text(T[i]["name"]);
+
+        $(li_type).append(a_type);
+        $(ul_types).append(li_type);
+
+        var div_tab_type = $("<div/>", {id: "type-" + T[i]["id"]});//div types
+        $(div_types).append(div_tab_type);
+
+        /* div - wrapper for forms of event_type */
+        var div_forms = $("<div/>", {id: "forms-" + T[i]["id"]});
+        $(div_tab_type).append(div_forms);
+
+        /* list of forms */
+        var ul_forms = $("<ul/>", {});
+        $(div_forms).append(ul_forms);
+
+        for (var j = 0; j < F[i].length; ++j) {
+            var li_form = $("<li/>", {});
+            var a_form = $("<a/>", {href: "#form-" + F[i][j]["id"]}).text(F[i][j]["name"]);
+
+            $(li_form).append(a_form);
+            $(ul_forms).append(li_form);
+
+            var div_tab_form = $("<div/>", {id: "form-" + F[i][j]["id"]});//div for forms
+            $(div_forms).append(div_tab_form);
+
+            /* div - wrapper for params of form */
+            var div_params = $("<div/>", {id: "params-" + T[i]["id"]});
+            $(div_tab_form).append(div_params);
+
+            for (var k = 0; k < P[i][j].length; k++) {
+                $(div_params).append(drawParam(P[i][j][k]));
+            }
+
+        }
+
+    }
+
+    $("#container").tabs();
+
+    $("#event-" + E[0]["id"]).tabs();
+
+    for (var i = 0; i < T.length; ++i) {
+
+        $("#forms-" + T[i]["id"]).tabs();
+
+        for (var j = 0; j < F[i].length; ++j) {
+            $("#params-" + F[i][j]["id"]).tabs();
+        }
+    }
+
+    $("#date").datepicker({dateFormat: 'dd-mm-yy'});
+
+    kladr();
+
+    $("<input/>", {
+        type: "button",
+        value: "Назад",
+        id: "save-btn",
+        name: "submit",
+    }).appendTo("#cabinet");
+
+    $("#save-btn").click(function() {
+        history.back();
+    });
+</script>
+
+{{template "footer"}}
+{{end}}

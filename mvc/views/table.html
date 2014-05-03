@@ -1,0 +1,489 @@
+﻿{{define "table"}}
+{{template "header"}}
+
+<div id="container">
+    <table id="grid-table"></table>
+    <div id="grid-table-pager"></div>
+    <div style="display:none;" id="dialog-confirm" title="Смена пароля">
+    <!--<p><span class="ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>Are you sure want send this names:</p><p><span id="names"></span></p>-->
+        <form>
+            <label for="password-1">Пароль</label><br/>
+            <input type="password" id="password-1" name="password-1"/><br/>
+            <label for="password-2">Пароль</label><br/>
+            <input type="password" id="password-2" name="password-2"/><br/>
+        </form>
+    </div>
+    <div id="error"></div>
+</div>
+
+<script type="text/javascript">
+    $("#logout-btn, #cabinet-btn").css("visibility", "visible");
+
+    var valid = false;
+
+    $("#password-1").blur(function() {
+        var pattern = /^.{6,36}$/;
+        if (pattern.test($(this).val())){
+            $(this).css({"border": "2px solid green"});
+        } else {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+        }
+    });
+
+    $("#password-2").blur(function() {
+        var pattern = /^.{6,36}$/;
+        if (pattern.test($(this).val()) && $(this).val() === $("#password-1").val()){
+            valid = true;
+            $(this).css({"border": "2px solid green"});
+        } else {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+        }
+    });
+
+    var add       = true;
+    var captions  = ["teams", "persons", "forms", "event_types", "events"];
+    var sameDate  = ["date_start", "date_end", "reg_date", "last_date"];
+    var jsData    = "[";
+    var refData   = {};
+    var Columns   = "{{.Columns}}".slice(1, -1).split(" ");
+    var colNames_ = "{{.ColNames}}".slice(1, -1).split(" ");
+    var refFields = "{{.RefFields}}".slice(1, -1).split(" ");
+    var tableName = "{{.TableName}}";
+    var colModel_ = [];
+
+    var existsOrNot  = false;
+
+    if ($.inArray("{{.TableName}}", captions) > -1) {
+        existsOrNot = true;
+    }
+
+    if ("{{.TableName}}" == "users") {
+        add = false;
+    }
+
+    function GetColModelItem(refData, refFields, v2) {
+        var data = {};
+        function datePicker(e) {$(e).datepicker({"dateFormat": "yy-mm-dd"});}
+        function timePicker(e) {$(e).timepicker({"timeFormat": "hh:mm"});}
+        data["name"] = v2;
+        data["index"] = v2;
+        data["editable"] = true;
+        if (v2 == "id") {
+            data["editable"] = false;
+
+        } else if ($.inArray(v2, sameDate) > -1) {
+            data["formatter"] = "date";
+            data["formatoptions"] = {"srcformat": 'Y-m-d', "newformat": 'Y-m-d',},
+            data["editoptions"] = {dataInit: datePicker};
+
+        } else if (v2 == "time") {
+            data["formatter"] = "date";
+            data["editrules"] = {"time": true};
+            data["formatoptions"] = {srcformat: "ISO8601Long", newformat: "ShortTime"},
+            data["editoptions"] = {dataInit: timePicker};
+
+        } else if (v2 == "topicality") {
+            data["formatter"] = "checkbox";
+            data["edittype"] = "checkbox";
+            data["editoptions"] = {value: "true:false"};
+            data["formatoptions"] = {"disabled": true};
+
+        } else if (v2 == "url") {
+            data["formatter"] = "link";
+            //data["formatoptions"] = {target: ‘_blank’};
+        }
+
+        if (refData[v2] != null) {
+            data["formatter"] = "select";
+            data["edittype"] = "select";
+            data["stype"] = "select";
+            data["search"] = true;
+            var str = "";
+            var f;
+            for (var i = 0; i < refData[v2].length; ++i) {
+                for (var k = 0; k < refFields.length; ++k) {
+                    if (refFields[k] in refData[v2][i]) {
+                        f = refFields[k];
+                    }
+                }
+                str += refData[v2][i]["id"]+":"+refData[v2][i][f]+";";
+            }
+            data["editoptions"] = {};
+            data["searchoptions"] = {};
+            data["editoptions"]["value"] = str.slice(0, -1);
+            data["searchoptions"]["value"] = ":Все;"+str.slice(0, -1);
+        }
+        return data;
+    }
+</script>
+
+<!-- refData init ------------------------------------------------------------>
+{{with .RefData}}
+    {{range $index, $elmt := .}}
+        <script>refData["{{$index}}"] = [];</script>
+        {{range $i, $v := $elmt}}
+            <script>refData["{{$index}}"][{{$i}}] = {};</script>
+            {{range $j, $k := $v}}
+                <script>refData["{{$index}}"][{{$i}}]["{{$j}}"] = "{{$k}}";</script>
+            {{end}}
+        {{end}}
+    {{end}}
+{{end}}
+<!-- end refData init -------------------------------------------------------->
+
+<!-- colModel_ init ---------------------------------------------------------->
+{{with .Columns}}
+    {{range $i, $v := .}}
+        <script type="text/javascript">
+            colModel_.push(GetColModelItem(refData, refFields, "{{$v}}"))
+        </script>
+    {{end}}
+{{end}}
+<!-- end colModel_ init ------------------------------------------------------>
+
+<!-- jsData init ------------------------------------------------------------->
+{{with .Table}}
+    {{range $index, $elmt := .}}
+        <script type="text/javascript">
+            jsData += "{";
+        </script>
+        {{range $i, $v := $elmt}}
+            <script>jsData += '"' + "{{$i}}" + '"' + ":" + '"' + "{{$v}}" + '"' + ",";</script>
+        {{end}}
+        <script type="text/javascript">
+            jsData = jsData.slice(0, jsData.length-1) + "},";
+        </script>
+    {{end}}
+    <script type="text/javascript">
+        jsData = jsData.slice(0, jsData.length-1) + "]";
+    </script>
+{{end}}
+<!-- end jsData init ---------------------------------------------------------->
+
+<script type="text/javascript">
+require(["utils"],
+function(utils) {
+    //var id_;
+
+
+
+    console.log("refData");
+    console.log(refData);
+    console.log("colModel");
+    console.log(colModel_);
+    if (jsData.length == 1) {//empty table
+        jsData += "]";
+    }
+    console.log("jsData");
+    console.log(jsData);
+    $(document).ready(function() {
+        $("#grid-table").jqGrid({
+            datatype:      "local",
+            data:          JSON.parse(jsData),
+            mtype:         "POST",
+            treeGrid:      false,
+            colNames:      colNames_,
+            colModel:      colModel_,
+            pager:         $("#grid-table-pager"),
+            //gridview:      true,
+            //sortname:      "invdate",
+            viewrecords:   true,
+            height:        "100%",
+            rowNum:        5,
+            rownumbers:    true,
+            rownumWidth:   20,
+            rowList:       [5, 10, 20, 50],
+            caption:       "{{.Caption}}",
+            sortname:      "id",
+            //sortorder:     "asc",
+            multiselect:   true,
+            ondblClickRow: function(id) {
+                                //id_ = id;
+                                $("#grid-table").restoreRow(id);
+                                $("#grid-table").editRow(id, true);
+                           },
+            editurl:       "/handler/edit/" + "{{.TableName}}",
+
+            subGrid:            existsOrNot,
+            subGridOptions:     {
+                                    "plusicon":       "ui-icon-triangle-1-e",
+                                    "minusicon":      "ui-icon-triangle-1-s",
+                                    "openicon":       "ui-icon-arrowreturn-1-e",
+                                    "reloadOnExpand": true,
+                                    "selectOnExpand": true
+                                },
+            subGridRowExpanded: function(subgrid_id, row_id) {
+                                    AddSubTable(subgrid_id, row_id, "0", subgrid_id + "_t", "p_" + subgrid_id + "_t");
+                                    if (tableName == "event_types") {
+                                        AddSubTable(subgrid_id, row_id, "1", subgrid_id + "_tt", "pp_" + subgrid_id + "_tt");
+                                    }
+                                }
+        });
+
+        $("#grid-table").navGrid(
+            "#grid-table-pager",
+            {
+                edit:    true,
+                add:     add,
+                del:     true,
+                refresh: false,
+                view:    false,
+                search:  false
+            },
+            {   //edit
+                viewPagerButtons:   false,
+                closeAfterEdit:     true,
+                afterSubmit:        function(response, postdata) {
+                                        window.location.reload();
+                                        return [true, "", response.responseText];
+                                    },
+                width:              "auto",
+                height:             "auto"
+            },
+            {   //add
+                viewPagerButtons:   false,
+                clearAfterAdd:      true,
+                closeAfterAdd:      true,
+                addedrow:           "last",
+                afterSubmit:        function(response, postdata) {
+                                        window.location.reload();
+                                        return [true, "", response.responseText];
+                                    },
+                width:              "auto",
+                height:             "auto"
+            },
+            {   //del
+                closeAfterAdd:      true,
+                viewPagerButtons:   false,
+                width:              "auto",
+                height:             "auto"
+            }
+        );
+
+        $("#grid-table").jqGrid (
+            "navButtonAdd",
+            "#grid-table-pager",
+            {
+                caption: "", buttonicon: "ui-icon-calculator", title: "Выбор колонк",
+                onClickButton: function() {
+                    $("#grid-table").jqGrid("columnChooser", {
+                        done: function(perm) {
+                            if (perm) {
+                                $("#grid-table").jqGrid("remapColumns", perm, true);
+                            }
+                        }
+                    });
+                }
+            }
+        );
+
+        if (tableName == "users") {
+            $("#grid-table").jqGrid (
+                "navButtonAdd",
+                "#grid-table-pager",
+                {
+                    caption: "", buttonicon: "ui-icon-key", title: "Смена пароля",
+                    onClickButton: function() {
+                        var id = $("#grid-table").jqGrid("getGridParam", "selarrrow");
+                        alert(id);
+                        if (id.length > 1) {
+                            $("#error").empty();
+                            $("#error").append("<strong>Выделено несколько записей.</strong>");
+                            $("#error").dialog({
+                                model: true,
+                                buttons: {
+                                    "Закрыть": function() {
+                                        $(this).dialog("close");
+                                    }
+                                }
+                            });
+                            return false;
+                        }
+
+						$("#password-1, #password-2").val("");
+                        $("#dialog-confirm").dialog({
+                            modal:   true,
+                            toTop: "150",
+                            buttons: {
+                                "Сохранить": function() {
+                                    if (valid) {
+                                        utils.postRequest(
+                                            {
+                                                "action": "change-pass",
+                                                "pass": $("#password-1").val(),
+                                                "id": id[0]
+                                            },
+                                            function() {},
+                                            "/handler"
+                                        );
+                                        $(this).dialog("close");
+                                    } else {
+                                        $("#error").empty();
+                                        $("#error").append("<strong>Значения не совпадают.</strong>");
+                                        $("#error").dialog({
+                                            model: true,
+                                            buttons: {
+                                                "Закрыть": function() {
+                                                    $(this).dialog("close");
+                                                }
+                                            }
+                                        });
+                                    }
+                                },
+                                "Отмена": function() {
+                                    $(this).dialog("close");
+                                },
+                            }
+                        });
+                    }
+                }
+            );
+        }
+
+        $("#grid-table").jqGrid(
+            "filterToolbar",
+            {
+                stringResult:  true,
+                searchOnEnter: false,
+                defaultSearch: "cn"
+            }
+        );
+
+        $(window).bind("resize", function() {
+            $("#grid-table").setGridWidth($(window).width()-50);
+        }).trigger("resize");
+
+        function AddSubTable(subgrid_id, row_id, index, subgrid_table_id, pager_id) {
+
+            var subTableCaption = "";
+            var subTableName    = "";
+            var subColNames     = [];
+            var subColModel     = [];
+            var subData         = [];
+            var subColumns      = [];
+            var subRefData      = [];
+
+            $("#" + subgrid_id).append(
+                "<table id='" +
+                subgrid_table_id +
+                "' class='scroll'></table><div id='" +
+                pager_id +
+                "' class='scroll'></div></br>"
+            );
+
+            function collbackSUB(data) {
+                subTableCaption = data["caption"]
+                subTableName    = data["name"];
+                subColNames     = data["colnames"];
+                subColumns      = data["columns"];
+                subData         = data["data"];
+                subRefData      = data["refdata"];
+                subRefFields    = data["reffields"]
+            }
+
+            utils.postRequest(
+                {
+                    "action": "getsubgrid",
+                    "table": tableName,
+                    "id": row_id,
+                    "index": index
+                },
+                collbackSUB,
+                "/handler"
+            );
+
+            for (var i = 0; i < subColumns.length; ++i) {
+                subColModel.push(GetColModelItem(subRefData, subRefFields, subColumns[i]));
+            }
+
+            $("#" + subgrid_table_id).jqGrid({
+                datatype:   "local",
+                data:        subData,
+                colNames:    subColNames,
+                colModel:    subColModel,
+                rowNum:      5,
+                rowList:     [5, 10, 20, 50],
+                pager:       pager_id,
+                caption:     subTableCaption,
+                sortname:    "num",
+                sortorder:   "asc",
+                height:      '100%',
+                multiselect: true,
+                editurl:     "/handler/edit/" + subTableName,
+            });
+
+            if (tableName == "event_types") {
+
+            }
+
+            $("#" + subgrid_table_id).navGrid(
+                "#" + pager_id,
+                {
+                    edit:    true,    //edittext:   "Редактировать",
+                    add:     true,    //addtext:    "Создать",
+                    del:     true,    //deltext:    "Удалить",
+                    refresh: false,
+                    view:    false,
+                    search:  false
+                },
+                {   //edit
+                    viewPagerButtons:   false,
+                    closeAfterEdit:     true,
+                    afterSubmit:        function(response, postdata) {
+                                            window.location.reload();
+                                            return [true, "", response.responseText];
+                                        }
+                    
+                },
+                {   //add
+                    viewPagerButtons:   false,
+                    clearAfterAdd:      true,
+                    closeAfterAdd:      true,
+                    addedrow:           "last",
+                    afterSubmit:        function(response, postdata) {
+                                            window.location.reload();
+                                            return [true, "", response.responseText];
+                                        }
+                },
+                {   //del
+                    closeAfterAdd:      true,
+                    viewPagerButtons:   false
+                }
+            );
+
+            $("#" + subgrid_table_id).jqGrid (
+                "navButtonAdd",
+                "#" + pager_id,
+                {
+                    caption: "", buttonicon: "ui-icon-calculator", title: "Выбрать колонки",
+                    onClickButton: function() {
+                        $("#"+subgrid_table_id).jqGrid("columnChooser", {
+                            done: function(perm) {
+                                if (perm) {
+                                    $("#" + subgrid_table_id).jqGrid("remapColumns", perm, true);
+                                }
+                            }
+                        });
+                    }
+                }
+            );
+
+            $("#" + subgrid_table_id).jqGrid(
+                "filterToolbar",
+                {
+                    stringResult:  true,
+                    searchOnEnter: false,
+                    defaultSearch: "cn"
+                }
+            );
+
+        }
+
+    });
+})
+</script>
+
+{{template "footer"}}
+{{end}}

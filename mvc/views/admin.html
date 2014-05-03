@@ -1,0 +1,30 @@
+﻿{{define "admin"}}
+{{template "header"}}
+
+<div id="container">
+    <div id="title" class="left"></div><br/>
+    <div id="cabinet" class="left"></div>
+</div>
+
+<script type="text/javascript">
+
+    $("#title").append("Личный кабинет " + "<strong>admin</strong>");
+    $("#logout-btn, #cabinet-btn").css("visibility", "visible");
+    $("#cabinet").empty();
+
+    var columns = "{{.Columns}}".slice(1, -1).split(" ");
+    var colNames = "{{.ColNames}}".slice(1, -1).split(" ");
+
+    for (var i = 0; i < columns.length; ++i) {
+        $("<a/>", {
+            class: "a-list",
+            text: colNames[i],
+            id: columns[i],
+            href: "/handler/select/" + columns[i]
+        }).appendTo("#cabinet");
+    }
+
+</script>
+
+{{template "footer"}}
+{{end}}
