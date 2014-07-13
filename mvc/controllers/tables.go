@@ -1,15 +1,15 @@
 package controllers
 
 import (
-	//"fmt"
+	"fmt"
+	"encoding/json"
 	"github.com/orc/db"
 	"github.com/orc/mvc/models"
 	"github.com/orc/sessions"
 	"github.com/orc/utils"
+	"html/template"
 	"strconv"
 	"strings"
-	"text/template"
-	//"time"
 )
 
 type Model struct {
@@ -24,10 +24,10 @@ type Model struct {
 }
 
 type A struct {
-	E []interface{}
-	T []interface{}
-	F []interface{}
-	P []interface{}
+	E []interface{} //events
+	T []interface{} //event_types
+	F []interface{} //forms
+	P []interface{} //params
 }
 
 func GetModel(tableName string) models.Entity {
@@ -75,47 +75,47 @@ func GetModel(tableName string) models.Entity {
 }
 
 func (this *Handler) ShowCabinet(tableName string) {
-	flag := sessions.CheackSession(this.Response, this.Request)
-	if !flag {
+	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
 
 	login := sessions.GetValue("name", this.Request)
 
 	table := GetModel("users")
-	data, _ := table.Select([]string{"login", login}, []string{"role"})
+	data, _ := table.Select([]string{"login", login}, "", []string{"role", "person_id"})
 
 	role := data[0].(map[string]interface{})["role"].(string)
+	person_id := data[0].(map[string]interface{})["person_id"].(int64)
 
 	var model Model
 	if role == "admin" {
 		model = Model{Columns: db.Tables, ColNames: db.TableNames}
 	} else if role == "user" {
-		model = Model{Caption: login}
+		m := GetModel("persons")
+		data, _ := m.Select([]string{"id", strconv.Itoa(int(person_id))}, "", m.Columns)
+		model = Model{Caption: login, Table: data, Columns: m.Columns, ColNames: m.ColNames}
 	}
 
 	tmp, err := template.ParseFiles(
 		"mvc/views/"+role+".html",
 		"mvc/views/header.html",
 		"mvc/views/footer.html")
-	utils.HandleErr("[Handler.ShowCabinet] ParseFiles: ", err)
+	utils.HandleErr("[Handler.ShowCabinet] ParseFiles: ", err, nil)
 	err = tmp.ExecuteTemplate(this.Response, role, model)
-	utils.HandleErr("[Handler.ShowCabinet] Execute: ", err)
+	utils.HandleErr("[Handler.ShowCabinet] Execute: ", err, nil)
 }
 
 func (this *Handler) Select(tableName string) {
-	flag := sessions.CheackSession(this.Response, this.Request)
-	if !flag {
+	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
 	model := GetModel(tableName)
-	//fmt.Println(tableName)
-	answer, refdata := model.Select(nil, model.Columns)
+	answer, refdata := model.Select(nil, "", model.Columns)
 	tmp, err := template.ParseFiles(
 		"mvc/views/table.html",
 		"mvc/views/header.html",
 		"mvc/views/footer.html")
-	utils.HandleErr("[Handler.Select] template.ParseFiles: ", err)
+	utils.HandleErr("[Handler.Select] template.ParseFiles: ", err, nil)
 	err = tmp.ExecuteTemplate(this.Response, "table", Model{
 		Table:     answer,
 		RefData:   refdata,
@@ -124,12 +124,12 @@ func (this *Handler) Select(tableName string) {
 		ColNames:  model.ColNames,
 		Columns:   model.Columns,
 		Caption:   model.Caption})
-	utils.HandleErr("[Handler.Select] tmp.Execute: ", err)
+	utils.HandleErr("[Handler.Select] tmp.Execute: ", err, nil)
+	fmt.Println(answer)
 }
 
 func (this *Handler) Edit(tableName string) {
-	flag := sessions.CheackSession(this.Response, this.Request)
-	if !flag {
+	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
 	var i int
@@ -144,7 +144,7 @@ func (this *Handler) Edit(tableName string) {
 			params[i] = this.Request.FormValue(model.Columns[i+1])
 		}
 	}
-	//fmt.Println("params: ", params)
+
 	switch oper {
 	case "edit":
 		params = append(params, this.Request.FormValue("id"))
@@ -164,14 +164,13 @@ func (this *Handler) Edit(tableName string) {
 	}
 }
 
-func (this *Handler) Show(tableName, id string) {
-	//fmt.Println("Show id: ", id)
+func MegoJoin(tableName, id string) A {
 	var E []interface{}
 	var T []interface{}
 	var F []interface{}
 	var P []interface{}
 
-	E = db.Select("events", []string{"id", id}, []string{"id", "name"})
+	E = db.Select("events", []string{"id", id}, "", []string{"id", "name"})
 
 	q := db.InnerJoin(
 		[]string{"id", "name"},
@@ -183,13 +182,12 @@ func (this *Handler) Show(tableName, id string) {
 		[]string{"e", "t"},
 		[]string{"id", "id"},
 		"where e.id=$1")
-	//d, _ := strconv.Atoi(id)
+
 	rows := db.Query(q, []interface{}{id})
 	rowsInf := db.Exec(q, []interface{}{id})
 	l, _ := rowsInf.RowsAffected()
 	c, _ := rows.Columns()
 	T = db.ConvertData(c, l, rows)
-	//fmt.Println("T: ", T)
 
 	for i := 0; i < len(T); i++ {
 		item := T[i]
@@ -212,7 +210,6 @@ func (this *Handler) Show(tableName, id string) {
 		c, _ := rows.Columns()
 		F = append(F, db.ConvertData(c, l, rows))
 	}
-	//fmt.Println("F: ", F)
 
 	for i := 0; i < len(F); i++ {
 		I := F[i]
@@ -240,12 +237,22 @@ func (this *Handler) Show(tableName, id string) {
 		}
 		P = append(P, PP)
 	}
-	//fmt.Println("P: ", P)
+	return A{E: E, T: T, F: F, P: P}
+}
+
+func (this *Handler) Show(tableName, id string) {
+	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+		return
+	}
 	tmp, err := template.ParseFiles(
 		"mvc/views/item.html",
 		"mvc/views/header.html",
 		"mvc/views/footer.html")
-	utils.HandleErr("[Handler.Select] template.ParseFiles: ", err)
-	err = tmp.ExecuteTemplate(this.Response, "item", A{E: E, T: T, F: F, P: P})
-	utils.HandleErr("[Handler.Select] tmp.Execute: ", err)
+	utils.HandleErr("[Handler.Show] template.ParseFiles: ", err, nil)
+
+	a, err := json.Marshal(MegoJoin(tableName, id))
+	utils.HandleErr("[Handler.Show] template.json.Marshal: ", err, nil)
+
+	err = tmp.ExecuteTemplate(this.Response, "item", template.JS(a))
+	utils.HandleErr("[Handler.Show] tmp.Execute: ", err, nil)
 }

@@ -1,5 +1,7 @@
-require(["auth", "utils"],
+﻿require(["auth", "utils"],
 function(auth, utils) {
+
+    var valid = false;
 
     $(document).ready(function() {
 
@@ -19,17 +21,22 @@ function(auth, utils) {
             {
                 "action": "select",
                 "table": "events",
-                "fields": ["id", "name"],
-                "count": "2"
+                "fields": ["id", "name"]
             },
             listEvents,
             "/handler"
         );
 
+        utils.areAlive();
+
     });
 
     $("#register-btn").click(function() {
-        auth.jsonHandle("register", auth.registerCallback);
+        if (valid == true) {
+            auth.jsonHandle("register", auth.registerCallback);
+        } else {
+            $("#server-answer").text("Не все поля заполнены.").css("color", "red");
+        }
     });
 
     $("#login-btn").click(function() {
@@ -48,7 +55,19 @@ function(auth, utils) {
         location.href = "/";
     });
 
+    $("#fname, #lname, #pname").blur(function() {
+        //if ($("#fname").val() != "" && $("#lname").val() != "" && $("#pname").val() != ""){
+        if ($(this).val() != ""){
+            valid = true;
+            $(this).css({"border": "2px solid green"});
+        } else {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+        }
+    });
+
     function listEvents(data) {
+    console.log(data);
         var d = data["data"];
         for (i in d) {
             var p = $("</p>", {});

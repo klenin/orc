@@ -15,12 +15,29 @@ define(function() {
             },
             error: function(ajaxRequest, ajaxOptions, thrownError) {
                 console.log(thrownError);
+                console.log(ajaxOptions);
+                console.log(ajaxRequest);
             }
         });
     };
 
+    function areAlive() {
+        postRequest(
+            {
+                "action": "are-alive",
+            },
+            function(data) {
+                if (data) {
+                    $("#logout-btn, #cabinet-btn").css("visibility", "visible");
+                }
+            },
+            "/handler"
+        );
+    }
+
     return {
-        postRequest: postRequest
+        postRequest: postRequest,
+        areAlive: areAlive
     };
 
 });

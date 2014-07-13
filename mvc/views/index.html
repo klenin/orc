@@ -16,8 +16,8 @@ $(document).ready(function(){
 <div id="wrap">
     <ul id="navigation">
         <li><a href="#" class="active">О системе</a></li>
-        <li><a href="#">Пользователь</a></li>
-        <li><a href="#">Команда</a></li>
+        <li><a href="#">Вход</a></li>
+        <li><a href="#">Регистрация</a></li>
     </ul>
 
     <div id="content">
@@ -32,25 +32,37 @@ $(document).ready(function(){
 
         <div id="tab2">
             <form>
-                <label for="username">Логин</label><br/>
-                <input type="text" id="username" name="login"/><br/>
-                <label for="password">Пароль</label><br/>
-                <input type="password" id="password" name="password"/><br/>
-                <input type="button" value="регистрация" id="register-btn" name="submit"/>
+                <label for="username">Логин</label>
+                <input type="text" id="username" name="login"/>
+
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password"/>
+<br/>
                 <input type="button" value="вход" id="login-btn" name="submit"/>
             </form>
         </div>
 
         <div id="tab3">
             <form>
-                <label for="username">Логин</label><br/>
-                <input type="text" id="username" name="login"/><br/>
-                <label for="password">Пароль</label><br/>
-                <input type="password" id="password" name="password"/><br/>
+                <label for="fname">Фамилия</label>
+                <input type="text" id="fname" name="login"/>
+
+                <label for="lname">Имя</label>
+                <input type="text" id="lname" name="login"/>
+
+                <label for="pname">Отчество</label>
+                <input type="text" id="pname" name="login"/>
+
+                <label for="username">Логин</label>
+                <input type="text" id="username" name="login"/>
+
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password"/>
+<br/>
                 <input type="button" value="регистрация" id="register-btn" name="submit"/>
-                <input type="button" value="вход" id="login-btn" name="submit"/>
-            </form>    
+            </form>
         </div>
+
     </div>
 
     <div id="server-answer"></div>

@@ -25,11 +25,11 @@ func (c *ModelManager) EventsTypes() *EventsTypesModel {
 	model.RefFields = []string{"name"}
 	model.RefData = make(map[string]interface{}, 2)
 
-	result := db.Select("events", nil, []string{"id", "name"})
+	result := db.Select("events", nil, "", []string{"id", "name"})
 	model.RefData["event_id"] = make([]interface{}, len(result))
 	model.RefData["event_id"] = result
 
-	result = db.Select("event_types", nil, []string{"id", "name"})
+	result = db.Select("event_types", nil, "", []string{"id", "name"})
 	model.RefData["type_id"] = make([]interface{}, len(result))
 	model.RefData["type_id"] = result
 

@@ -2,16 +2,98 @@
 {{template "header"}}
 
 <div id="container">
-    <div id="title" class="left"></div><br/>
-    <div id="cabinet" class="left"></div>
+    <h3 id="title" class="left"></h3>
+    <div id="server-answer"></div>
+    </br>
+    </br>
+    </br>
+    </br>
+    <div id="cabinet" class="left">
+        <form></form>
+    </div>
 </div>
 
 <script type="text/javascript">
 
     $("#title").append("Личный кабинет " + "<strong>{{.Caption}}</strong>");
-    $("#logout-btn, #cabinet-btn").css("visibility", "visible");
-    $("#cabinet").empty();
+    $("#cabinet, #logout-btn, #cabinet-btn").css("visibility", "visible");
 
+    var valid = false;
+    var columns = "{{.Columns}}".slice(1, -1).split(" ");
+    var colNames = "{{.ColNames}}".slice(1, -1).split(" ");
+    var data = {};
+    console.log(data);
+
+    function getFormData() {
+        var result = $("form").serializeArray();
+        return result;
+    }
+
+</script>
+<script>
+data = {
+<!-- data init ------------------------------------------------------------>
+{{with .Table}}
+    {{range $index, $elmt := .}}
+        {{range $i, $v := $elmt}}
+            "{{$i}}": "{{$v}}",
+        {{end}}
+    {{end}}
+{{end}}
+}
+</script>
+<!-- end data init -------------------------------------------------------->
+
+<script type="text/javascript">
+require(["utils"],
+function(utils) {
+    var id = data["id"];
+    console.log(data);
+    for (var i = 1; i < columns.length; ++i) {
+        var lable = $("<label/>", {
+            for: columns[i],
+            id: "label-" + columns[i],
+            text: colNames[i]
+        });
+        var input = $("<input/>", {
+                id: columns[i],
+                name: columns[i],
+        }).val(data[columns[i]]);
+        $("#cabinet form").append(lable).append(input);
+        $("#" + columns[i]).blur(function() {
+            if ($(this).val() != ""){
+                valid = true;
+                $(this).css({"border": "2px solid green"});
+            } else {
+                valid = false;
+                $(this).css({"border": "2px solid red"});
+            }
+        });
+    }
+
+    $("</br>").appendTo("#cabinet form");
+    $("<input/>", {
+        id: "save-btn",
+        name: "submit",
+        type: "button",
+        value: "Сохранить изменения",
+    }).appendTo("#cabinet form");
+
+    $("#save-btn").click(function() {
+        var data = getFormData();
+        utils.postRequest({
+                "action": "update",
+                "table": "persons",
+                //"fields": columns.slice(1),
+                //"count": "3",
+                "id": id,
+                "data": data
+            }, function() {
+                $("#cabinet").css("visibility", "hidden");
+                $("#server-answer").text("Изменения сохранены.").css("color", "green");
+            }, "/handler");
+    });
+});
 </script>
 
 {{template "footer"}}

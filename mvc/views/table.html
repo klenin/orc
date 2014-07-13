@@ -4,15 +4,18 @@
 <div id="container">
     <table id="grid-table"></table>
     <div id="grid-table-pager"></div>
+
     <div style="display:none;" id="dialog-confirm" title="Смена пароля">
-    <!--<p><span class="ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>Are you sure want send this names:</p><p><span id="names"></span></p>-->
+
         <form>
             <label for="password-1">Пароль</label><br/>
             <input type="password" id="password-1" name="password-1"/><br/>
             <label for="password-2">Пароль</label><br/>
             <input type="password" id="password-2" name="password-2"/><br/>
         </form>
+
     </div>
+
     <div id="error"></div>
 </div>
 
@@ -101,6 +104,7 @@
             data["stype"] = "select";
             data["search"] = true;
             var str = "";
+//            var str = "-1 : ;";
             var f;
             for (var i = 0; i < refData[v2].length; ++i) {
                 for (var k = 0; k < refFields.length; ++k) {
@@ -165,20 +169,19 @@
 <script type="text/javascript">
 require(["utils"],
 function(utils) {
-    //var id_;
-
-
-
-    console.log("refData");
-    console.log(refData);
-    console.log("colModel");
-    console.log(colModel_);
+    console.log(jsData);
+    //console.log("refData");
+    //console.log(refData);
+    //console.log("colModel");
+    //console.log(colModel_);
     if (jsData.length == 1) {//empty table
         jsData += "]";
     }
     console.log("jsData");
     console.log(jsData);
     $(document).ready(function() {
+        utils.areAlive();
+
         $("#grid-table").jqGrid({
             datatype:      "local",
             data:          JSON.parse(jsData),
@@ -187,20 +190,20 @@ function(utils) {
             colNames:      colNames_,
             colModel:      colModel_,
             pager:         $("#grid-table-pager"),
-            //gridview:      true,
-            //sortname:      "invdate",
+            gridview:      true,
+            sortname:      "invdate",
             viewrecords:   true,
             height:        "100%",
+            /*width:         "auto",*/
             rowNum:        5,
             rownumbers:    true,
             rownumWidth:   20,
             rowList:       [5, 10, 20, 50],
             caption:       "{{.Caption}}",
             sortname:      "id",
-            //sortorder:     "asc",
+            sortorder:     "asc",
             multiselect:   true,
             ondblClickRow: function(id) {
-                                //id_ = id;
                                 $("#grid-table").restoreRow(id);
                                 $("#grid-table").editRow(id, true);
                            },
@@ -239,8 +242,6 @@ function(utils) {
                                         window.location.reload();
                                         return [true, "", response.responseText];
                                     },
-                width:              "auto",
-                height:             "auto"
             },
             {   //add
                 viewPagerButtons:   false,
@@ -251,18 +252,14 @@ function(utils) {
                                         window.location.reload();
                                         return [true, "", response.responseText];
                                     },
-                width:              "auto",
-                height:             "auto"
             },
             {   //del
                 closeAfterAdd:      true,
                 viewPagerButtons:   false,
-                width:              "auto",
-                height:             "auto"
             }
         );
 
-        $("#grid-table").jqGrid (
+/*        $("#grid-table").jqGrid (
             "navButtonAdd",
             "#grid-table-pager",
             {
@@ -270,6 +267,7 @@ function(utils) {
                 onClickButton: function() {
                     $("#grid-table").jqGrid("columnChooser", {
                         done: function(perm) {
+                            $("#grid-table").trigger("resize");
                             if (perm) {
                                 $("#grid-table").jqGrid("remapColumns", perm, true);
                             }
@@ -278,7 +276,7 @@ function(utils) {
                 }
             }
         );
-
+*/
         if (tableName == "users") {
             $("#grid-table").jqGrid (
                 "navButtonAdd",
@@ -302,9 +300,9 @@ function(utils) {
                             return false;
                         }
 
-						$("#password-1, #password-2").val("");
+                        $("#password-1, #password-2").val("");
                         $("#dialog-confirm").dialog({
-                            modal:   true,
+                            modal: true,
                             toTop: "150",
                             buttons: {
                                 "Сохранить": function() {
@@ -351,9 +349,16 @@ function(utils) {
             }
         );
 
+        $("#grid-table-pager").css ("height", 35); 
+
         $(window).bind("resize", function() {
-            $("#grid-table").setGridWidth($(window).width()-50);
+            $("#grid-table").setGridWidth($(window).width()-50, true);
         }).trigger("resize");
+
+
+$(window).resize(function(){
+    $('#grid-table').jqGrid('setGridHeight',$(window).innerHeight());
+});
 
         function AddSubTable(subgrid_id, row_id, index, subgrid_table_id, pager_id) {
 
@@ -453,7 +458,9 @@ function(utils) {
                 }
             );
 
-            $("#" + subgrid_table_id).jqGrid (
+            $("#" + pager_id).css ("height", 35); 
+
+/*            $("#" + subgrid_table_id).jqGrid (
                 "navButtonAdd",
                 "#" + pager_id,
                 {
@@ -469,7 +476,7 @@ function(utils) {
                     }
                 }
             );
-
+*/
             $("#" + subgrid_table_id).jqGrid(
                 "filterToolbar",
                 {

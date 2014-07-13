@@ -2,8 +2,8 @@ package models
 
 import "github.com/orc/db"
 
-func (c *ModelManager) Users() *UserModel {
-	model := new(UserModel)
+func (c *ModelManager) Users() *UsersModel {
+	model := new(UsersModel)
 
 	model.TableName = "users"
 	model.Caption = "Пользователи"
@@ -26,7 +26,7 @@ func (c *ModelManager) Users() *UserModel {
 	model.RefFields = []string{"fname"}
 	model.RefData = make(map[string]interface{}, 1)
 
-	result := db.Select("persons", nil, []string{"id", "fname"})
+	result := db.Select("persons", nil, "", []string{"id", "fname"})
 	model.RefData["person_id"] = make([]interface{}, len(result))
 	model.RefData["person_id"] = result
 
@@ -37,6 +37,6 @@ func (c *ModelManager) Users() *UserModel {
 	return model
 }
 
-type UserModel struct {
+type UsersModel struct {
 	Entity
 }

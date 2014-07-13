@@ -26,11 +26,11 @@ func (c *ModelManager) FormsTypes() *FormsTypesModel {
 	model.RefFields = []string{"name"}
 	model.RefData = make(map[string]interface{}, 2)
 
-	result := db.Select("forms", nil, []string{"id", "name"})
+	result := db.Select("forms", nil, "", []string{"id", "name"})
 	model.RefData["form_id"] = make([]interface{}, len(result))
 	model.RefData["form_id"] = result
 
-	result = db.Select("event_types", nil, []string{"id", "name"})
+	result = db.Select("event_types", nil, "", []string{"id", "name"})
 	model.RefData["type_id"] = make([]interface{}, len(result))
 	model.RefData["type_id"] = result
 

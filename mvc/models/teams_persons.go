@@ -25,11 +25,11 @@ func (c *ModelManager) TeamsPersons() *TeamsPersonsModel {
 	model.RefFields = []string{"name", "fname"}
 	model.RefData = make(map[string]interface{}, 2)
 
-	result := db.Select("teams", nil, []string{"id", "name"})
+	result := db.Select("teams", nil, "", []string{"id", "name"})
 	model.RefData["team_id"] = make([]interface{}, len(result))
 	model.RefData["team_id"] = result
 
-	result = db.Select("persons", nil, []string{"id", "fname"})
+	result = db.Select("persons", nil, "", []string{"id", "fname"})
 	model.RefData["person_id"] = make([]interface{}, len(result))
 	model.RefData["person_id"] = result
 

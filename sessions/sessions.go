@@ -13,8 +13,9 @@ var CookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32))
 
-func SetSession(login string, response http.ResponseWriter) {
+func SetSession(id, login string, response http.ResponseWriter) {
 	value := map[string]string{
+		"id":   id,
 		"name": login,
 		"time": strconv.Itoa(int(time.Now().Unix()) + 900),
 	}
@@ -34,13 +35,12 @@ func GetValue(field string, request *http.Request) string {
 	if cookie, err := request.Cookie("session"); err == nil {
 		cookieValue := make(map[string]string)
 		if err = CookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
-			//fmt.Println("get val: ", cookieValue[field])
 			value = cookieValue[field]
 		} else {
-			fmt.Println("get val: WTF2: ", err)
+			fmt.Println(err)
 		}
 	} else {
-		fmt.Println("get val: WTF1: ", err)
+		fmt.Println(err)
 	}
 	return value
 }
@@ -50,7 +50,11 @@ func SetValue(field, value string, request *http.Request) {
 		cookieValue := make(map[string]string)
 		if err = CookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
 			cookieValue[field] = value
+		} else {
+			fmt.Println(err)
 		}
+	} else {
+		fmt.Println(err)
 	}
 }
 
@@ -72,7 +76,7 @@ func CheackSession(response http.ResponseWriter, request *http.Request) bool {
 		return false
 	} else {
 		oldTime, err := strconv.Atoi(t)
-		utils.HandleErr("CheackSession: ", err)
+		utils.HandleErr("CheackSession: ", err, nil)
 		newTime := int(time.Now().Unix())
 		if oldTime < newTime-900 {
 			ClearSession(response)

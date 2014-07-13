@@ -2,11 +2,11 @@ function kladr() {
     var token = '51dfe5d42fb2b43e3300006e';
     var key   = '86a2c2a06f1b2451a87d05512cc2c3edfdf41969';
 
-    var region   = $('[name="region"]');
-    var district = $('[name="district"]');
-    var city     = $('[name="city"]');
-    var street   = $('[name="street"]');
-    var building = $('[name="building"]');
+    var region   = $('[id="region"]');
+    var district = $('[id="district"]');
+    var city     = $('[id="city"]');
+    var street   = $('[id="street"]');
+    var building = $('[id="building"]');
 
     var tooltip  = $('.tooltip');
 

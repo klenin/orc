@@ -2,7 +2,6 @@ package router
 
 import (
 	"github.com/orc/mvc/controllers"
-	//"github.com/uas/session"
 	"net/http"
 	"reflect"
 	"strings"
@@ -28,11 +27,9 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	controller := FindController(controllerName)
-	//s, _ := session.NewManager(controllerName, 360)
 	if controller != nil {
 		controller.Elem().FieldByName("Request").Set(reflect.ValueOf(r))
 		controller.Elem().FieldByName("Response").Set(reflect.ValueOf(w))
-		//controller.Elem().FieldByName("Session").Set(reflect.ValueOf(s))
 		cType := controller.Type()
 		cMethod := FindMethod(cType, methodName)
 		if cMethod != nil {

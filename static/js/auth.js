@@ -7,8 +7,9 @@ function(utils) {
             $("#server-answer").text("Сервер не отвечает.").css("color", "red");
 
         } else if (data.result === "ok") {
-            //$("#server-answer").text("Регистрация прошла успешно.").css("color", "green");
-            jsonHandle("login", loginCallback);
+            $("#tab3 form").trigger("reset");
+            $("#server-answer").text("Регистрация прошла успешно.").css("color", "green");
+            //jsonHandle("login", loginCallback);
 
         } else if (data.result === "loginExists") {
             $("#server-answer").text("Такой логин уже существует.").css("color", "red");
@@ -28,9 +29,7 @@ function(utils) {
 
     function loginCallback(data) {
         if (data.result === "ok") {
-            //$("#container").css("visibility", "hidden");
-            //$("#wrap").css("hidden": "true");
-			$("#wrap").css("display", "none");
+            //$("#content, #navigation").css("display", "none");
             $("#server-answer").text("Авторизация прошла успешно.").css("color", "green");
             $("#logout-btn, #cabinet-btn").css("visibility", "visible");
             $("#password, #username").val("");
@@ -56,11 +55,21 @@ function(utils) {
                 "action": "logout",
             }
 
-        } else {
+        } else if (action == "login") {
             var js = {
                 "action": action,
-                "login": $("#username").val(),
+                "login": $("#tab2 #username").val(),
                 "password": $("#password").val(),
+            };
+
+        } else if (action == "register") {
+            var js = {
+                "action": action,
+                "login": $("#tab3 #username").val(),
+                "password": $("#tab3 #password").val(),
+                "fname": $("#tab3 #fname").val(),
+                "lname": $("#tab3 #lname").val(),
+                "pname": $("#tab3 #pname").val(),
             };
         }
 

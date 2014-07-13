@@ -8,7 +8,6 @@ import (
 	"github.com/orc/db"
 	"github.com/orc/sessions"
 	"github.com/orc/utils"
-	//	"net/http"
 	"regexp"
 	"strconv"
 	"time"
@@ -25,7 +24,7 @@ func GetMD5Hash(text string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (this *Handler) HandleRegister(login string, password string) string {
+func (this *Handler) HandleRegister(login, password, fname, lname, pname string) string {
 	result := map[string]string{"result": "ok"}
 	salt := time.Now().Unix()
 	hash := GetMD5Hash(password + strconv.Itoa(int(salt)))
@@ -46,12 +45,21 @@ func (this *Handler) HandleRegister(login string, password string) string {
 	} else if !MatchRegexp("^.{6,36}$", password) && !passHasInvalidChars {
 		result["result"] = "badPassword"
 	} else {
-		query := db.QueryInsert("users", []string{"login", "pass", "salt", "role", "person_id"})
-		db.Query(query, []interface{}{login, hash, salt, "user", 1})
+		query := db.QueryInsert("persons", []string{"fname", "lname", "pname"})
+		db.Query(query, []interface{}{fname, lname, pname})
+
+		db.GetNextId("persons")
+		p_id, err := strconv.Atoi(db.GetCurrId("persons"))
+		utils.HandleErr("[Haldler.Index]: strconv.Atoi", err, nil)
+
+		fmt.Println("curr :", p_id)
+
+		query = db.QueryInsert("users", []string{"login", "pass", "salt", "role", "person_id"})
+		db.Query(query, []interface{}{login, hash, salt, "user", p_id - 1})
 	}
 
 	response, err := json.Marshal(result)
-	utils.HandleErr("[HandleRegister] json.Marshal: ", err)
+	utils.HandleErr("[HandleRegister] json.Marshal: ", err, nil)
 	return string(response)
 }
 
@@ -59,18 +67,18 @@ func (this *Handler) HandleLogin(login, pass string) string {
 	result := map[string]interface{}{"result": "invalidCredentials"}
 	isExist := db.IsExists("users", "login", login)
 	if isExist {
-		query := db.QuerySelect("users", "login=$1", []string{"pass", "salt"})
+		query := db.QuerySelect("users", "login=$1", []string{"id", "pass", "salt"})
 		row := db.QueryRow(query, []interface{}{login})
-		var hash, salt string
-		row.Scan(&hash, &salt)
+		var id, hash, salt string
+		row.Scan(&id, &hash, &salt)
 		if hash == GetMD5Hash(pass+salt) {
 			result["result"] = "ok"
-			sessions.SetSession(login, this.Response)
+			sessions.SetSession(id, login, this.Response)
 			fmt.Println("HandleLogin time: ", sessions.GetValue("time", this.Request))
 		}
 	}
 	response, err := json.Marshal(result)
-	utils.HandleErr("[HandleLogin] json.Marshal: ", err)
+	utils.HandleErr("[HandleLogin] json.Marshal: ", err, nil)
 	return string(response)
 }
 
@@ -79,6 +87,6 @@ func (this *Handler) HandleLogout() string {
 	sessions.ClearSession(this.Response)
 	fmt.Println("HandleLogout time: ", sessions.GetValue("time", this.Request))
 	response, err := json.Marshal(result)
-	utils.HandleErr("[HandleLogout] json.Marshal: ", err)
+	utils.HandleErr("[HandleLogout] json.Marshal: ", err, nil)
 	return string(response)
 }

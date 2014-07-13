@@ -65,10 +65,10 @@ func Exec(query string, params []interface{}) sql.Result {
 	fmt.Println(query)
 
 	stmt, err := DB.Prepare(query)
-	utils.HandleErr("[db.Exec] Prepare: ", err)
+	utils.HandleErr("[db.Exec] Prepare: ", err, nil)
 
 	result, err := stmt.Exec(params...)
-	utils.HandleErr("[db.Exec] Exec: ", err)
+	utils.HandleErr("[db.Exec] Exec: ", err, nil)
 	return result
 }
 
@@ -76,10 +76,10 @@ func Query(query string, params []interface{}) *sql.Rows {
 	fmt.Println(query)
 
 	stmt, err := DB.Prepare(query)
-	utils.HandleErr("[db.Query] Prepare: ", err)
+	utils.HandleErr("[db.Query] Prepare: ", err, nil)
 
 	result, err := stmt.Query(params...)
-	utils.HandleErr("[db.Query] Query: ", err)
+	utils.HandleErr("[db.Query] Query: ", err, nil)
 	return result
 }
 
@@ -87,10 +87,10 @@ func QueryRow(query string, params []interface{}) *sql.Row {
 	fmt.Println(query)
 
 	stmt, err := DB.Prepare(query)
-	utils.HandleErr("[db.QueryRow] Prepare: ", err)
+	utils.HandleErr("[db.QueryRow] Prepare: ", err, nil)
 
 	result := stmt.QueryRow(params...)
-	utils.HandleErr("[db.QueryRow] Query: ", err)
+	utils.HandleErr("[db.QueryRow] Query: ", err, nil)
 	return result
 }
 
@@ -148,17 +148,18 @@ func MakePairs(fields []string) []string {
 	return result
 }
 
-func Select(tableName string, where []string, fields []string) []interface{} {
-	//j := 0
-	var key string
+func Select(tableName string, where []string, condition string, fields []string) []interface{} {
+	var key []string
 	var val []interface{}
+	var i, j = 0, 1
 	if len(where) != 0 {
-		key = where[0] + "=$1"
-		val = []interface{}{where[1]}
+		for i = 0; i < len(where)-1; i += 2 {
+			key = append(key, where[i]+"=$"+strconv.Itoa(j))
+			val = append(val, where[i+1])
+			j++
+		}
 	}
-	//fmt.Println(tableName)
-	//fmt.Println(fields)
-	query := QuerySelect(tableName, key, fields)
+	query := QuerySelect(tableName, strings.Join(key, " "+condition+" "), fields)
 	rows := Query(query, val)
 	rowsInf := Exec(query, val)
 
@@ -170,7 +171,7 @@ func Select(tableName string, where []string, fields []string) []interface{} {
 	}
 
 	l, err := rowsInf.RowsAffected()
-	utils.HandleErr("[Entity.Select] RowsAffected: ", err)
+	utils.HandleErr("[Entity.Select] RowsAffected: ", err, nil)
 	return ConvertData(columns, l, rows)
 }
 
@@ -193,7 +194,7 @@ func ConvertData(columns []string, l int64, rows *sql.Rows) []interface{} {
 				//fmt.Printf("\n%s: type= %s\n", columns[i], reflect.TypeOf(col))
 				switch col.(type) {
 				default:
-					utils.HandleErr("Entity.Select: Unexpected type.", nil)
+					utils.HandleErr("Entity.Select: Unexpected type.", nil, nil)
 				case bool:
 					record[columns[i]] = col.(bool)
 				case int:

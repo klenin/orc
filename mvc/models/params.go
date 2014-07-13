@@ -27,7 +27,7 @@ func (c *ModelManager) Params() *ParamsModel {
 	model.RefFields = []string{"name"}
 	model.RefData = make(map[string]interface{}, 1)
 
-	result := db.Select("forms", nil, []string{"id", "name"})
+	result := db.Select("forms", nil, "", []string{"id", "name"})
 	model.RefData["form_id"] = make([]interface{}, len(result))
 	model.RefData["form_id"] = result
 
@@ -36,12 +36,10 @@ func (c *ModelManager) Params() *ParamsModel {
 		map[string]string{"id": "1", "name": "region"},
 		map[string]string{"id": "2", "name": "district"},
 		map[string]string{"id": "3", "name": "city"},
-		map[string]string{"id": "4t", "name": "street"},
+		map[string]string{"id": "4", "name": "street"},
 		map[string]string{"id": "5", "name": "building"},
 		map[string]string{"id": "6", "name": "input"},
-		map[string]string{"id": "7", "name": "radio"},
-		map[string]string{"id": "8", "name": "checkbox"},
-		map[string]string{"id": "9", "name": "textarea"}}
+		map[string]string{"id": "7", "name": "textarea"}}
 
 	model.Sub = false
 	model.SubTable = nil

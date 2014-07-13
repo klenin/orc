@@ -1,7 +1,6 @@
 package models
 
 import (
-	//"fmt"
 	"github.com/orc/db"
 )
 
@@ -28,8 +27,8 @@ type Entity struct {
 	SubField  string
 }
 
-func (this Entity) Select(where []string, fields []string) ([]interface{}, map[string]interface{}) {
-	result1 := db.Select(this.TableName, where, fields)
+func (this Entity) Select(where []string, condition string, fields []string) ([]interface{}, map[string]interface{}) {
+	result1 := db.Select(this.TableName, where, condition, fields)
 	if this.Ref {
 		result2 := this.RefData
 		return result1, result2

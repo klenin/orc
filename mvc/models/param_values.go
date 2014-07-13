@@ -27,15 +27,15 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
 	model.RefFields = []string{"fname", "name"}
 	model.RefData = make(map[string]interface{}, 3)
 
-	result := db.Select("persons", nil, []string{"id", "fname"})
+	result := db.Select("persons", nil, "", []string{"id", "fname"})
 	model.RefData["person_id"] = make([]interface{}, len(result))
 	model.RefData["person_id"] = result
 
-	result = db.Select("events", nil, []string{"id", "name"})
+	result = db.Select("events", nil, "", []string{"id", "name"})
 	model.RefData["event_id"] = make([]interface{}, len(result))
 	model.RefData["event_id"] = result
 
-	result = db.Select("params", nil, []string{"id", "name"})
+	result = db.Select("params", nil, "", []string{"id", "name"})
 	model.RefData["param_id"] = make([]interface{}, len(result))
 	model.RefData["param_id"] = result
 
