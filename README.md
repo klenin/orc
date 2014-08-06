@@ -12,6 +12,6 @@ of the various competitions, events, tournaments, seminars, conferences, etc.
 ## Means of implementation
 
 - Programming language (server) - [Go](http://golang.org/)
-- jQuery plugin - [' Àƒ–'](http://kladr-api.ru/)
+- jQuery plugin - [` À¿ƒ–`](http://kladr-api.ru/)
 - Gorilla web toolkit - [package securecookie](http://www.gorillatoolkit.org/)
-- Database system - PostgreSQL(http://www.postgresql.org/)
+- Database system - [PostgreSQL](http://www.postgresql.org/)
