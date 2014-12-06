@@ -22,9 +22,10 @@ Install [git][3]. Get a copy of repository:
 
     $ git clone git@github.com:GuraYaroslava/orc.git
 
-### Install Gorilla
+### Install Packages
 
-[Gorilla][4] is a web toolkit for the Go programming language.
+- [package pq][4]
+        $ go get github.com/lib/pq
 
 - [package securecookie][5]
 
@@ -41,6 +42,6 @@ Install [git][3]. Get a copy of repository:
 [1]: https://golang.org
 [2]: http://www.postgresql.org
 [3]: http://git-scm.com
-[4]: http://www.gorillatoolkit.org/
+[4]: https://github.com/lib/pq
 [5]: http://www.gorillatoolkit.org/pkg/securecookie
 [6]: http://www.gorillatoolkit.org/pkg/sessions
