@@ -139,53 +139,47 @@ func MakePairs(fields []string) []string {
 	return result
 }
 
+/**
+ * condition: the AND condition and the OR condition
+ * where: [fieldName1, paramVal1, fieldName2, paramVal2, ...]
+ */
 func Select(tableName string, where []string, condition string, fields []string) []interface{} {
 	var key []string
 	var val []interface{}
-	var i, j = 0, 1
+	var i, paramName = 0, 1
 	if len(where) != 0 {
 		for i = 0; i < len(where)-1; i += 2 {
-			key = append(key, where[i]+"=$"+strconv.Itoa(j))
+			key = append(key, where[i]+"=$"+strconv.Itoa(paramName))
 			val = append(val, where[i+1])
-			j++
+			paramName++
 		}
 	}
 	query := QuerySelect(tableName, strings.Join(key, " "+condition+" "), fields)
 	rows := Query(query, val)
 	rowsInf := Exec(query, val)
-
 	columns, _ := rows.Columns()
-	row := make([]interface{}, len(columns))
-	values := make([]interface{}, len(columns))
-	for i, _ := range row {
-		row[i] = &values[i]
-	}
-
-	l, err := rowsInf.RowsAffected()
+	size, err := rowsInf.RowsAffected()
 	utils.HandleErr("[Entity.Select] RowsAffected: ", err, nil)
-	return ConvertData(columns, l, rows)
+	return ConvertData(columns, size, rows)
 }
 
-func ConvertData(columns []string, l int64, rows *sql.Rows) []interface{} {
-	j := 0
+func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
 	row := make([]interface{}, len(columns))
 	values := make([]interface{}, len(columns))
+	answer := make([]interface{}, size)
+
 	for i, _ := range row {
 		row[i] = &values[i]
 	}
 
-	answer := make([]interface{}, l)
-
+	j := 0
 	for rows.Next() {
 		rows.Scan(row...)
-		answer[j] = make(map[string]interface{}, len(values))
 		record := make(map[string]interface{}, len(values))
 		for i, col := range values {
 			if col != nil {
 				//fmt.Printf("\n%s: type= %s\n", columns[i], reflect.TypeOf(col))
 				switch col.(type) {
-				default:
-					utils.HandleErr("Entity.Select: Unexpected type.", nil, nil)
 				case bool:
 					record[columns[i]] = col.(bool)
 				case int:
@@ -202,6 +196,8 @@ func ConvertData(columns []string, l int64, rows *sql.Rows) []interface{} {
 					record[columns[i]] = col.([]string)
 				case time.Time:
 					record[columns[i]] = col
+				default:
+					utils.HandleErr("Entity.Select: Unexpected type.", nil, nil)
 				}
 			}
 			answer[j] = record

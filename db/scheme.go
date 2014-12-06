@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func InitScheme() {
+func InitSchema() {
 	for _, v := range Tables {
 		query := fmt.Sprintf("CREATE SEQUENCE %s_id_seq;", v)
 		Query(query, nil)
@@ -23,14 +23,11 @@ func InitScheme() {
 	Query(Param_values, nil)
 }
 
-func DropScheme() {
+func DropSchema() {
 	for _, v := range Tables {
 		query := fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", v)
 		Query(query, nil)
-	}
-
-	for _, v := range Tables {
-		query := fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v)
+		query = fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v)
 		Query(query, nil)
 	}
 }
