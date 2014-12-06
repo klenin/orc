@@ -157,7 +157,7 @@ function kladr() {
         key: key,
         type: $.kladr.type.building,
         select: function(obj) {
-            building.parent().find('label').text(obj.type);
+            building.parent().find('label').text('Дом');
         }
     });
 }
