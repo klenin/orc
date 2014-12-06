@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/orc/db"
 	"github.com/orc/router"
 	"net/http"
 	"os"
@@ -8,6 +9,10 @@ import (
 
 func main() {
 	println("Server started.")
+
+	db.DropSchema()
+	db.InitSchema()
+
 	http.Handle("/", new(router.FastCGIServer))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js"))))
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
