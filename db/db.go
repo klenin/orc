@@ -5,19 +5,10 @@ import (
 	"fmt"
 	_ "github.com/lib/pq"
 	"github.com/orc/utils"
-	"os"
-	//"reflect"
 	"strconv"
 	"strings"
 	"time"
 )
-
-func HandleErr(message string, err error) {
-	if err != nil {
-		fmt.Printf(message+"%v\n", err)
-		os.Exit(1)
-	}
-}
 
 const user string = "admin"
 const dbname string = "orc"
