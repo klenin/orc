@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/orc/db"
+	"github.com/orc/mvc/controllers"
 	"github.com/orc/router"
 	"net/http"
 	"os"
@@ -12,6 +13,9 @@ func main() {
 
 	db.DropSchema()
 	db.InitSchema()
+
+	base := new(controllers.BaseController)
+	base.Handler().HandleRegister("admin", "password", "admin", "", "", "")
 
 	http.Handle("/", new(router.FastCGIServer))
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js"))))
