@@ -24,14 +24,14 @@ Install [git][3]. Get a copy of repository:
 
 ### Install Packages
 
-- [package pq][4]
+- [package pq][4] ([godoc](http://godoc.org/github.com/lib/pq))
         $ go get github.com/lib/pq
 
-- [package securecookie][5]
+- [package securecookie][5] ([godoc](http://godoc.org/github.com/gorilla/securecookie))
 
         $ go get github.com/gorilla/securecookie
 
-- [package sessions][6]
+- [package sessions][6] ([godoc](http://godoc.org/github.com/gorilla/sessions))
 
         $ go get github.com/gorilla/sessions
 
