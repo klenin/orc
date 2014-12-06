@@ -95,17 +95,17 @@ func (this *Handler) Index() {
 		id := data["id"].(string)
 		index, _ := strconv.Atoi(data["index"].(string))
 		model := GetModel(tableName)
-		subTableName := model.SubTable[index]
+		subTableName := model.GetSubTable(index)
 		subModel := GetModel(subTableName)
-		result, refdata := subModel.Select([]string{model.SubField, id}, "", subModel.Columns)
+		result, refdata := subModel.Select([]string{model.GetSubField(), id}, "", subModel.GetColumns())
 		answer, err := json.Marshal(map[string]interface{}{
 			"data":      result,
-			"name":      subModel.TableName,
-			"caption":   subModel.Caption,
-			"colnames":  subModel.ColNames,
-			"columns":   subModel.Columns,
+			"name":      subModel.GetTableName(),
+			"caption":   subModel.GetCaption(),
+			"colnames":  subModel.GetColNames(),
+			"columns":   subModel.GetColumns(),
 			"refdata":   refdata,
-			"reffields": subModel.RefFields})
+			"reffields": subModel.GetRefFields()})
 		utils.HandleErr("[HandleRegister] json.Marshal: ", err, nil)
 		fmt.Fprintf(this.Response, "%s", string(answer))
 		break

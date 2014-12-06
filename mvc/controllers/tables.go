@@ -21,6 +21,7 @@ type Model struct {
 	RefFields []string
 	Columns   []string
 	ColNames  []string
+	Sub       bool
 }
 
 type A struct {
@@ -30,48 +31,35 @@ type A struct {
 	P []interface{} //params
 }
 
-func GetModel(tableName string) models.Entity {
+func GetModel(tableName string) models.VirtEntity {
 	base := new(models.ModelManager)
-	var model models.Entity
 	switch tableName {
 	case "events":
-		model = base.Events().Entity
-		break
+		return base.Events()
 	case "event_types":
-		model = base.EventTypes().Entity
-		break
+		return base.EventTypes()
 	case "events_types":
-		model = base.EventsTypes().Entity
-		break
+		return base.EventsTypes()
 	case "teams":
-		model = base.Teams().Entity
-		break
+		return base.Teams()
 	case "persons":
-		model = base.Persons().Entity
-		break
+		return base.Persons()
 	case "users":
-		model = base.Users().Entity
-		break
+		return base.Users()
 	case "teams_persons":
-		model = base.TeamsPersons().Entity
-		break
+		return base.TeamsPersons()
 	case "forms":
-		model = base.Forms().Entity
-		break
+		return base.Forms()
 	case "params":
-		model = base.Params().Entity
-		break
+		return base.Params()
 	case "forms_types":
-		model = base.FormsTypes().Entity
-		break
+		return base.FormsTypes()
 	case "param_values":
-		model = base.ParamValues().Entity
-		break
+		return base.ParamValues()
 	case "persons_events":
-		model = base.PersonsEvents().Entity
-		break
+		return base.PersonsEvents()
 	}
-	return model
+	panic(nil)
 }
 
 func (this *Handler) ShowCabinet(tableName string) {
@@ -92,8 +80,8 @@ func (this *Handler) ShowCabinet(tableName string) {
 		model = Model{Columns: db.Tables, ColNames: db.TableNames}
 	} else if role == "user" {
 		m := GetModel("persons")
-		data, _ := m.Select([]string{"id", strconv.Itoa(int(person_id))}, "", m.Columns)
-		model = Model{Caption: login, Table: data, Columns: m.Columns, ColNames: m.ColNames}
+		data, _ := m.Select([]string{"id", strconv.Itoa(int(person_id))}, "", m.GetColumns())
+		model = Model{Caption: login, Table: data, Columns: m.GetColumns(), ColNames: m.GetColNames()}
 	}
 
 	tmp, err := template.ParseFiles(
@@ -110,7 +98,7 @@ func (this *Handler) Select(tableName string) {
 		return
 	}
 	model := GetModel(tableName)
-	answer, refdata := model.Select(nil, "", model.Columns)
+	answer, refdata := model.Select(nil, "", model.GetColumns())
 	tmp, err := template.ParseFiles(
 		"mvc/views/table.html",
 		"mvc/views/header.html",
@@ -119,11 +107,12 @@ func (this *Handler) Select(tableName string) {
 	err = tmp.ExecuteTemplate(this.Response, "table", Model{
 		Table:     answer,
 		RefData:   refdata,
-		RefFields: model.RefFields,
-		TableName: model.TableName,
-		ColNames:  model.ColNames,
-		Columns:   model.Columns,
-		Caption:   model.Caption})
+		RefFields: model.GetRefFields(),
+		TableName: model.GetTableName(),
+		ColNames:  model.GetColNames(),
+		Columns:   model.GetColumns(),
+		Caption:   model.GetCaption(),
+		Sub:       model.GetSub()})
 	utils.HandleErr("[Handler.Select] tmp.Execute: ", err, nil)
 	fmt.Println(answer)
 }
@@ -135,11 +124,10 @@ func (this *Handler) Edit(tableName string) {
 	var i int
 	oper := this.Request.FormValue("oper")
 	model := GetModel(tableName)
-	params := make([]interface{}, len(model.Columns)-1)
-
-	for i = 0; i < len(model.Columns)-1 && this.Request.FormValue(model.Columns[i+1]) != ""; i++ {
-		if model.Columns[i+1] == "date" {
-			params[i] = this.Request.FormValue(model.Columns[i+1])[0:10]
+	params := make([]interface{}, len(model.GetColumns())-1)
+	for i = 0; i < len(model.GetColumns())-1; i++ {
+		if model.GetColumnByIdx(i+1) == "date" {
+			params[i] = this.Request.FormValue(model.GetColumnByIdx(i + 1))[0:10]
 		} else {
 			params[i] = this.Request.FormValue(model.Columns[i+1])
 		}
@@ -148,10 +136,10 @@ func (this *Handler) Edit(tableName string) {
 	switch oper {
 	case "edit":
 		params = append(params, this.Request.FormValue("id"))
-		model.Update(model.Columns[1:], params, "id=$"+strconv.Itoa(i+1))
+		model.Update(model.GetColumnSlice(1), params, "id=$"+strconv.Itoa(i+1))
 		break
 	case "add":
-		model.Insert(model.Columns[1:], params)
+		model.Insert(model.GetColumnSlice(1), params)
 		break
 	case "del":
 		ids := strings.Split(this.Request.FormValue("id"), ",")
