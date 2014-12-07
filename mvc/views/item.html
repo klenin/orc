@@ -11,150 +11,6 @@
 <script type="text/javascript"
         src="/js/kladr.js"></script>
 
-<script type="text/javascript">
-var types = [
-    "date",
-    "region",
-    "district",
-    "city",
-    "street",
-    "building",
-    "input",
-    "textarea"
-];
-
-var D = {{.}};
-
-var E = D.E;
-var T = D.T;
-var F = D.F;
-var P = D.P;
-
-var F_ids = [];
-
-function drawParam(data) {
-    var block;
-
-    switch (types[data["type"]]) {
-        case "date":
-            block = $("<input/>", {
-                id: types[data["type"]],
-                name: data["id"],
-                type: "date"
-            });
-            break;
-        case "region":
-            block = $("<input/>", {
-                id: types[data["type"]],
-                name: data["id"],
-                type: "text"
-            });
-            break;
-        case "district":
-            block = $("<input/>", {
-                id: types[data["type"]],
-                name: data["id"],
-                type: "text"
-            });
-            break;
-        case "city":
-            block = $("<input/>", {
-                id: types[data["type"]],
-                name: data["id"],
-                type: "text"
-            });
-            break;
-        case "street":
-            block = $("<input/>", {
-                id: types[data["type"]],
-                name: data["id"],
-                type: "text"
-            });
-            break;
-        case "building":
-            block = $("<input/>", {
-                id: types[data["type"]],
-                name: data["id"],
-                type: "text"
-            });
-            break;
-        case "input":
-            block = $("<input/>", {
-                id: types[data["type"]],
-                name: data["id"],
-                type: "text"
-            });
-            break;
-        case "textarea":
-            block = $("<textarea/>", {
-                id: types[data["type"]],
-                name: data["id"],
-            });
-            break;
-    }
-    var lable = $("<label/>", {
-        for: data["name"],
-        id: "label-" + data["name"],
-        text: data["name"]
-    });
-
-    var p = $("<p/>", {});
-
-    $(p).append(lable).append(block);
-    return p;
-}
-
-function getFormData(name) {
-    var result = $("#" + name + " form").serializeArray();
-    return result;
-}
-
-function pushFormData(E, T, F, P, event_, events_) {
-   $("#" + event_).text(E[0]["name"]);
-
-    var div_types = $("<div/>", {id: "event-" + E[0]["id"]});
-
-    var ul_types = $("<ul/>", {});
-
-    $(div_types).append(ul_types);
-    $(div_types).appendTo("#" + events_);
-
-    for (var i = 0; i < T.length; ++i) {
-
-        var li_type = $("<li/>", {});
-        var a_type = $("<a/>", {href: "#" + "type-" + T[i]["id"]}).text(T[i]["name"]);
-
-        $(li_type).append(a_type);
-        $(ul_types).append(li_type);
-
-        var div_tab_type = $("<div/>", {id: "type-" + T[i]["id"]});//div types
-        $(div_types).append(div_tab_type);
-
-        var div_forms = $("<div/>", {id: "forms-" + T[i]["id"]});
-        $(div_tab_type).append(div_forms);
-
-        for (var j = 0; j < F[i].length; ++j) {
-            var a_form = $("<h4/>", {}).text(F[i][j]["name"]);
-
-            F_ids.push("form_id");
-            F_ids.push(F[i][j]["id"]);
-
-            var div_tab_form = $("<div/>", {id: "form-" + F[i][j]["id"]/*, class: "br"*/})
-            .append(a_form);
-            $(div_forms).append(div_tab_form);
-
-            var div_params = $("<div/>", {id: "params-" + T[i]["id"]});
-            $(div_tab_form).append(div_params);
-
-            for (var k = 0; k < P[i][j].length; k++) {
-                $(div_params).append(drawParam(P[i][j][k]));
-            }
-        }
-    }
-    $("#" + "event-" + E[0]["id"]).tabs();
-}
-</script>
-
 <div>
     <div id="now">
         <h4>Текущая анкета</h4>
@@ -177,8 +33,150 @@ function pushFormData(E, T, F, P, event_, events_) {
 </div>
 
 <script type="text/javascript">
-require(["utils"],
-function(utils) {
+require(["utils", "datepicker"],
+function(utils, datepicker) {
+
+    var types = [
+        "date",
+        "region",
+        "district",
+        "city",
+        "street",
+        "building",
+        "input",
+        "textarea"
+    ];
+
+    var D = {{.}};
+
+    var E = D.E;
+    var T = D.T;
+    var F = D.F;
+    var P = D.P;
+
+    var F_ids = [];
+
+    function drawParam(data) {
+        var block;
+
+        switch (types[data["type"]]) {
+            case "date":
+                block = $("<input/>", {
+                    id: types[data["type"]],
+                    name: data["id"],
+                    type: "date"
+                });
+                break;
+            case "region":
+                block = $("<input/>", {
+                    id: types[data["type"]],
+                    name: data["id"],
+                    type: "text"
+                });
+                break;
+            case "district":
+                block = $("<input/>", {
+                    id: types[data["type"]],
+                    name: data["id"],
+                    type: "text"
+                });
+                break;
+            case "city":
+                block = $("<input/>", {
+                    id: types[data["type"]],
+                    name: data["id"],
+                    type: "text"
+                });
+                break;
+            case "street":
+                block = $("<input/>", {
+                    id: types[data["type"]],
+                    name: data["id"],
+                    type: "text"
+                });
+                break;
+            case "building":
+                block = $("<input/>", {
+                    id: types[data["type"]],
+                    name: data["id"],
+                    type: "text"
+                });
+                break;
+            case "input":
+                block = $("<input/>", {
+                    id: types[data["type"]],
+                    name: data["id"],
+                    type: "text"
+                });
+                break;
+            case "textarea":
+                block = $("<textarea/>", {
+                    id: types[data["type"]],
+                    name: data["id"],
+                });
+                break;
+        }
+        var lable = $("<label/>", {
+            for: data["name"],
+            id: "label-" + data["name"],
+            text: data["name"]
+        });
+
+        var p = $("<p/>", {});
+
+        $(p).append(lable).append(block);
+        return p;
+    }
+
+    function getFormData(name) {
+        var result = $("#" + name + " form").serializeArray();
+        return result;
+    }
+
+    function pushFormData(E, T, F, P, event_, events_) {
+       $("#" + event_).text(E[0]["name"]);
+
+        var div_types = $("<div/>", {id: "event-" + E[0]["id"]});
+
+        var ul_types = $("<ul/>", {});
+
+        $(div_types).append(ul_types);
+        $(div_types).appendTo("#" + events_);
+
+        for (var i = 0; i < T.length; ++i) {
+
+            var li_type = $("<li/>", {});
+            var a_type = $("<a/>", {href: "#" + "type-" + T[i]["id"]}).text(T[i]["name"]);
+
+            $(li_type).append(a_type);
+            $(ul_types).append(li_type);
+
+            var div_tab_type = $("<div/>", {id: "type-" + T[i]["id"]});//div types
+            $(div_types).append(div_tab_type);
+
+            var div_forms = $("<div/>", {id: "forms-" + T[i]["id"]});
+            $(div_tab_type).append(div_forms);
+
+            for (var j = 0; j < F[i].length; ++j) {
+                var a_form = $("<h4/>", {}).text(F[i][j]["name"]);
+
+                F_ids.push("form_id");
+                F_ids.push(F[i][j]["id"]);
+
+                var div_tab_form = $("<div/>", {id: "form-" + F[i][j]["id"]/*, class: "br"*/})
+                .append(a_form);
+                $(div_forms).append(div_tab_form);
+
+                var div_params = $("<div/>", {id: "params-" + T[i]["id"]});
+                $(div_tab_form).append(div_params);
+
+                for (var k = 0; k < P[i][j].length; k++) {
+                    $(div_params).append(drawParam(P[i][j][k]));
+                }
+            }
+        }
+        $("#" + "event-" + E[0]["id"]).tabs();
+    }
 
     function getListHistoryEvents() {
         utils.postRequest(
@@ -205,16 +203,14 @@ function(utils) {
     getListHistoryEvents();
 
     kladr();
+    datepicker();
 
     $("#save-btn").click(function() {
-        var data = {};
-        data["event_id"] = E[0]["id"];
-        data["oper"] = "save";
-        data["data"] = getFormData("now");
-        //console.log("data");
-        //console.log(data);
         utils.postRequest(
-            data,
+            {
+                "event_id": E[0]["id"],
+                "data": getFormData("now")
+            },
             function(data) {
                 $("#now form").css("visibility", "hidden");
                 if (data["result"] == "ok") {
