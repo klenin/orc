@@ -33,13 +33,3 @@ func (c *ModelManager) Events() *EventModel {
 type EventModel struct {
 	Entity
 }
-
-//func (this EventModel) GetColModel() map[string]interface{} {
-//	result := make([string]interface{}, len(this.Columns))
-//	result["id"] = make()
-//	result["name"] = make()
-//	result["date_start"] = make()
-//	result["date_end"] = make()
-//	result["time"] = make()
-//	result["url"] = make()
-//}
