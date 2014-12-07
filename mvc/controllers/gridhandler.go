@@ -22,7 +22,6 @@ func (this *GridHandler) GetSubTable() {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")
@@ -57,7 +56,6 @@ func (this *GridHandler) Load(tableName string) {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")
@@ -96,7 +94,6 @@ func (this *GridHandler) Edit(tableName string) {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")

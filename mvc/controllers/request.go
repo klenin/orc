@@ -16,7 +16,6 @@ func (this *Handler) GetHistoryRequest() {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")
@@ -54,7 +53,6 @@ func (this *Handler) GetListHistoryEvents() {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")
@@ -108,7 +106,6 @@ func (this *Handler) SaveUserRequest() {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")
@@ -176,7 +173,6 @@ func (this *Handler) GetRequest(tableName, id string) {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	tmp, err := template.ParseFiles(
 		"mvc/views/item.html",
 		"mvc/views/header.html",

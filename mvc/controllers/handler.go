@@ -22,7 +22,6 @@ func (this *Handler) GetEventList() {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")
@@ -47,7 +46,6 @@ func (this *Handler) ResetPassword() {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")
@@ -124,7 +122,6 @@ func (this *Handler) ShowCabinet(tableName string) {
 	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
 		return
 	}
-
 	table := GetModel("users")
 	login := sessions.GetValue("name", this.Request).(string)
 	println(login)
