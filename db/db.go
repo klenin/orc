@@ -146,9 +146,9 @@ func MakePairs(fields []string) []string {
 func Select(tableName string, where []string, condition string, fields []string) []interface{} {
 	var key []string
 	var val []interface{}
-	var i, paramName = 0, 1
+	var paramName = 1
 	if len(where) != 0 {
-		for i = 0; i < len(where)-1; i += 2 {
+		for i := 0; i < len(where)-1; i += 2 {
 			key = append(key, where[i]+"=$"+strconv.Itoa(paramName))
 			val = append(val, where[i+1])
 			paramName++
