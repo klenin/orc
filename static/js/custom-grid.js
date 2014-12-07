@@ -236,7 +236,7 @@ function(utils) {
             }
         );
 
-    }
+}
 
     return {
         GetColModelItem: GetColModelItem,
