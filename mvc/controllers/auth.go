@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"github.com/orc/db"
 	"github.com/orc/sessions"
 	"github.com/orc/utils"
@@ -52,8 +51,6 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname, pname s
 		p_id, err := strconv.Atoi(db.GetCurrId("persons"))
 		utils.HandleErr("[Haldler.Index]: strconv.Atoi", err, nil)
 
-		fmt.Println("curr :", p_id)
-
 		query = db.QueryInsert("users", []string{"login", "pass", "salt", "role", "person_id"})
 		db.Query(query, []interface{}{login, hash, salt, role, p_id - 1})
 	}
@@ -74,7 +71,6 @@ func (this *Handler) HandleLogin(login, pass string) string {
 		if hash == GetMD5Hash(pass+salt) {
 			result["result"] = "ok"
 			sessions.SetSession(id, login, this.Response)
-			fmt.Println("HandleLogin time: ", sessions.GetValue("time", this.Request))
 		}
 	}
 	response, err := json.Marshal(result)
@@ -85,7 +81,6 @@ func (this *Handler) HandleLogin(login, pass string) string {
 func (this *Handler) HandleLogout() string {
 	result := map[string]string{"result": "ok"}
 	sessions.ClearSession(this.Response)
-	fmt.Println("HandleLogout time: ", sessions.GetValue("time", this.Request))
 	response, err := json.Marshal(result)
 	utils.HandleErr("[HandleLogout] json.Marshal: ", err, nil)
 	return string(response)

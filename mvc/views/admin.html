@@ -7,23 +7,20 @@
 </div>
 
 <script type="text/javascript">
+    $("#title").append("Личный кабинет <strong>admin</strong>");
 
-    $("#title").append("Личный кабинет " + "<strong>admin</strong>");
     $("#logout-btn, #cabinet-btn").css("visibility", "visible");
+
     $("#cabinet").empty();
 
-    var columns = "{{.Columns}}".slice(1, -1).split(" ");
-    var colNames = "{{.ColNames}}".slice(1, -1).split(" ");
-
-    for (var i = 0; i < columns.length; ++i) {
+    for (var i = 0; i < {{.Columns}}.length; ++i) {
         $("<a/>", {
             class: "a-list",
-            text: colNames[i],
-            id: columns[i],
-            href: "/handler/select/" + columns[i]
+            text: {{.ColNames}}[i],
+            id: {{.Columns}}[i],
+            href: "/gridhandler/select/" + {{.Columns}}[i]
         }).appendTo("#cabinet");
     }
-
 </script>
 
 {{template "footer"}}

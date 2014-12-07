@@ -14,6 +14,7 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(url.Path, "/")
 	controllerName := "index"
 	methodName := "index"
+
 	if len(parts) < 2 {
 		//index
 	} else if len(parts) < 3 {

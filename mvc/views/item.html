@@ -183,7 +183,6 @@ function(utils) {
     function getListHistoryEvents() {
         utils.postRequest(
             {
-                "action": "select-h-events",
                 "form_ids": F_ids,
             },
             function(data) {
@@ -198,11 +197,9 @@ function(utils) {
                     }
                 }
             },
-            "/handler"
+            "/handler/getlisthistoryevents"
         );
     }
-
-    utils.areAlive();
 
     pushFormData(E, T, F, P, "event", "events");
     getListHistoryEvents();
@@ -210,12 +207,12 @@ function(utils) {
     kladr();
 
     $("#save-btn").click(function() {
-        var data = {"action": "save-update"};
+        var data = {};
         data["event_id"] = E[0]["id"];
         data["oper"] = "save";
         data["data"] = getFormData("now");
-        console.log("data");
-        console.log(data);
+        //console.log("data");
+        //console.log(data);
         utils.postRequest(
             data,
             function(data) {
@@ -226,7 +223,7 @@ function(utils) {
                     $("#server-answer").text("Анкета для участия в этом мероприятии уже была заполнена.").css("color", "red");
                 }
             },
-            "/handler"
+            "/handler/saveuserrequest"
         );
     });
 
@@ -234,7 +231,6 @@ function(utils) {
         var event_id = $("#h-events").find(":selected").attr("value");
         utils.postRequest(
             {
-                "action": "get-h-forms",
                 "event_id": event_id
             },
             function(data) {
@@ -264,7 +260,7 @@ function(utils) {
                     }
                 });
             },
-            "/handler"
+            "/handler/gethistoryrequest"
         );
     });
 });

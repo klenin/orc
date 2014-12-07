@@ -10,7 +10,7 @@
         <form>
             <label for="password-1">Пароль</label><br/>
             <input type="password" id="password-1" name="password-1"/><br/>
-            <label for="password-2">Пароль</label><br/>
+            <label for="password-2">Потвердите пароль</label><br/>
             <input type="password" id="password-2" name="password-2"/><br/>
         </form>
 
@@ -22,6 +22,7 @@
 <script type="text/javascript">
     $("#logout-btn, #cabinet-btn").css("visibility", "visible");
 
+//check: change password-------------------------------------------------------
     var valid = false;
 
     $("#password-1").blur(function() {
@@ -45,171 +46,126 @@
         }
     });
 
-    var add       = true;
-    var captions  = ["teams", "persons", "forms", "event_types", "events"];
+//-----------------------------------------------------------------------------
     var sameDate  = ["date_start", "date_end", "reg_date", "last_date"];
-    var jsData    = "[";
+    var refFields = {{.RefFields}};
     var refData   = {};
-    var Columns   = "{{.Columns}}".slice(1, -1).split(" ");
-    var colNames_ = "{{.ColNames}}".slice(1, -1).split(" ");
-    var refFields = "{{.RefFields}}".slice(1, -1).split(" ");
-    var tableName = "{{.TableName}}";
     var colModel_ = [];
 
-    var existsOrNot  = false;
-
-    if ($.inArray("{{.TableName}}", captions) > -1) {
-        existsOrNot = true;
-    }
-
-    if ("{{.TableName}}" == "users") {
-        add = false;
-    }
-
-    function GetColModelItem(refData, refFields, v2) {
-        var data = {};
+    function GetColModelItem(refData, refFields, field) {
         function datePicker(e) {$(e).datepicker({"dateFormat": "yy-mm-dd"});}
         function timePicker(e) {$(e).timepicker({"timeFormat": "hh:mm"});}
-        data["name"] = v2;
-        data["index"] = v2;
+        var data = {};
+        data["name"] = field;
+        data["index"] = field;
         data["editable"] = true;
-        if (v2 == "id") {
+        data["editrules"] = {required: true};
+
+        if (field == "id") {
             data["editable"] = false;
 
-        } else if ($.inArray(v2, sameDate) > -1) {
+        } else if (field.indexOf("date") > -1) {
             data["formatter"] = "date";
-            data["formatoptions"] = {"srcformat": 'Y-m-d', "newformat": 'Y-m-d',},
+            data["editrules"].date = true;
+            data["formatoptions"] = {srcformat: 'Y-m-d', newformat: 'Y-m-d',},
             data["editoptions"] = {dataInit: datePicker};
 
-        } else if (v2 == "time") {
+        } else if (field == "time") {
             data["formatter"] = "date";
-            data["editrules"] = {"time": true};
-            data["formatoptions"] = {srcformat: "ISO8601Long", newformat: "ShortTime"},
+            data["editrules"].time = true;
+            data["formatoptions"] = {srcformat: "ISO8601Long", newformat: "LongTime"},
             data["editoptions"] = {dataInit: timePicker};
 
-        } else if (v2 == "topicality") {
+        } else if (field == "topicality") {
             data["formatter"] = "checkbox";
             data["edittype"] = "checkbox";
             data["editoptions"] = {value: "true:false"};
-            data["formatoptions"] = {"disabled": true};
+            data["formatoptions"] = {disabled: true};
 
-        } else if (v2 == "url") {
+        } else if (field == "url") {
             data["formatter"] = "link";
-            //data["formatoptions"] = {target: ‘_blank’};
+            data["editrules"].required = false;
+
+        } else if (field == "avatar") {
+            data["manual"] = true;
+            data["edittype"] = "file";
+            data["sortable"] = false;
+            data["search"] = false;
+            data["editoptions"] = {enctype: "multipart/form-data"};
         }
 
-        if (refData[v2] != null) {
+        if (refData[field] != null) {
             data["formatter"] = "select";
             data["edittype"] = "select";
             data["stype"] = "select";
             data["search"] = true;
-            var str = "";
-//            var str = "-1 : ;";
-            var f;
-            for (var i = 0; i < refData[v2].length; ++i) {
+            var str = "", f;
+            for (var i = 0; i < refData[field].length; ++i) {
                 for (var k = 0; k < refFields.length; ++k) {
-                    if (refFields[k] in refData[v2][i]) {
+                    if (refFields[k] in refData[field][i]) {
                         f = refFields[k];
                     }
                 }
-                str += refData[v2][i]["id"]+":"+refData[v2][i][f]+";";
+                str += refData[field][i]["id"]+":"+refData[field][i][f]+";";
             }
-            data["editoptions"] = {};
-            data["searchoptions"] = {};
-            data["editoptions"]["value"] = str.slice(0, -1);
-            data["searchoptions"]["value"] = ":Все;"+str.slice(0, -1);
+            data["editoptions"] = {value: str.slice(0, -1)};
+            data["searchoptions"] = {value: ":Все;"+str.slice(0, -1)};
         }
         return data;
     }
-</script>
 
-<!-- refData init ------------------------------------------------------------>
 {{with .RefData}}
     {{range $index, $elmt := .}}
-        <script>refData["{{$index}}"] = [];</script>
+        refData[{{$index}}] = [];
         {{range $i, $v := $elmt}}
-            <script>refData["{{$index}}"][{{$i}}] = {};</script>
+            refData[{{$index}}][{{$i}}] = {};
             {{range $j, $k := $v}}
-                <script>refData["{{$index}}"][{{$i}}]["{{$j}}"] = "{{$k}}";</script>
+                refData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
             {{end}}
         {{end}}
     {{end}}
 {{end}}
-<!-- end refData init -------------------------------------------------------->
 
-<!-- colModel_ init ---------------------------------------------------------->
 {{with .Columns}}
     {{range $i, $v := .}}
-        <script type="text/javascript">
-            colModel_.push(GetColModelItem(refData, refFields, "{{$v}}"))
-        </script>
+        colModel_.push(GetColModelItem(refData, refFields, {{$v}}))
     {{end}}
 {{end}}
-<!-- end colModel_ init ------------------------------------------------------>
 
-<!-- jsData init ------------------------------------------------------------->
-{{with .Table}}
-    {{range $index, $elmt := .}}
-        <script type="text/javascript">
-            jsData += "{";
-        </script>
-        {{range $i, $v := $elmt}}
-            <script>jsData += '"' + "{{$i}}" + '"' + ":" + '"' + "{{$v}}" + '"' + ",";</script>
-        {{end}}
-        <script type="text/javascript">
-            jsData = jsData.slice(0, jsData.length-1) + "},";
-        </script>
-    {{end}}
-    <script type="text/javascript">
-        jsData = jsData.slice(0, jsData.length-1) + "]";
-    </script>
-{{end}}
-<!-- end jsData init ---------------------------------------------------------->
-
-<script type="text/javascript">
 require(["utils"],
 function(utils) {
-    console.log(jsData);
     //console.log("refData");
     //console.log(refData);
     //console.log("colModel");
     //console.log(colModel_);
-    if (jsData.length == 1) {//empty table
-        jsData += "]";
-    }
-    console.log("jsData");
-    console.log(jsData);
+    //console.log("jsData");
+    //console.log(jsData);
     $(document).ready(function() {
-        utils.areAlive();
 
         $("#grid-table").jqGrid({
-            datatype:      "local",
-            data:          JSON.parse(jsData),
+            url:           "/gridhandler/load/" + {{.TableName}},
+            datatype:      "json",
             mtype:         "POST",
             treeGrid:      false,
-            colNames:      colNames_,
+            colNames:      {{.ColNames}},
             colModel:      colModel_,
             pager:         $("#grid-table-pager"),
             gridview:      true,
             sortname:      "invdate",
             viewrecords:   true,
             height:        "100%",
-            /*width:         "auto",*/
+            width:         "auto",
             rowNum:        5,
             rownumbers:    true,
             rownumWidth:   20,
             rowList:       [5, 10, 20, 50],
-            caption:       "{{.Caption}}",
+            caption:       {{.Caption}},
             sortname:      "id",
             sortorder:     "asc",
             multiselect:   true,
-            ondblClickRow: function(id) {
-                                $("#grid-table").restoreRow(id);
-                                $("#grid-table").editRow(id, true);
-                           },
-            editurl:       "/handler/edit/" + "{{.TableName}}",
+            editurl:       "/gridhandler/edit/" + {{.TableName}},
 
-            subGrid:            existsOrNot,
+            subGrid:            {{.Sub}},
             subGridOptions:     {
                                     "plusicon":       "ui-icon-triangle-1-e",
                                     "minusicon":      "ui-icon-triangle-1-s",
@@ -219,7 +175,7 @@ function(utils) {
                                 },
             subGridRowExpanded: function(subgrid_id, row_id) {
                                     AddSubTable(subgrid_id, row_id, "0", subgrid_id + "_t", "p_" + subgrid_id + "_t");
-                                    if (tableName == "event_types") {
+                                    if ({{.TableName}} == "event_types") {
                                         AddSubTable(subgrid_id, row_id, "1", subgrid_id + "_tt", "pp_" + subgrid_id + "_tt");
                                     }
                                 }
@@ -227,29 +183,33 @@ function(utils) {
 
         $("#grid-table").navGrid(
             "#grid-table-pager",
-            {
+            {   //buttons
                 edit:    true,
-                add:     add,
+                add:     {{.TableName}} == "users" ? false : true,
                 del:     true,
                 refresh: false,
                 view:    false,
                 search:  false
             },
             {   //edit
-                viewPagerButtons:   false,
+                width: "100%",
+                recreateForm: true,
+                //viewPagerButtons:   false,
                 closeAfterEdit:     true,
                 afterSubmit:        function(response, postdata) {
-                                        window.location.reload();
+                                        $('#grid-table').jqGrid().trigger('reloadGrid');
                                         return [true, "", response.responseText];
                                     },
             },
             {   //add
-                viewPagerButtons:   false,
+                width: "100%",
+                recreateForm: true,
+                //viewPagerButtons:   false,
                 clearAfterAdd:      true,
                 closeAfterAdd:      true,
                 addedrow:           "last",
                 afterSubmit:        function(response, postdata) {
-                                        window.location.reload();
+                                        $('#grid-table').jqGrid().trigger('reloadGrid');
                                         return [true, "", response.responseText];
                                     },
             },
@@ -277,7 +237,7 @@ function(utils) {
             }
         );
 */
-        if (tableName == "users") {
+        if ({{.TableName}} == "users") {
             $("#grid-table").jqGrid (
                 "navButtonAdd",
                 "#grid-table-pager",
@@ -285,10 +245,9 @@ function(utils) {
                     caption: "", buttonicon: "ui-icon-key", title: "Смена пароля",
                     onClickButton: function() {
                         var id = $("#grid-table").jqGrid("getGridParam", "selarrrow");
-                        alert(id);
-                        if (id.length > 1) {
+                        if (id.length > 1 || id.length == 0) {
                             $("#error").empty();
-                            $("#error").append("<strong>Выделено несколько записей.</strong>");
+                            $("#error").append("<strong>Выберите одну запись.</strong>");
                             $("#error").dialog({
                                 model: true,
                                 buttons: {
@@ -309,12 +268,11 @@ function(utils) {
                                     if (valid) {
                                         utils.postRequest(
                                             {
-                                                "action": "change-pass",
                                                 "pass": $("#password-1").val(),
                                                 "id": id[0]
                                             },
                                             function() {},
-                                            "/handler"
+                                            "/handler/resetpassword"
                                         );
                                         $(this).dialog("close");
                                     } else {
@@ -349,16 +307,9 @@ function(utils) {
             }
         );
 
-        $("#grid-table-pager").css ("height", 35); 
-
         $(window).bind("resize", function() {
             $("#grid-table").setGridWidth($(window).width()-50, true);
         }).trigger("resize");
-
-
-$(window).resize(function(){
-    $('#grid-table').jqGrid('setGridHeight',$(window).innerHeight());
-});
 
         function AddSubTable(subgrid_id, row_id, index, subgrid_table_id, pager_id) {
 
@@ -371,11 +322,8 @@ $(window).resize(function(){
             var subRefData      = [];
 
             $("#" + subgrid_id).append(
-                "<table id='" +
-                subgrid_table_id +
-                "' class='scroll'></table><div id='" +
-                pager_id +
-                "' class='scroll'></div></br>"
+                "<table id='" + subgrid_table_id + "' class='scroll'></table>"
+                + "<div id='" + pager_id + "' class='scroll'></div></br>"
             );
 
             function collbackSUB(data) {
@@ -390,13 +338,12 @@ $(window).resize(function(){
 
             utils.postRequest(
                 {
-                    "action": "getsubgrid",
-                    "table": tableName,
+                    "table": {{.TableName}},
                     "id": row_id,
                     "index": index
                 },
                 collbackSUB,
-                "/handler"
+                "/gridhandler/getsubtable"
             );
 
             for (var i = 0; i < subColumns.length; ++i) {
@@ -415,13 +362,10 @@ $(window).resize(function(){
                 sortname:    "num",
                 sortorder:   "asc",
                 height:      '100%',
+                width:         $("#grid-table").width()-65,
                 multiselect: true,
-                editurl:     "/handler/edit/" + subTableName,
+                editurl:     "/gridhandler/edit/" + subTableName,
             });
-
-            if (tableName == "event_types") {
-
-            }
 
             $("#" + subgrid_table_id).navGrid(
                 "#" + pager_id,
@@ -434,21 +378,24 @@ $(window).resize(function(){
                     search:  false
                 },
                 {   //edit
-                    viewPagerButtons:   false,
+                    width: "100%",
+                    recreateForm: true,
+                    //viewPagerButtons:   false,
                     closeAfterEdit:     true,
                     afterSubmit:        function(response, postdata) {
-                                            window.location.reload();
+                                            $('#grid-table').jqGrid().trigger('reloadGrid');
                                             return [true, "", response.responseText];
                                         }
-                    
                 },
                 {   //add
-                    viewPagerButtons:   false,
+                    width: "100%",
+                    recreateForm: true,
+                    //viewPagerButtons:   false,
                     clearAfterAdd:      true,
                     closeAfterAdd:      true,
                     addedrow:           "last",
                     afterSubmit:        function(response, postdata) {
-                                            window.location.reload();
+                                            $('#grid-table').jqGrid().trigger('reloadGrid');
                                             return [true, "", response.responseText];
                                         }
                 },
@@ -458,9 +405,7 @@ $(window).resize(function(){
                 }
             );
 
-            $("#" + pager_id).css ("height", 35); 
-
-/*            $("#" + subgrid_table_id).jqGrid (
+/*          $("#" + subgrid_table_id).jqGrid (
                 "navButtonAdd",
                 "#" + pager_id,
                 {

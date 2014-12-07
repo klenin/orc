@@ -19,15 +19,12 @@ function(auth, utils) {
 
         utils.postRequest(
             {
-                "action": "select",
                 "table": "events",
                 "fields": ["id", "name"]
             },
             listEvents,
-            "/handler"
+            "/handler/geteventlist"
         );
-
-        utils.areAlive();
 
     });
 
@@ -56,8 +53,7 @@ function(auth, utils) {
     });
 
     $("#fname, #lname, #pname").blur(function() {
-        //if ($("#fname").val() != "" && $("#lname").val() != "" && $("#pname").val() != ""){
-        if ($(this).val() != ""){
+        if ($(this).val() != "") {
             valid = true;
             $(this).css({"border": "2px solid green"});
         } else {
@@ -67,15 +63,13 @@ function(auth, utils) {
     });
 
     function listEvents(data) {
-    console.log(data);
-        var d = data["data"];
-        for (i in d) {
+        for (i in data["data"]) {
             var p = $("</p>", {});
             $(p).append($("<a/>", {
-                text: d[i]["name"],
-                href: "/handler/show/event/" + d[i]["id"],
+                text: data["data"][i]["name"],
+                href: "/handler/getrequest/event/" + data["data"][i]["id"],
                 class: "form-row",
-            }))
+            }));
             $(p).appendTo("div#list-events");
         }
     }

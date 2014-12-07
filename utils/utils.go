@@ -39,20 +39,3 @@ func ArrayInterfaceToString(array []interface{}) []string {
 	}
 	return result
 }
-
-func ArrayStringToInterface(array []string) []interface{} {
-	result := make([]interface{}, len(array))
-	for i, v := range array {
-		result[i] = interface{}(v)
-	}
-	return result
-}
-
-func IsExist(array []string, value string) bool {
-	for _, v := range array {
-		if v == value {
-			return true
-		}
-	}
-	return false
-}
