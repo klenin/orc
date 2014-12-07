@@ -53,8 +53,6 @@ var TableNames = []string{
 }
 
 func Exec(query string, params []interface{}) sql.Result {
-	fmt.Println(query)
-
 	stmt, err := DB.Prepare(query)
 	utils.HandleErr("[db.Exec] Prepare: ", err, nil)
 
@@ -64,8 +62,7 @@ func Exec(query string, params []interface{}) sql.Result {
 }
 
 func Query(query string, params []interface{}) *sql.Rows {
-	fmt.Println(query)
-
+	println(query)
 	stmt, err := DB.Prepare(query)
 	utils.HandleErr("[db.Query] Prepare: ", err, nil)
 
@@ -75,8 +72,7 @@ func Query(query string, params []interface{}) *sql.Rows {
 }
 
 func QueryRow(query string, params []interface{}) *sql.Row {
-	fmt.Println(query)
-
+	println(query)
 	stmt, err := DB.Prepare(query)
 	utils.HandleErr("[db.QueryRow] Prepare: ", err, nil)
 
