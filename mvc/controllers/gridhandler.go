@@ -11,9 +11,7 @@ import (
 )
 
 func (c *BaseController) GridHandler() *GridHandler {
-	result := new(GridHandler)
-
-	return result
+	return new(GridHandler)
 }
 
 type GridHandler struct {
