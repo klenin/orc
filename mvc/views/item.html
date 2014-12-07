@@ -235,7 +235,7 @@ function(utils, datepicker) {
                 for (var i = 0; i < data.length; ++i) {
                     var obj = $("#h-form-" + data[i]["form_id"]);
                     if ($.inArray(parseInt(data[i]["form_id"]), F_ids) > -1 && obj.length <= 0) {
-                        var h4_form = $("<h4/>", {}).text(data[i]["form_name"]);
+                        var h4_form = $("<h5/>", {}).text(data[i]["form_name"]);
                         var div_form = $("<div/>", {id: "h-form-" + data[i]["form_id"]}).append(h4_form);
                         $("#h-container").append(div_form);
                     }
@@ -244,7 +244,8 @@ function(utils, datepicker) {
                     ));
                     $('#history [name="' + data[i]["param_id"] + '"]').val(data[i]["value"]);
                 }
-
+                kladr();
+                datepicker();
                 $("<input/>", {
                     id: "export-btn",
                     name: "submit",
