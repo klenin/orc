@@ -29,6 +29,7 @@
             <select id="h-events" name="h-events"></select>
             <input type="button" value="выбрать" id="send-btn" name="submit"/>
         </form>
+        <div id="h-container"></div>
     </div>
 </div>
 
@@ -224,25 +225,26 @@ function(utils, datepicker) {
     });
 
     $("#send-btn").click(function() {
-        var event_id = $("#h-events").find(":selected").attr("value");
         utils.postRequest(
             {
-                "event_id": event_id
+                "event_id": $("#h-events").find(":selected").attr("value")
             },
             function(data) {
+                $("#h-container").empty();
+                $("#export-btn").remove();
                 for (var i = 0; i < data.length; ++i) {
                     var obj = $("#h-form-" + data[i]["form_id"]);
                     if ($.inArray(parseInt(data[i]["form_id"]), F_ids) > -1 && obj.length <= 0) {
                         var h4_form = $("<h4/>", {}).text(data[i]["form_name"]);
-                        var div_form = $("<div/>", {id: "h-" + "form-" + data[i]["form_id"]/*, class: "br"*/})
-                        .append(h4_form);
-                        $("#history").append(div_form);
+                        var div_form = $("<div/>", {id: "h-form-" + data[i]["form_id"]}).append(h4_form);
+                        $("#h-container").append(div_form);
                     }
                     $("#h-form-" + data[i]["form_id"]).append(drawParam(
                         {"id":data[i]["param_id"], "type":data[i]["type"], "name":data[i]["param_name"]}
                     ));
                     $('#history [name="' + data[i]["param_id"] + '"]').val(data[i]["value"]);
                 }
+
                 $("<input/>", {
                     id: "export-btn",
                     name: "submit",
