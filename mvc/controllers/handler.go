@@ -19,9 +19,6 @@ type Handler struct {
 }
 
 func (this *Handler) GetEventList() {
-	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
-		return
-	}
 	this.Response.Header().Set("Access-Control-Allow-Origin", "*")
 	this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 	this.Response.Header().Set("Content-type", "application/json")

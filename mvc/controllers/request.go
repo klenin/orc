@@ -170,9 +170,6 @@ func (this *Handler) SaveUserRequest() {
 }
 
 func (this *Handler) GetRequest(tableName, id string) {
-	if flag := sessions.CheackSession(this.Response, this.Request); !flag {
-		return
-	}
 	tmp, err := template.ParseFiles(
 		"mvc/views/item.html",
 		"mvc/views/header.html",
