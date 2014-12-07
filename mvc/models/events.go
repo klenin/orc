@@ -7,13 +7,13 @@ func (c *ModelManager) Events() *EventModel {
 	model.Caption = "Мероприятия"
 
 	model.Columns = []string{"id", "name", "date_start", "date_end", "time", "url"}
-	model.ColNames = []string{"ID", "Название", "Дата_start", "Дата_end", "Время", "Сайт"}
+	model.ColNames = []string{"ID", "Название", "Дата начала", "Дата окончания", "Время", "Сайт"}
 
 	tmp := map[string]*Field{
 		"id":         {"id", "ID", "int", false},
 		"name":       {"name", "Название", "text", false},
-		"date_start": {"date", "Дата_start", "date", false},
-		"date_end":   {"date", "Дата_end", "date", false},
+		"date_start": {"date", "Дата начала", "date", false},
+		"date_end":   {"date", "Дата окончания", "date", false},
 		"time":       {"time", "Время", "time", false},
 		"url":        {"url", "Сайт", "text", false},
 	}
@@ -33,3 +33,13 @@ func (c *ModelManager) Events() *EventModel {
 type EventModel struct {
 	Entity
 }
+
+//func (this EventModel) GetColModel() map[string]interface{} {
+//	result := make([string]interface{}, len(this.Columns))
+//	result["id"] = make()
+//	result["name"] = make()
+//	result["date_start"] = make()
+//	result["date_end"] = make()
+//	result["time"] = make()
+//	result["url"] = make()
+//}

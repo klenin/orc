@@ -11,14 +11,14 @@ func (c *ModelManager) PersonsEvents() *PersonsEventsModel {
 	model.Caption = "Персоны - Мероприятия"
 
 	model.Columns = []string{"id", "person_id", "event_id", "reg_date", "last_date"}
-	model.ColNames = []string{"ID", "Персона", "Мероприятие", "Дата_регистрации", "Дата_последних_изменений"}
+	model.ColNames = []string{"ID", "Персона", "Мероприятие", "Дата регистрации", "Дата последних изменений"}
 
 	tmp := map[string]*Field{
 		"id":        {"id", "ID", "int", false},
 		"person_id": {"person_id", "Персона", "int", true},
 		"event_id":  {"event_id", "Мероприятие", "int", true},
-		"reg_date":  {"reg_date", "Дата_регистрации", "date", true},
-		"last_date": {"last_date", "Дата_последних_изменений", "date", true},
+		"reg_date":  {"reg_date", "Дата регистрации", "date", true},
+		"last_date": {"last_date", "Дата последних изменений", "date", true},
 	}
 
 	model.Fields = tmp

@@ -11,13 +11,13 @@ func (c *ModelManager) FormsTypes() *FormsTypesModel {
 	model.Caption = "Формы - Типы мероприятий"
 
 	model.Columns = []string{"id", "form_id", "type_id", "serial_number"}
-	model.ColNames = []string{"ID", "Форма", "Тип", "Порядковый_номер"}
+	model.ColNames = []string{"ID", "Форма", "Тип", "Порядковый номер"}
 
 	tmp := map[string]*Field{
 		"id":            {"id", "ID", "int", false},
 		"form_id":       {"form_id", "Форма", "int", true},
 		"type_id":       {"type_id", "Тип", "int", true},
-		"serial_number": {"serial_number", "Порядковый_номер", "int", false},
+		"serial_number": {"serial_number", "Порядковый номер", "int", false},
 	}
 
 	model.Fields = tmp
