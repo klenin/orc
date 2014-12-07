@@ -25,15 +25,18 @@ Install [git][3]. Get a copy of repository:
 ### Install Packages
 
 - [package pq][4] ([godoc](http://godoc.org/github.com/lib/pq))
+
         $ go get github.com/lib/pq
 
 - [package securecookie][5] ([godoc](http://godoc.org/github.com/gorilla/securecookie))
 
         $ go get github.com/gorilla/securecookie
 
-- [package sessions][6] ([godoc](http://godoc.org/github.com/gorilla/sessions))
+### Import Dump File
 
-        $ go get github.com/gorilla/sessions
+Use PSQL Console:
+
+    orc=# \i path/to/dumpfile
 
 ### Running
 
@@ -44,4 +47,3 @@ Install [git][3]. Get a copy of repository:
 [3]: http://git-scm.com
 [4]: https://github.com/lib/pq
 [5]: http://www.gorillatoolkit.org/pkg/securecookie
-[6]: http://www.gorillatoolkit.org/pkg/sessions
