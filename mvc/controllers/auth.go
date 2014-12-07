@@ -24,7 +24,7 @@ func GetMD5Hash(text string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (this *Handler) HandleRegister(login, password, fname, lname, pname string) string {
+func (this *Handler) HandleRegister(login, password, role, fname, lname, pname string) string {
 	result := map[string]string{"result": "ok"}
 	salt := time.Now().Unix()
 	hash := GetMD5Hash(password + strconv.Itoa(int(salt)))
@@ -55,7 +55,7 @@ func (this *Handler) HandleRegister(login, password, fname, lname, pname string)
 		fmt.Println("curr :", p_id)
 
 		query = db.QueryInsert("users", []string{"login", "pass", "salt", "role", "person_id"})
-		db.Query(query, []interface{}{login, hash, salt, "user", p_id - 1})
+		db.Query(query, []interface{}{login, hash, salt, role, p_id - 1})
 	}
 
 	response, err := json.Marshal(result)
