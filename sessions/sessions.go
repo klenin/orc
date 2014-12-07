@@ -1,60 +1,62 @@
 package sessions
 
 import (
-	"fmt"
 	"github.com/gorilla/securecookie"
-	"github.com/orc/utils"
 	"net/http"
-	"strconv"
 	"time"
 )
+
+var lifetime = 300 //5 min
 
 var CookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32))
 
 func SetSession(id, login string, response http.ResponseWriter) {
-	value := map[string]string{
+	value := map[string]interface{}{
 		"id":   id,
 		"name": login,
-		"time": strconv.Itoa(int(time.Now().Unix()) + 900),
+		"time": int(time.Now().Unix()),
 	}
 	if encoded, err := CookieHandler.Encode("session", value); err == nil {
 		cookie := &http.Cookie{
 			Name:   "session",
 			Value:  encoded,
 			Path:   "/",
-			MaxAge: int(time.Now().Unix()) + 900,
+			MaxAge: int(time.Now().Unix()) + lifetime,
 		}
 		http.SetCookie(response, cookie)
 	}
 }
 
-func GetValue(field string, request *http.Request) string {
-	value := ""
+func GetValue(field string, request *http.Request) interface{} {
+	var value interface{}
 	if cookie, err := request.Cookie("session"); err == nil {
-		cookieValue := make(map[string]string)
+		cookieValue := make(map[string]interface{})
 		if err = CookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
 			value = cookieValue[field]
 		} else {
-			fmt.Println(err)
+			println("session.GetValue Error", err)
+			return nil
 		}
 	} else {
-		fmt.Println(err)
+		println("session.GetValue Error", err)
+		return nil
 	}
 	return value
 }
 
-func SetValue(field, value string, request *http.Request) {
+func setValue(field string, value interface{}, request *http.Request) {
 	if cookie, err := request.Cookie("session"); err == nil {
-		cookieValue := make(map[string]string)
+		cookieValue := make(map[string]interface{})
 		if err = CookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
 			cookieValue[field] = value
+			cookie.MaxAge = int(time.Now().Unix())
 		} else {
-			fmt.Println(err)
+			println("session.setValue ErrorSetValue", err)
 		}
 	} else {
-		fmt.Println(err)
+		println("session.setValue Error", err)
 	}
 }
 
@@ -69,23 +71,19 @@ func ClearSession(response http.ResponseWriter) {
 }
 
 func CheackSession(response http.ResponseWriter, request *http.Request) bool {
-	t := GetValue("time", request)
-	if t == "" {
-		fmt.Println("WHERE")
+	oldTime, ok := GetValue("time", request).(int)
+	if ok != true || oldTime == 0 {
 		http.Redirect(response, request, "/", 302)
 		return false
 	} else {
-		oldTime, err := strconv.Atoi(t)
-		utils.HandleErr("CheackSession: ", err, nil)
 		newTime := int(time.Now().Unix())
-		if oldTime < newTime-900 {
+		if oldTime+lifetime < newTime {
 			ClearSession(response)
 			http.Redirect(response, request, "/", 302)
 			return false
 		} else {
-			SetValue("time", strconv.Itoa(int(time.Now().Unix())+900), request)
+			setValue("time", newTime, request)
 			return true
 		}
-
 	}
 }
