@@ -57,7 +57,7 @@ function(utils, datepicker) {
 
     var F_ids = [];
 
-    function drawParam(data) {
+    function drawParam(data, flag) {
         var block;
 
         switch (types[data["type"]]) {
@@ -65,58 +65,67 @@ function(utils, datepicker) {
                 block = $("<input/>", {
                     id: types[data["type"]],
                     name: data["id"],
-                    type: "date"
+                    type: "date",
+                    disabled: flag
                 });
                 break;
             case "region":
                 block = $("<input/>", {
                     id: types[data["type"]],
                     name: data["id"],
-                    type: "text"
+                    type: "text",
+                    disabled: flag
                 });
                 break;
             case "district":
                 block = $("<input/>", {
                     id: types[data["type"]],
                     name: data["id"],
-                    type: "text"
+                    type: "text",
+                    disabled: flag
                 });
                 break;
             case "city":
                 block = $("<input/>", {
                     id: types[data["type"]],
                     name: data["id"],
-                    type: "text"
+                    type: "text",
+                    disabled: flag
                 });
                 break;
             case "street":
                 block = $("<input/>", {
                     id: types[data["type"]],
                     name: data["id"],
-                    type: "text"
+                    type: "text",
+                    disabled: flag
                 });
                 break;
             case "building":
                 block = $("<input/>", {
                     id: types[data["type"]],
                     name: data["id"],
-                    type: "text"
+                    type: "text",
+                    disabled: flag
                 });
                 break;
             case "input":
                 block = $("<input/>", {
                     id: types[data["type"]],
                     name: data["id"],
-                    type: "text"
+                    type: "text",
+                    disabled: flag
                 });
                 break;
             case "textarea":
                 block = $("<textarea/>", {
                     id: types[data["type"]],
                     name: data["id"],
+                    disabled: flag
                 });
                 break;
         }
+
         var lable = $("<label/>", {
             for: data["name"],
             id: "label-" + data["name"],
@@ -172,7 +181,7 @@ function(utils, datepicker) {
                 $(div_tab_form).append(div_params);
 
                 for (var k = 0; k < P[i][j].length; k++) {
-                    $(div_params).append(drawParam(P[i][j][k]));
+                    $(div_params).append(drawParam(P[i][j][k], false));
                 }
             }
         }
@@ -239,13 +248,10 @@ function(utils, datepicker) {
                         var div_form = $("<div/>", {id: "h-form-" + data[i]["form_id"]}).append(h4_form);
                         $("#h-container").append(div_form);
                     }
-                    $("#h-form-" + data[i]["form_id"]).append(drawParam(
-                        {"id":data[i]["param_id"], "type":data[i]["type"], "name":data[i]["param_name"]}
-                    ));
+                    $("#h-form-" + data[i]["form_id"]).append(drawParam({"id":data[i]["param_id"], "type":data[i]["type"], "name":data[i]["param_name"]}, true));
                     $('#history [name="' + data[i]["param_id"] + '"]').val(data[i]["value"]);
                 }
-                kladr();
-                datepicker();
+
                 $("<input/>", {
                     id: "export-btn",
                     name: "submit",
