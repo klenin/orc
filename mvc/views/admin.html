@@ -9,8 +9,6 @@
 <script type="text/javascript">
     $("#title").append("Личный кабинет <strong>admin</strong>");
 
-    $("#logout-btn, #cabinet-btn").css("visibility", "visible");
-
     $("#cabinet").empty();
 
     for (var i = 0; i < {{.Columns}}.length; ++i) {

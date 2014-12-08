@@ -1,4 +1,23 @@
 {{ define "footer" }}
+        <script type="text/javascript">
+            var allcookies = document.cookie;
+            console.log("All Cookies : " + allcookies);
+            cookiearray  = allcookies.split(';');
+            var flag = false;
+            for (var i = 0; i < cookiearray.length; ++i) {
+                name = cookiearray[i].split('=')[0];
+                value = cookiearray[i].split('=')[1];
+                console.log("Key is : " + name + " and Value is : " + value);
+                if (name === "session") {
+                    flag = true;
+                }
+            }
+            if (flag) {
+                $("#logout-btn, #cabinet-btn").css("visibility", "visible");
+            } else {
+                $("#logout-btn, #cabinet-btn").css("visibility", "hidden");
+            }
+        </script>
     </body>
 </html>
 {{ end }}

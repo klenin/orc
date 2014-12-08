@@ -12,8 +12,6 @@
 <script type="text/javascript">
     $("#title").append("Личный кабинет <strong>{{.Caption}}</strong>");
 
-    $("#cabinet, #logout-btn, #cabinet-btn").css("visibility", "visible");
-
     var valid = false;
     var data = {
         {{with .Table}}
