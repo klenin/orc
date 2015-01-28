@@ -3,12 +3,12 @@ ORC
 
 Course work.
 
-**ORC** helps to simplify the interaction of the participants with
-the organizers of the various competitions, events, tournaments, seminars,
+**ORC** helps to participants simplify interaction with
+organizers of various competitions, events, tournaments, seminars,
 conferences, etc.
 
 Installation
-------------------------
+------------
 
 ### Requirements
 
