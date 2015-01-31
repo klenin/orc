@@ -1,86 +1,240 @@
 package db
 
-var Events = `CREATE TABLE IF NOT EXISTS events (
-    id         int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('events_id_seq'),
-    name       text NOT NULL UNIQUE,
-    date_start date NOT NULL,
-    date_end   date NOT NULL,
-	time       time NOT NULL,
-	url        text
-)`
+import (
+	"database/sql"
+	"fmt"
+	_ "github.com/lib/pq"
+	"github.com/orc/utils"
+	"log"
+	"strconv"
+	"strings"
+	"time"
+)
 
-var Event_types = `CREATE TABLE IF NOT EXISTS event_types (
-    id          int     NOT NULL PRIMARY KEY DEFAULT NEXTVAL('event_types_id_seq'),
-    name        text    NOT NULL UNIQUE,
-	description text    NOT NULL,
-	topicality  boolean NOT NULL
-);`
+var DB, _ = sql.Open(
+	"postgres",
+	"host=localhost"+
+		" user="+user+
+		" dbname="+dbname+
+		" password="+password+
+		" sslmode=disable")
 
-var Events_types = `CREATE TABLE IF NOT EXISTS events_types (
-    id       int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('events_types_id_seq'),
-    event_id int  NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-    type_id  int  NOT NULL REFERENCES event_types(id) ON DELETE CASCADE
-);`
+func GetCurrId(tableName string) (id string) {
+	query := fmt.Sprintf("SELECT currval('%s');", tableName+"_id_seq")
+	QueryRow(query, nil).Scan(&id)
+	return id
+}
 
-var Teams = `CREATE TABLE IF NOT EXISTS teams (
-    id   int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('teams_id_seq'),
-    name text NOT NULL UNIQUE
-);`
+func GetNextId(tableName string) (id string) {
+	query := fmt.Sprintf("SELECT nextval('%s');", tableName+"_id_seq")
+	QueryRow(query, nil).Scan(&id)
+	return id
+}
 
-var Persons = `CREATE TABLE IF NOT EXISTS persons (
-    id            int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('persons_id_seq'),
-    fname         text NOT NULL,
-    lname         text NOT NULL,
-    pname         text NOT NULL
-);`
+func Exec(query string, params []interface{}) sql.Result {
+	log.Println(query)
+	stmt, err := DB.Prepare(query)
+	utils.HandleErr("[db.Exec] Prepare: ", err, nil)
+	result, err := stmt.Exec(params...)
+	utils.HandleErr("[db.Exec] Exec: ", err, nil)
+	return result
+}
 
-var Users = `CREATE TABLE IF NOT EXISTS users (
-    id        int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('users_id_seq'),
-    login     text NOT NULL,
-    pass      text NOT NULL,
-    salt      text NOT NULL,
-	role      text NOT NULL DEFAULT 'user',
-	person_id int  NOT NULL DEFAULT '-1' REFERENCES persons(id) ON DELETE CASCADE
-);`
+func Query(query string, params []interface{}) *sql.Rows {
+	log.Println(query)
+	stmt, err := DB.Prepare(query)
+	utils.HandleErr("[db.Query] Prepare: ", err, nil)
+	result, err := stmt.Query(params...)
+	utils.HandleErr("[db.Query] Query: ", err, nil)
+	return result
+}
 
-var Teams_persons = `CREATE TABLE IF NOT EXISTS teams_persons (
-    id        int NOT NULL PRIMARY KEY DEFAULT NEXTVAL('teams_persons_id_seq'),
-    team_id   int NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-    person_id int NOT NULL REFERENCES persons(id) ON DELETE CASCADE
-);`
+func QueryRow(query string, params []interface{}) *sql.Row {
+	log.Println(query)
+	stmt, err := DB.Prepare(query)
+	utils.HandleErr("[db.QueryRow] Prepare: ", err, nil)
+	result := stmt.QueryRow(params...)
+	utils.HandleErr("[db.QueryRow] Query: ", err, nil)
+	return result
+}
 
-var Forms = `CREATE TABLE IF NOT EXISTS forms (
-    id   int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('forms_id_seq'),
-    name text NOT NULL
-);`
+func QueryCreateSecuence(tableName string) {
+	Query("CREATE SEQUENCE "+tableName+"_id_seq;", nil)
+}
 
-var Params = `CREATE TABLE IF NOT EXISTS params (
-    id         int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('params_id_seq'),
-    name       text NOT NULL UNIQUE,
-    type       text NOT NULL,
-	form_id    int  NOT NULL REFERENCES forms(id) ON DELETE CASCADE, 
-	identifier text NOT NULL
-);`
+func QueryCreateTable(tableName string, fields []map[string]string) {
+	QueryCreateSecuence(tableName)
+	query := "CREATE TABLE IF NOT EXISTS %s ("
+	for i := 0; i < len(fields); i++ {
+		query += fields[i]["field"] + " "
+		query += fields[i]["type"] + " "
+		query += fields[i]["null"] + " "
+		switch fields[i]["extra"] {
+		case "PRIMARY":
+			query += "PRIMARY KEY DEFAULT NEXTVAL('"
+			query += tableName + "_id_seq'), "
+			break
+		case "REFERENCES":
+			query += "REFERENCES " + fields[i]["refTable"] + "(" + fields[i]["refField"] + ") ON DELETE CASCADE, "
+			break
+		case "UNIQUE":
+			query += "UNIQUE, "
+			break
+		default:
+			query += ", "
+		}
+	}
+	query = query[0 : len(query)-2]
+	query += ");"
+	Query(query, nil)
+}
 
-var Forms_types = `CREATE TABLE IF NOT EXISTS forms_types (
-    id            int NOT NULL PRIMARY KEY DEFAULT NEXTVAL('forms_types_id_seq'),
-    form_id       int NOT NULL REFERENCES forms(id) ON DELETE CASCADE,
-    type_id       int NOT NULL REFERENCES event_types(id) ON DELETE CASCADE, 
-	serial_number int NOT NULL
-);`
+func QuerySelect(tableName, where string, fields []string) string {
+	query := "SELECT %s FROM %s"
+	f := strings.Join(fields, ", ")
+	if where != "" {
+		query += " WHERE %s;"
+		return fmt.Sprintf(query, f, tableName, where)
+	} else {
+		return fmt.Sprintf(query, f, tableName)
+	}
+}
 
-var Param_values = `CREATE TABLE IF NOT EXISTS param_values (
-    id        int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('param_values_id_seq'),
-    person_id int  NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
-    event_id  int  NOT NULL REFERENCES events(id) ON DELETE CASCADE, 
-    param_id  int  NOT NULL REFERENCES params(id) ON DELETE CASCADE, 
-	value     text NOT NULL
-);`
+func QueryInsert(tableName string, fields []string, params []interface{}) {
+	query := "INSERT INTO %s (%s) VALUES (%s);"
+	f := strings.Join(fields, ", ")
+	p := strings.Join(MakeParams(len(fields)), ", ")
+	Query(fmt.Sprintf(query, tableName, f, p), params)
+}
 
-var Persons_events = `CREATE TABLE IF NOT EXISTS persons_events (
-    id        int  NOT NULL PRIMARY KEY DEFAULT NEXTVAL('persons_events_id_seq'),
-    person_id int  NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
-    event_id  int  NOT NULL REFERENCES events(id) ON DELETE CASCADE, 
-    reg_date  date NOT NULL,
-    last_date date NOT NULL
-);`
+func QueryUpdate(tableName, where string, fields []string, params []interface{}) {
+	query := "UPDATE %s SET %s WHERE %s;"
+	p := strings.Join(MakePairs(fields), ", ")
+	Query(fmt.Sprintf(query, tableName, p, where), params)
+}
+
+func QueryDelete(tableName, fieldName string, valParams []interface{}) {
+	query := "DELETE FROM %s WHERE %s IN (%s)"
+	params := strings.Join(MakeParams(len(valParams)), ", ")
+	Query(fmt.Sprintf(query, tableName, fieldName, params), valParams)
+}
+
+func IsExists(tableName, fieldName string, value string) bool {
+	var result string
+	query := QuerySelect(tableName, fieldName+"=$1", []string{fieldName})
+	row := QueryRow(query, []interface{}{value})
+	err := row.Scan(&result)
+	return err != sql.ErrNoRows
+}
+
+func MakeParams(n int) []string {
+	var result = make([]string, n)
+	for i := 0; i < n; i++ {
+		result[i] = "$" + strconv.Itoa(i+1)
+	}
+	return result
+}
+
+func MakePairs(fields []string) []string {
+	var result = make([]string, len(fields))
+	for i := 0; i < len(fields); i++ {
+		result[i] = fields[i] + "=$" + strconv.Itoa(i+1)
+	}
+	return result
+}
+
+/**
+ * condition: the AND condition and the OR condition
+ * where: [fieldName1, paramVal1, fieldName2, paramVal2, ...]
+ */
+func Select(tableName string, where []string, condition string, fields []string) []interface{} {
+	var key []string
+	var val []interface{}
+	var paramName = 1
+	if len(where) != 0 {
+		for i := 0; i < len(where)-1; i += 2 {
+			key = append(key, where[i]+"=$"+strconv.Itoa(paramName))
+			val = append(val, where[i+1])
+			paramName++
+		}
+	}
+	query := QuerySelect(tableName, strings.Join(key, " "+condition+" "), fields)
+	rows := Query(query, val)
+	rowsInf := Exec(query, val)
+	columns, _ := rows.Columns()
+	size, err := rowsInf.RowsAffected()
+	utils.HandleErr("[Entity.Select] RowsAffected: ", err, nil)
+	return ConvertData(columns, size, rows)
+}
+
+func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
+	row := make([]interface{}, len(columns))
+	values := make([]interface{}, len(columns))
+	answer := make([]interface{}, size)
+
+	for i, _ := range row {
+		row[i] = &values[i]
+	}
+
+	j := 0
+	for rows.Next() {
+		rows.Scan(row...)
+		record := make(map[string]interface{}, len(values))
+		for i, col := range values {
+			if col != nil {
+				//fmt.Printf("\n%s: type= %s\n", columns[i], reflect.TypeOf(col))
+				switch col.(type) {
+				case bool:
+					record[columns[i]] = col.(bool)
+				case int:
+					record[columns[i]] = col.(int)
+				case int64:
+					record[columns[i]] = col.(int64)
+				case float64:
+					record[columns[i]] = col.(float64)
+				case string:
+					record[columns[i]] = col.(string)
+				case []byte:
+					record[columns[i]] = string(col.([]byte))
+				case []int8:
+					record[columns[i]] = col.([]string)
+				case time.Time:
+					record[columns[i]] = col
+				default:
+					utils.HandleErr("Entity.Select: Unexpected type.", nil, nil)
+				}
+			}
+			answer[j] = record
+		}
+		j++
+	}
+	return answer
+}
+
+func InnerJoin(
+	selectFields []string,
+	selectRef string,
+
+	fromTable string,
+	fromTableRef string,
+	fromField []string,
+
+	joinTables []string,
+	joinRef []string,
+	joinField []string,
+
+	where string) string {
+
+	query := "SELECT "
+	for i := 0; i < len(selectFields); i++ {
+		query += selectRef + "." + selectFields[i] + ", "
+	}
+	query = query[0 : len(query)-2]
+	query += " FROM " + fromTable + " " + fromTableRef
+	for i := 0; i < len(joinTables); i++ {
+		query += " INNER JOIN " + joinTables[i] + " " + joinRef[i]
+		query += " ON " + joinRef[i] + "." + joinField[i] + " = " + fromTableRef + "." + fromField[i]
+	}
+	query += " " + where
+	return query
+}
