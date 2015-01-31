@@ -40,14 +40,14 @@ func GetModel(tableName string) models.VirtEntity {
 		return base.EventTypes()
 	case "events_types":
 		return base.EventsTypes()
-	case "teams":
-		return base.Teams()
+	//case "teams":
+	//	return base.Teams()
 	case "persons":
 		return base.Persons()
 	case "users":
 		return base.Users()
-	case "teams_persons":
-		return base.TeamsPersons()
+	//case "teams_persons":
+	//	return base.TeamsPersons()
 	case "forms":
 		return base.Forms()
 	case "params":
