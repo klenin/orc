@@ -29,7 +29,7 @@ func (this *GridHandler) GetSubTable() {
 	var request map[string]string
 	decoder := json.NewDecoder(this.Request.Body)
 	err := decoder.Decode(&request)
-	utils.HandleErr("[Handler] Decode :", err, this.Response)
+	utils.HandleErr("[GridHandler::GetSubTable] Decode :", err, this.Response)
 
 	id := request["id"]
 	tableName := request["table"]
@@ -48,7 +48,7 @@ func (this *GridHandler) GetSubTable() {
 		"columns":   subModel.GetColumns(),
 		"refdata":   refdata,
 		"reffields": subModel.GetRefFields()})
-	utils.HandleErr("[HandleRegister] json.Marshal: ", err, nil)
+	utils.HandleErr("[GridHandler::GetSubTable] json.Marshal: ", err, nil)
 	fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -64,7 +64,7 @@ func (this *GridHandler) Load(tableName string) {
 	answer, _ := model.Select(nil, "", model.GetColumns())
 
 	response, err := json.Marshal(answer)
-	utils.HandleErr("[Handle select] json.Marshal: ", err, nil)
+	utils.HandleErr("[GridHandler::Load] json.Marshal: ", err, nil)
 	fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -78,7 +78,7 @@ func (this *GridHandler) Select(tableName string) {
 		"mvc/views/table.html",
 		"mvc/views/header.html",
 		"mvc/views/footer.html")
-	utils.HandleErr("[Handler.Select] template.ParseFiles: ", err, nil)
+	utils.HandleErr("[GridHandler::Select] template.ParseFiles: ", err, nil)
 	err = tmp.ExecuteTemplate(this.Response, "table", Model{
 		RefData:   refdata,
 		RefFields: model.GetRefFields(),
@@ -87,7 +87,7 @@ func (this *GridHandler) Select(tableName string) {
 		Columns:   model.GetColumns(),
 		Caption:   model.GetCaption(),
 		Sub:       model.GetSub()})
-	utils.HandleErr("[Handler.Select] tmp.Execute: ", err, nil)
+	utils.HandleErr("[GridHandler::Select] tmp.Execute: ", err, nil)
 }
 
 func (this *GridHandler) Edit(tableName string) {
