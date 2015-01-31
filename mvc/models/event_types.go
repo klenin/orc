@@ -9,7 +9,7 @@ func (c *ModelManager) EventTypes() *EventTypesModel {
     model.Columns = []string{"id", "name", "description", "topicality"}
     model.ColNames = []string{"ID", "Тип", "Описание", "Актуальность"}
 
-    model.Fields = []map[string]string {
+    model.Fields = []map[string]string{
         {
             "field": "id",
             "type":  "int",
