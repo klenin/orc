@@ -6,17 +6,10 @@ import (
 
 type ModelManager struct{}
 
-type Field struct {
-	Name    string
-	Caption string
-	Type    string
-	Ref     bool
-}
-
 type Entity struct {
 	TableName string
 	Caption   string
-	Fields    map[string]*Field
+	Fields    []map[string]string
 	Columns   []string
 	ColNames  []string
 	Ref       bool
@@ -25,6 +18,10 @@ type Entity struct {
 	Sub       bool
 	SubTable  []string
 	SubField  string
+}
+
+func (this Entity) Create() {
+	db.QueryCreateTable(this.TableName, this.Fields)
 }
 
 func (this Entity) Select(where []string, condition string, fields []string) ([]interface{}, map[string]interface{}) {
@@ -37,18 +34,15 @@ func (this Entity) Select(where []string, condition string, fields []string) ([]
 }
 
 func (this Entity) Insert(fields []string, params []interface{}) {
-	query := db.QueryInsert(this.TableName, fields)
-	db.Query(query, params)
+	db.QueryInsert(this.TableName, fields, params)
 }
 
 func (this Entity) Update(fields []string, params []interface{}, where string) {
-	query := db.QueryUpdate(this.TableName, where, fields)
-	db.Query(query, params)
+	db.QueryUpdate(this.TableName, where, fields, params)
 }
 
 func (this Entity) Delete(field string, params []interface{}) {
-	query := db.QueryDelete(this.TableName, field, len(params))
-	db.Query(query, params)
+	db.QueryDelete(this.TableName, field, params)
 }
 
 func (this Entity) GetSubTable(index int) string {
@@ -103,6 +97,8 @@ type VirtEntity interface {
 	GetColumnSlice(index int) []string
 	GetColNames() []string
 	GetRefFields() []string
+
+	Create()
 	Select(where []string, condition string, fields []string) ([]interface{}, map[string]interface{})
 	Insert(fields []string, params []interface{})
 	Update(fields []string, params []interface{}, where string)
