@@ -10,7 +10,7 @@ func (c *ModelManager) Params() *ParamsModel {
     model.TableName = "params"
     model.Caption = "Параметры"
 
-    model.Columns = []string{"id", "name", "type", "form_id", "identifier"}
+    model.Columns = []string{"id", "name", "param_type_id", "form_id", "identifier"}
     model.ColNames = []string{"ID", "Название", "Тип", "Форма", "Идентификатор"}
 
     model.Fields = []map[string]string{
@@ -25,10 +25,12 @@ func (c *ModelManager) Params() *ParamsModel {
             "null":  "NOT NULL",
             "extra": ""},
         {
-            "field": "type",
-            "type":  "text",
+            "field": "param_type_id",
+            "type":  "int",
             "null":  "NOT NULL",
-            "extra": ""},
+            "extra": "REFERENCES",
+            "refTable": "param_types",
+            "refField": "id"},
         {
             "field":    "form_id",
             "type":     "int",
@@ -45,21 +47,15 @@ func (c *ModelManager) Params() *ParamsModel {
 
     model.Ref = true
     model.RefFields = []string{"name"}
-    model.RefData = make(map[string]interface{}, 1)
+    model.RefData = make(map[string]interface{}, 2)
 
     result := db.Select("forms", nil, "", []string{"id", "name"})
     model.RefData["form_id"] = make([]interface{}, len(result))
     model.RefData["form_id"] = result
 
-    model.RefData["type"] = []interface{}{
-        map[string]string{"id": "0", "name": "date"},
-        map[string]string{"id": "1", "name": "region"},
-        map[string]string{"id": "2", "name": "district"},
-        map[string]string{"id": "3", "name": "city"},
-        map[string]string{"id": "4", "name": "street"},
-        map[string]string{"id": "5", "name": "building"},
-        map[string]string{"id": "6", "name": "input"},
-        map[string]string{"id": "7", "name": "textarea"}}
+    result = db.Select("param_types", nil, "", []string{"id", "name"})
+    model.RefData["param_type_id"] = make([]interface{}, len(result))
+    model.RefData["param_type_id"] = result
 
     model.Sub = false
     model.SubTable = nil

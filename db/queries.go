@@ -212,7 +212,6 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
 
 func InnerJoin(
     selectFields []string,
-    selectRef string,
 
     fromTable string,
     fromTableRef string,
@@ -226,7 +225,7 @@ func InnerJoin(
 
     query := "SELECT "
     for i := 0; i < len(selectFields); i++ {
-        query += selectRef + "." + selectFields[i] + ", "
+        query += selectFields[i] + ", "
     }
     query = query[0 : len(query)-2]
     query += " FROM " + fromTable + " " + fromTableRef

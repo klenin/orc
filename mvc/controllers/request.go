@@ -32,9 +32,10 @@ func (this *Handler) GetHistoryRequest() {
     person, _ := users.Select([]string{"id", id}, "", []string{"person_id"})
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
-    query := `select param_id, p.name param_name, p.type, value, form_id, forms.name form_name from param_values 
+    query := `select param_id, p.name param_name, p_t.name as type, value, form_id, forms.name form_name from param_values
         inner join params p on param_values.param_id = p.id
         inner join forms on forms.id = p.form_id
+        inner join param_types p_t on p_t.id = p.param_type_id
         where person_id = $1 and event_id = $2;`
 
     rows := db.Query(query, []interface{}{person_id, event_id})
@@ -53,10 +54,6 @@ func (this *Handler) GetListHistoryEvents() {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
-    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
-    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    this.Response.Header().Set("Content-type", "application/json")
-
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
@@ -104,10 +101,6 @@ func (this *Handler) SaveUserRequest() {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
-    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
-    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    this.Response.Header().Set("Content-type", "application/json")
-
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
@@ -190,8 +183,7 @@ func MegoJoin(tableName, id string) RequestModel {
     E = db.Select("events", []string{"id", id}, "", []string{"id", "name"})
 
     query := db.InnerJoin(
-        []string{"id", "name"},
-        "t",
+        []string{"t.id", "t.name"},
         "events_types",
         "e_t",
         []string{"event_id", "type_id"},
@@ -210,8 +202,7 @@ func MegoJoin(tableName, id string) RequestModel {
         id := T[i].(map[string]interface{})["id"]
 
         query := db.InnerJoin(
-            []string{"id", "name"},
-            "f",
+            []string{"f.id", "f.name"},
             "forms_types",
             "f_t",
             []string{"form_id", "type_id"},
@@ -234,14 +225,13 @@ func MegoJoin(tableName, id string) RequestModel {
             id := item.(map[string]interface{})["id"]
 
             query := db.InnerJoin(
-                []string{"id", "name", "type"},
-                "p",
+                []string{"p.id", "p.name", "p_t.name as type"},
                 "params",
                 "p",
-                []string{"form_id"},
-                []string{"forms"},
-                []string{"f"},
-                []string{"id"},
+                []string{"form_id", "param_type_id"},
+                []string{"forms", "param_types"},
+                []string{"f", "p_t"},
+                []string{"id", "id"},
                 "where f.id=$1")
 
             rows := db.Query(query, []interface{}{id})

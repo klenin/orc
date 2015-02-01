@@ -36,18 +36,6 @@
 <script type="text/javascript">
 require(["utils", "datepicker"],
 function(utils, datepicker) {
-
-    var types = [
-        "date",
-        "region",
-        "district",
-        "city",
-        "street",
-        "building",
-        "input",
-        "textarea"
-    ];
-
     var D = {{.}};
 
     var E = D.E;
@@ -59,71 +47,32 @@ function(utils, datepicker) {
 
     function drawParam(data, flag) {
         var block;
-
-        switch (types[data["type"]]) {
-            case "date":
-                block = $("<input/>", {
-                    id: types[data["type"]],
-                    name: data["id"],
-                    type: "date",
-                    disabled: flag
-                });
-                break;
-            case "region":
-                block = $("<input/>", {
-                    id: types[data["type"]],
-                    name: data["id"],
-                    type: "text",
-                    disabled: flag
-                });
-                break;
-            case "district":
-                block = $("<input/>", {
-                    id: types[data["type"]],
-                    name: data["id"],
-                    type: "text",
-                    disabled: flag
-                });
-                break;
-            case "city":
-                block = $("<input/>", {
-                    id: types[data["type"]],
-                    name: data["id"],
-                    type: "text",
-                    disabled: flag
-                });
-                break;
-            case "street":
-                block = $("<input/>", {
-                    id: types[data["type"]],
-                    name: data["id"],
-                    type: "text",
-                    disabled: flag
-                });
-                break;
-            case "building":
-                block = $("<input/>", {
-                    id: types[data["type"]],
-                    name: data["id"],
-                    type: "text",
-                    disabled: flag
-                });
-                break;
-            case "input":
-                block = $("<input/>", {
-                    id: types[data["type"]],
-                    name: data["id"],
-                    type: "text",
-                    disabled: flag
-                });
-                break;
-            case "textarea":
-                block = $("<textarea/>", {
-                    id: types[data["type"]],
-                    name: data["id"],
-                    disabled: flag
-                });
-                break;
+        console.log(data)
+        if  (data["type"] === "region"
+            || data["type"] === "district"
+            || data["type"] === "city"
+            || data["type"] === "street"
+            || data["type"] === "building"
+            || data["type"] === "input") {
+            block = $("<input/>", {
+                id: data["type"],
+                name: data["id"],
+                type: "text",
+                disabled: flag
+            });
+        } else if (data["type"] === "textarea") {
+            block = $("<textarea/>", {
+                id: data["type"],
+                name: data["id"],
+                disabled: flag
+            });
+        } else if (data["type"] === "date") {
+            block = $("<input/>", {
+                id: data["type"],
+                name: data["id"],
+                type: "date",
+                disabled: flag
+            });
         }
 
         var lable = $("<label/>", {
@@ -256,7 +205,7 @@ function(utils, datepicker) {
                     id: "export-btn",
                     name: "submit",
                     type: "button",
-                    value: "Экспорт",
+                    value: "экспорт",
                 }).appendTo("#history");
 
                 $("#export-btn").click(function() {

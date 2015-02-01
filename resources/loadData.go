@@ -28,10 +28,11 @@ func addTime(h, m, s int) string {
 }
 
 func Load() {
-    loadUser()
-    loadEvent()
-    loadEventType()
+    loadUsers()
+    loadEvents()
+    loadEventTypes()
     loadForms()
+    loadParamTypes()
 }
 
 func loadUser() {
@@ -63,7 +64,7 @@ func loadUser() {
     base.Handler().HandleRegister("admin", "password", "admin", "", "")
 }
 
-func loadEvent() {
+func loadEvents() {
     eventNames, _ := ioutil.ReadFile("./resources/event-name")
     subjectNames, _ := ioutil.ReadFile("./resources/subject-name")
     eventNameSource := strings.Split(string(eventNames), "\n")
@@ -82,7 +83,7 @@ func loadEvent() {
     }
 }
 
-func loadEventType() {
+func loadEventTypes() {
     eventTypeNames, _ := ioutil.ReadFile("./resources/event-type-name")
     eventTypeNamesSourse := strings.Split(string(eventTypeNames), "\n")
     topicality := []bool{true, false}
@@ -102,5 +103,15 @@ func loadForms() {
         formName := strings.TrimSpace(formNamesSourse[i])
         entity := base.Forms()
         entity.Insert(entity.GetColumnSlice(1), []interface{}{formName})
+    }
+}
+
+func loadParamTypes() {
+    paramTypesNames, _ := ioutil.ReadFile("./resources/param-type-name")
+    paramTypesSourse := strings.Split(string(paramTypesNames), "\n")
+    for i := 0; i < len(paramTypesSourse); i++ {
+        paramType := strings.TrimSpace(paramTypesSourse[i])
+        entity := base.ParamTypes()
+        entity.Insert(entity.GetColumnSlice(1), []interface{}{paramType})
     }
 }
