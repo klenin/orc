@@ -23,7 +23,7 @@ func (this *Handler) GetHistoryRequest() {
     var data map[string]string
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler] Decode :", err, this.Response)
+    utils.HandleErr("[Handler::GetHistoryRequest] Decode :", err, this.Response)
 
     event_id := data["event_id"]
     id := sessions.GetValue("id", this.Request).(string)
@@ -45,7 +45,7 @@ func (this *Handler) GetHistoryRequest() {
     result := db.ConvertData(columns, size, rows)
 
     response, err := json.Marshal(result)
-    utils.HandleErr("[Handle select] json.Marshal: ", err, nil)
+    utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, nil)
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -60,7 +60,7 @@ func (this *Handler) GetListHistoryEvents() {
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler] Decode :", err, this.Response)
+    utils.HandleErr("[Handler::GetListHistoryEvents] Decode :", err, this.Response)
 
     id := sessions.GetValue("id", this.Request).(string)
     ids := utils.ArrayInterfaceToString(data["form_ids"].([]interface{}))
@@ -71,7 +71,6 @@ func (this *Handler) GetListHistoryEvents() {
 
     model := GetModel("forms_types")
     result, _ := model.Select(ids, "OR", []string{"type_id"})
-    //fmt.Println("result: ", result)
 
     query := `SELECT DISTINCT event_id, name FROM param_values 
     inner join events on events.id = param_values.event_id
@@ -89,7 +88,6 @@ func (this *Handler) GetListHistoryEvents() {
 
     params = append(params, result[i-1].(map[string]interface{})["type_id"])
     params = append(params, person_id)
-    //fmt.Println("params: ", params)
 
     rows := db.Query(query, params)
     rowsInf := db.Exec(query, params)
@@ -98,7 +96,7 @@ func (this *Handler) GetListHistoryEvents() {
     events := db.ConvertData(columns, size, rows)
 
     response, err := json.Marshal(events)
-    utils.HandleErr("[Handle GetListHistoryEvents] json.Marshal: ", err, nil)
+    utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, nil)
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -165,7 +163,7 @@ func (this *Handler) SaveUserRequest() {
     }
 
     result, err := json.Marshal(response)
-    utils.HandleErr("[Handle select] json.Marshal: ", err, nil)
+    utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, nil)
     fmt.Fprintf(this.Response, "%s", string(result))
 }
 
@@ -174,13 +172,13 @@ func (this *Handler) GetRequest(tableName, id string) {
         "mvc/views/item.html",
         "mvc/views/header.html",
         "mvc/views/footer.html")
-    utils.HandleErr("[Handler.Show] template.ParseFiles: ", err, nil)
+    utils.HandleErr("[Handler::GetRequest] ParseFiles: ", err, nil)
 
     reaponse, err := json.Marshal(MegoJoin(tableName, id))
-    utils.HandleErr("[Handler.Show] template.json.Marshal: ", err, nil)
+    utils.HandleErr("[Handler::GetRequest] Marshal: ", err, nil)
 
     err = tmp.ExecuteTemplate(this.Response, "item", template.JS(reaponse))
-    utils.HandleErr("[Handler.Show] tmp.Execute: ", err, nil)
+    utils.HandleErr("[Handler::GetRequest] ExecuteTemplate: ", err, nil)
 }
 
 func MegoJoin(tableName, id string) RequestModel {
