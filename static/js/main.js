@@ -16,7 +16,6 @@ function(auth, utils) {
     }
 
     $(document).ready(function() {
-
         utils.postRequest(
             {
                 "table": "events",
@@ -36,7 +35,7 @@ function(auth, utils) {
                 $("#tab" + tab_id).stop(false, false).show();
                 return false;
             })
-        })
+        });
 
     });
 
