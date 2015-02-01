@@ -45,7 +45,7 @@ func (this *Handler) GetHistoryRequest() {
     result := db.ConvertData(columns, size, rows)
 
     response, err := json.Marshal(result)
-    utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, nil)
+    utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, this.Response)
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -96,7 +96,7 @@ func (this *Handler) GetListHistoryEvents() {
     events := db.ConvertData(columns, size, rows)
 
     response, err := json.Marshal(events)
-    utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, nil)
+    utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, this.Response)
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -163,7 +163,7 @@ func (this *Handler) SaveUserRequest() {
     }
 
     result, err := json.Marshal(response)
-    utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, nil)
+    utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response)
     fmt.Fprintf(this.Response, "%s", string(result))
 }
 
@@ -172,13 +172,13 @@ func (this *Handler) GetRequest(tableName, id string) {
         "mvc/views/item.html",
         "mvc/views/header.html",
         "mvc/views/footer.html")
-    utils.HandleErr("[Handler::GetRequest] ParseFiles: ", err, nil)
+    utils.HandleErr("[Handler::GetRequest] ParseFiles: ", err, this.Response)
 
     reaponse, err := json.Marshal(MegoJoin(tableName, id))
-    utils.HandleErr("[Handler::GetRequest] Marshal: ", err, nil)
+    utils.HandleErr("[Handler::GetRequest] Marshal: ", err, this.Response)
 
     err = tmp.ExecuteTemplate(this.Response, "item", template.JS(reaponse))
-    utils.HandleErr("[Handler::GetRequest] ExecuteTemplate: ", err, nil)
+    utils.HandleErr("[Handler::GetRequest] ExecuteTemplate: ", err, this.Response)
 }
 
 func MegoJoin(tableName, id string) RequestModel {
