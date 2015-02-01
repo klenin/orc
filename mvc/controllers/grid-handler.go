@@ -22,9 +22,6 @@ func (this *GridHandler) GetSubTable() {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
-    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
-    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    this.Response.Header().Set("Content-type", "application/json")
 
     var request map[string]string
     decoder := json.NewDecoder(this.Request.Body)
@@ -56,9 +53,6 @@ func (this *GridHandler) Load(tableName string) {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
-    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
-    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    this.Response.Header().Set("Content-type", "application/json")
 
     model := GetModel(tableName)
     answer, _ := model.Select(nil, "", model.GetColumns())
@@ -94,15 +88,10 @@ func (this *GridHandler) Edit(tableName string) {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
-    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
-    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    this.Response.Header().Set("Content-type", "application/json")
-
     var i int
     oper := this.Request.FormValue("oper")
     model := GetModel(tableName)
     params := make([]interface{}, len(model.GetColumns())-1)
-
     for i = 0; i < len(model.GetColumns())-1; i++ {
         if model.GetColumnByIdx(i+1) == "date" {
             params[i] = this.Request.FormValue(model.GetColumnByIdx(i + 1))[0:10]
@@ -110,7 +99,6 @@ func (this *GridHandler) Edit(tableName string) {
             params[i] = this.Request.FormValue(model.GetColumnByIdx(i + 1))
         }
     }
-
     switch oper {
     case "edit":
         params = append(params, this.Request.FormValue("id"))

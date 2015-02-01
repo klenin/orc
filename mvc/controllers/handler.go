@@ -19,10 +19,6 @@ type Handler struct {
 }
 
 func (this *Handler) GetEventList() {
-    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
-    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    this.Response.Header().Set("Content-type", "application/json")
-
     var request map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&request)
@@ -66,11 +62,6 @@ func (this *Handler) ResetPassword() {
 func (this *Handler) Index() {
     var data map[string]interface{}
     response := ""
-
-    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
-    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    this.Response.Header().Set("Content-type", "application/json")
-
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
     utils.HandleErr("[Handler::Index] Decode :", err, this.Response)
