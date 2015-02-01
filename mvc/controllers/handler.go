@@ -26,7 +26,7 @@ func (this *Handler) GetEventList() {
     var request map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&request)
-    utils.HandleErr("[Handler] Decode :", err, this.Response)
+    utils.HandleErr("[Handler::GetEventList] Decode :", err, this.Response)
 
     fields := request["fields"].([]interface{})
     tableName := request["table"].(string)
@@ -35,7 +35,7 @@ func (this *Handler) GetEventList() {
     result, _ := model.Select(nil, "", utils.ArrayInterfaceToString(fields))
 
     response, err := json.Marshal(map[string]interface{}{"data": result})
-    utils.HandleErr("[Handle select] json.Marshal: ", err, nil)
+    utils.HandleErr("[Handle::GetEventList] Marshal: ", err, this.Response)
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -50,7 +50,7 @@ func (this *Handler) ResetPassword() {
     var request map[string]string
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&request)
-    utils.HandleErr("[Handler] Decode :", err, this.Response)
+    utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response)
 
     id, pass, model := request["id"], request["pass"], GetModel("users")
     result, _ := model.Select([]string{"id", id}, "", []string{"salt"})
@@ -59,7 +59,7 @@ func (this *Handler) ResetPassword() {
     model.Update([]string{"pass"}, []interface{}{hash, id}, "id=$2")
 
     response, err := json.Marshal(map[string]interface{}{"result": "ok"})
-    utils.HandleErr("[Handle select] json.Marshal: ", err, nil)
+    utils.HandleErr("[Handle::ResetPassword] Marshal: ", err, this.Response)
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -73,13 +73,13 @@ func (this *Handler) Index() {
 
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler] Decode :", err, this.Response)
+    utils.HandleErr("[Handler::Index] Decode :", err, this.Response)
 
     switch data["action"] {
     case "register":
         login, password := data["login"].(string), data["password"].(string)
-        fname, lname /*, pname*/ := data["fname"].(string), data["lname"].(string) /*, data["pname"].(string)*/
-        response = this.HandleRegister(login, password, "user", fname, lname /*, pname*/)
+        fname, lname := data["fname"].(string), data["lname"].(string)
+        response = this.HandleRegister(login, password, "user", fname, lname)
         fmt.Fprintf(this.Response, "%s", response)
         break
 
@@ -109,7 +109,7 @@ func (this *Handler) Index() {
         model.Update(fields, params, "id=$"+strconv.Itoa(len(fields)+1))
 
         response, err := json.Marshal(map[string]interface{}{"result": "ok"})
-        utils.HandleErr("[Handle select] json.Marshal: ", err, nil)
+        utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)
         fmt.Fprintf(this.Response, "%s", string(response))
         break
     }
@@ -140,7 +140,7 @@ func (this *Handler) ShowCabinet(tableName string) {
         "mvc/views/"+role+".html",
         "mvc/views/header.html",
         "mvc/views/footer.html")
-    utils.HandleErr("[Handler.ShowCabinet] ParseFiles: ", err, nil)
+    utils.HandleErr("[Handler::ShowCabinet] ParseFiles: ", err, this.Response)
     err = tmp.ExecuteTemplate(this.Response, role, model)
-    utils.HandleErr("[Handler.ShowCabinet] Execute: ", err, nil)
+    utils.HandleErr("[Handler::ShowCabinet] ExecuteTemplate: ", err, this.Response)
 }
