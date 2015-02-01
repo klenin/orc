@@ -17,8 +17,8 @@ func (this *IndexController) Index() {
     this.Response.Header().Set("Content-Type", "text/html; charset=utf-8")
 
     tmp, err := template.ParseFiles("mvc/views/index.html", "mvc/views/header.html", "mvc/views/footer.html")
-    utils.HandleErr("[IndexController] ParseFiles: ", err, nil)
+    utils.HandleErr("[IndexController::Index] ParseFiles: ", err, this.Response)
 
     err = tmp.ExecuteTemplate(this.Response, "index", nil)
-    utils.HandleErr("[IndexController] ExecuteTemplate: ", err, nil)
+    utils.HandleErr("[IndexController::Index] ExecuteTemplate: ", err, this.Response)
 }
