@@ -7,8 +7,8 @@ func (c *ModelManager) Persons() *PersonsModel {
     model.TableName = "persons"
     model.Caption = "Персоны"
 
-    model.Columns = []string{"id", "fname", "lname", "pname" /*, "avatar"*/}
-    model.ColNames = []string{"ID", "Фамилия", "Имя", "Отчество" /*, "Аватар"*/}
+    model.Columns = []string{"id", "fname", "lname",}
+    model.ColNames = []string{"ID", "Фамилия", "Имя",}
 
     model.Fields = []map[string]string{
         {
