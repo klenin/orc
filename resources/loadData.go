@@ -42,7 +42,7 @@ func loadUser() {
     lastNamesMaleRussian, _ := ioutil.ReadFile("./resources/last-name-male")
     genders := []string{"male", "females"}
     for i := 0; i < USER_COUNT; i++ {
-        rand.Seed(time.Now().Unix())
+        rand.Seed(int64(i))
         gender := genders[rand.Intn(2)]
         //emailProviders := []string{"@gmail.com", "@hotmail.com", "@yandex.ru", "@mail.com"}
         var firstNameSource []byte
