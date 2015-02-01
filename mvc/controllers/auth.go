@@ -51,7 +51,7 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
 
         db.GetNextId("persons")
         p_id, err := strconv.Atoi(db.GetCurrId("persons"))
-        utils.HandleErr("[HandleRegister]: strconv.Atoi", err, nil)
+        utils.HandleErr("[Handler::HandleRegister]: strconv.Atoi", err, this.Response)
 
         db.QueryInsert(
             "users",
@@ -60,7 +60,7 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
     }
 
     response, err := json.Marshal(result)
-    utils.HandleErr("[HandleRegister] json.Marshal: ", err, nil)
+    utils.HandleErr("[Handler::HandleRegister] Marshal: ", err, this.Response)
     return string(response)
 }
 
@@ -77,7 +77,7 @@ func (this *Handler) HandleLogin(login, pass string) string {
         }
     }
     response, err := json.Marshal(result)
-    utils.HandleErr("[HandleLogin] json.Marshal: ", err, nil)
+    utils.HandleErr("[Handler::HandleLogin] Marshal: ", err, this.Response)
     return string(response)
 }
 
@@ -85,6 +85,6 @@ func (this *Handler) HandleLogout() string {
     result := map[string]string{"result": "ok"}
     sessions.ClearSession(this.Response)
     response, err := json.Marshal(result)
-    utils.HandleErr("[HandleLogout] json.Marshal: ", err, nil)
+    utils.HandleErr("[Handler::HandleLogout] Marshal: ", err, this.Response)
     return string(response)
 }
