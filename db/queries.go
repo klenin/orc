@@ -86,7 +86,7 @@ func QueryCreateTable(tableName string, fields []map[string]string) {
     }
     query = query[0 : len(query)-2]
     query += ");"
-    Query(query, nil)
+    Query(fmt.Sprintf(query, tableName), nil)
 }
 
 func QuerySelect(tableName, where string, fields []string) string {
