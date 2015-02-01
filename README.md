@@ -32,12 +32,6 @@ Install [git][3]. Get a copy of repository:
 
         $ go get github.com/gorilla/securecookie
 
-### Import Dump File
-
-Use PSQL Console:
-
-    orc=# \i path/to/dumpfile
-
 ### Running
 
     $ go build && orc.exe
