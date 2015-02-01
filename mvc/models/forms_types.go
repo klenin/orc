@@ -33,6 +33,11 @@ func (c *ModelManager) FormsTypes() *FormsTypesModel {
             "extra":    "REFERENCES",
             "refTable": "event_types",
             "refField": "id"},
+        {
+            "field": "serial_number",
+            "type":  "integer",
+            "null":  "NOT NULL",
+            "extra": "UNIQUE"},
     }
 
     model.Ref = true
