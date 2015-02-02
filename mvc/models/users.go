@@ -44,6 +44,11 @@ func (c *ModelManager) Users() *UsersModel {
             "extra":    "REFERENCES",
             "refTable": "persons",
             "refField": "id"},
+        {
+            "field": "hash",
+            "type":  "text",
+            "null":  "NULL",
+            "extra": ""},
     }
 
     model.Ref = true

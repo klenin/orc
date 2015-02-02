@@ -42,7 +42,7 @@
 <script type="text/javascript"
         src="/js/jquery-ui.js"></script>
 
-<script type="text/javascript" 
+<script type="text/javascript"
         src="/js/jquery.ui.timepicker.js"></script>
 
 <script data-main="/js/main"
@@ -65,5 +65,13 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    require(["utils"],
+    function(utils) {
+        $(document).ready(function() {
+            utils.checkSession();
+        });
+    });
+</script>
 <hr/>
 {{end}}

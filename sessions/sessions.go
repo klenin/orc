@@ -13,10 +13,10 @@ var CookieHandler = securecookie.New(
     securecookie.GenerateRandomKey(64),
     securecookie.GenerateRandomKey(32))
 
-func SetSession(id, login string, response http.ResponseWriter) {
+func SetSession(id, hash string, response http.ResponseWriter) {
     value := map[string]interface{}{
         "id":   id,
-        "name": login,
+        "hash": hash,
         "time": int(time.Now().Unix()),
     }
     if encoded, err := CookieHandler.Encode("session", value); err == nil {
@@ -31,20 +31,18 @@ func SetSession(id, login string, response http.ResponseWriter) {
 }
 
 func GetValue(field string, request *http.Request) interface{} {
-    var value interface{}
     if cookie, err := request.Cookie("session"); err == nil {
         cookieValue := make(map[string]interface{})
         if err = CookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
-            value = cookieValue[field]
+            return cookieValue[field]
         } else {
-            log.Println("session.GetValue Error", err)
+            log.Println("session.GetValue [CookieHandler.Decode]: ", err)
             return nil
         }
     } else {
-        log.Println("session.GetValue Error", err)
+        log.Println("session.GetValue [request.Cookie]: ", err)
         return nil
     }
-    return value
 }
 
 func setValue(field string, value interface{}, request *http.Request) {

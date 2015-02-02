@@ -21,8 +21,24 @@ define(function() {
         });
     };
 
+    function checkSession() {
+        postRequest({
+                "action": "checkSession",
+            },
+            function(data) {
+                if (data["result"] === "ok") {
+                    $("#logout-btn, #cabinet-btn").css("visibility", "visible");
+                } else {
+                    $("#logout-btn, #cabinet-btn").css("visibility", "hidden");
+                }
+            },
+            "/handler"
+        );
+    }
+
     return {
-        postRequest: postRequest
+        postRequest: postRequest,
+        checkSession: checkSession,
     };
 
 });

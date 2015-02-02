@@ -69,6 +69,10 @@ func (this *Handler) GetListHistoryEvents() {
     model := GetModel("forms_types")
     result, _ := model.Select(ids, "OR", []string{"type_id"})
 
+    if len(result) == 0 {
+        return
+    }
+
     query := `SELECT DISTINCT event_id, name FROM param_values 
     inner join events on events.id = param_values.event_id
     WHERE event_id IN (SELECT DISTINCT event_id FROM events_types WHERE `

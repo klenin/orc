@@ -103,6 +103,27 @@ func (this *Handler) Index() {
         utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)
         fmt.Fprintf(this.Response, "%s", string(response))
         break
+    case "checkSession":
+        var userHash string
+        var result interface{}
+        id := sessions.GetValue("id", this.Request)
+        hash := sessions.GetValue("hash", this.Request)
+        if id == nil || hash == nil {
+            result = map[string]interface{}{"result": "no"}
+        } else {
+            query := db.QuerySelect("users", "id=$1", []string{"hash"})
+            row := db.QueryRow(query, []interface{}{id.(string)})
+            row.Scan(&userHash)
+            if userHash == hash.(string) {
+                result = map[string]interface{}{"result": "ok"}
+            } else {
+                result = map[string]interface{}{"result": "nooooo"}
+            }
+        }
+        response, err := json.Marshal(result)
+        utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)
+        fmt.Fprintf(this.Response, "%s", string(response))
+        break
     }
 }
 
@@ -111,9 +132,8 @@ func (this *Handler) ShowCabinet(tableName string) {
         return
     }
     table := GetModel("users")
-    login := sessions.GetValue("name", this.Request).(string)
-    println(login)
-    data, _ := table.Select([]string{"login", login}, "", []string{"role", "person_id"})
+    id := sessions.GetValue("id", this.Request).(string)
+    data, _ := table.Select([]string{"id", id}, "", []string{"role", "person_id"})
 
     role := data[0].(map[string]interface{})["role"].(string)
     person_id := data[0].(map[string]interface{})["person_id"].(int64)
@@ -124,7 +144,7 @@ func (this *Handler) ShowCabinet(tableName string) {
     } else if role == "user" {
         m := GetModel("persons")
         data, _ := m.Select([]string{"id", strconv.Itoa(int(person_id))}, "", m.GetColumns())
-        model = Model{Caption: login, Table: data, Columns: m.GetColumns(), ColNames: m.GetColNames()}
+        model = Model{Table: data, Columns: m.GetColumns(), ColNames: m.GetColNames()}
     }
 
     tmp, err := template.ParseFiles(

@@ -2,15 +2,20 @@ package controllers
 
 import (
     "crypto/md5"
+    "crypto/rand"
+    "encoding/base64"
     "encoding/hex"
     "encoding/json"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
+    "log"
     "regexp"
     "strconv"
     "time"
 )
+
+const HASH_SIZE = 32
 
 func MatchRegexp(pattern, str string) bool {
     result, _ := regexp.MatchString(pattern, str)
@@ -21,6 +26,15 @@ func GetMD5Hash(text string) string {
     hasher := md5.New()
     hasher.Write([]byte(text))
     return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func GetRandSeq(size int) string {
+    rb := make([]byte,size)
+    _, err := rand.Read(rb)
+    if err != nil {
+      log.Println(err)
+    }
+   return base64.URLEncoding.EncodeToString(rb)
 }
 
 func (this *Handler) HandleRegister(login, password, role, fname, lname string) string {
@@ -65,15 +79,18 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
 }
 
 func (this *Handler) HandleLogin(login, pass string) string {
-    var id, hash, salt string
+    var id, passHash, salt string
     result := map[string]interface{}{"result": "invalidCredentials"}
     if db.IsExists("users", "login", login) {
         query := db.QuerySelect("users", "login=$1", []string{"id", "pass", "salt"})
         row := db.QueryRow(query, []interface{}{login})
-        row.Scan(&id, &hash, &salt)
-        if hash == GetMD5Hash(pass+salt) {
+        row.Scan(&id, &passHash, &salt)
+        if passHash == GetMD5Hash(pass+salt) {
             result["result"] = "ok"
-            sessions.SetSession(id, login, this.Response)
+            hash := GetRandSeq(HASH_SIZE)
+            model := GetModel("users")
+            model.Update([]string{"hash"}, []interface{}{hash}, "id="+id)
+            sessions.SetSession(id, hash, this.Response)
         }
     }
     response, err := json.Marshal(result)
