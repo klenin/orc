@@ -35,7 +35,7 @@ func Load() {
     loadParamTypes()
 }
 
-func loadUser() {
+func loadUsers() {
     base := new(controllers.BaseController) //!!!
     firstNamesFemaleRussian, _ := ioutil.ReadFile("./resources/first-name-female")
     firstNamesMaleRussian, _ := ioutil.ReadFile("./resources/first-name-male")
