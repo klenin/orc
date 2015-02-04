@@ -1,20 +1,24 @@
-define("datepicker", function() {
+define(function() {
 
-    return function() {
+    function initDatePicker(root) {
+
         var currYear = (new Date).getFullYear();
 
-        $.datepicker.setDefaults($.datepicker.regional['']);
+        $.datepicker.setDefaults($.datepicker.regional['ru']);
 
-        $('input[id$="date"]')
-        .attr('type', 'text')
-        .datepicker({
+        var datepickerOptions = {
             showAnim: 'slideDown',
             dateFormat: 'yy-mm-dd',
             changeMonth: true,
             changeYear: true,
-            yearRange: String(currYear-120 + ':' + currYear)
-        })
-        .attr('type', 'text');
+            yearRange: String(currYear + ':' + currYear + 10)
+        };
+
+        $(root).datepicker(datepickerOptions);
     }
+
+    return {
+        initDatePicker: initDatePicker,
+    };
 
 });

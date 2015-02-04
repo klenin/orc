@@ -73,6 +73,7 @@ function(utils, datepicker) {
                 type: "date",
                 disabled: flag
             });
+            datepicker.initDatePicker(block);
         }
 
         var lable = $("<label/>", {
@@ -160,9 +161,7 @@ function(utils, datepicker) {
 
     pushFormData(E, T, F, P, "event", "events");
     getListHistoryEvents();
-
     kladr();
-    datepicker();
 
     $("#save-btn").click(function() {
         utils.postRequest(

@@ -1,9 +1,15 @@
-define(["utils"],
-function(utils) {
+define(["utils", "datepicker"],
+function(utils, datepicker) {
 
     function GetColModelItem(refData, refFields, field) {
-        function datePicker(e) {$(e).datepicker({"dateFormat": "yy-mm-dd"});}
-        function timePicker(e) {$(e).timepicker({"timeFormat": "hh:mm"});}
+        function timePicker(e) {
+            $(e).timepicker({"timeFormat": "HH:mm"});
+        }
+
+        function timeFormat(cellvalue, options, rowObject) {
+            return cellvalue.slice(11, 19);
+        }
+
         var data = {};
         data["name"] = field;
         data["index"] = field;
@@ -16,13 +22,12 @@ function(utils) {
         } else if (field.indexOf("date") > -1) {
             data["formatter"] = "date";
             data["editrules"].date = true;
-            data["formatoptions"] = {srcformat: 'Y-m-d', newformat: 'Y-m-d',},
-            data["editoptions"] = {dataInit: datePicker};
+            data["formatoptions"] = {srcformat: 'Y-m-d', newformat: 'Y-m-d'};
+            data["editoptions"] = {dataInit: datepicker.initDatePicker};
 
         } else if (field == "time") {
-            data["formatter"] = "date";
+            data["formatter"] = timeFormat;
             data["editrules"].time = true;
-            data["formatoptions"] = {srcformat: "ISO8601Long", newformat: "LongTime"},
             data["editoptions"] = {dataInit: timePicker};
 
         } else if (field == "topicality") {
