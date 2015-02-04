@@ -10,7 +10,7 @@ function kladr() {
 
     var tooltip  = $('.tooltip');
 
-    var LabelFormat = function( obj, query ){
+    var LabelFormat = function( obj, query ) {
         var label = '';
 
         var name = obj.name.toLowerCase();
@@ -19,7 +19,7 @@ function kladr() {
         var start = name.indexOf(query);
         start = start > 0 ? start : 0;
 
-        if(query.length < obj.name.length){
+        if (query.length < obj.name.length) {
             label += obj.name.substr(0, start);
             label += '<strong>' + obj.name.substr(start, query.length) + '</strong>';
             label += obj.name.substr(start+query.length, obj.name.length-query.length-start);
@@ -27,14 +27,14 @@ function kladr() {
             label += '<strong>' + obj.name + '</strong>';
         }
 
-        if(obj.typeShort){
+        if (obj.typeShort) {
             label += ' ' + obj.typeShort + '.';
         }
 
         return label;
     };
 
-    var ShowError = function(input, message){
+    var ShowError = function(input, message) {
         tooltip.find('span').text(message);
 
         var inputOffset = input.offset();
@@ -65,7 +65,7 @@ function kladr() {
             city.kladr('parentId', obj.id);
         },
         check: function(obj) {
-            if(obj){
+            if (obj) {
                 region.text(obj.name);
                 region.parent().find('label').text(obj.type);
                 district.kladr('parentType', $.kladr.type.region);
@@ -91,7 +91,7 @@ function kladr() {
             city.kladr('parentId', obj.id);
         },
         check: function(obj) {
-            if(obj){
+            if (obj) {
                 district.text(obj.name);
                 district.parent().find('label').text(obj.type);
                 city.kladr('parentType', $.kladr.type.district);
@@ -116,7 +116,7 @@ function kladr() {
             building.kladr('parentId', obj.id);
         },
         check: function(obj) {
-            if(obj){
+            if (obj) {
                 city.text(obj.name);
                 city.parent().find('label').text(obj.type);
                 street.kladr('parentType', $.kladr.type.city);
@@ -140,7 +140,7 @@ function kladr() {
             building.kladr('parentId', obj.id);
         },
         check: function(obj) {
-            if(obj){
+            if (obj) {
                 street.text(obj.name);
                 street.parent().find('label').text(obj.type);
                 building.kladr('parentType', $.kladr.type.street);
