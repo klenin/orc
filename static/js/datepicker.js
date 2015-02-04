@@ -11,7 +11,7 @@ define(function() {
             dateFormat: 'yy-mm-dd',
             changeMonth: true,
             changeYear: true,
-            yearRange: String(currYear + ':' + currYear + 10)
+            yearRange: String(currYear) + ':' + String(currYear+10)
         };
 
         $(root).datepicker(datepickerOptions);
