@@ -7,6 +7,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
+    "log"
     "reflect"
     "strconv"
     "time"
@@ -32,7 +33,7 @@ func (this *Handler) GetHistoryRequest() {
     person, _ := users.Select([]string{"id", id}, "", []string{"person_id"})
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
-    query := `select param_id, p.name param_name, p_t.name as type, value, form_id, forms.name form_name from param_values
+    query := `select param_id, p.name, event_type_id, p_t.name as type, value, form_id from param_values
         inner join params p on param_values.param_id = p.id
         inner join forms on forms.id = p.form_id
         inner join param_types p_t on p_t.id = p.param_type_id
@@ -46,6 +47,8 @@ func (this *Handler) GetHistoryRequest() {
     result := db.ConvertData(columns, size, rows)
 
     response, err := json.Marshal(result)
+    log.Println("history information about blank")
+    log.Println(string(response))
     utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, this.Response)
     fmt.Fprintf(this.Response, "%s", string(response))
 }
@@ -73,6 +76,7 @@ func (this *Handler) GetListHistoryEvents() {
         return
     }
 
+    //здесь нет проверки для конкретного пользователя
     query := `SELECT DISTINCT event_id, name FROM param_values 
     inner join events on events.id = param_values.event_id
     WHERE event_id IN (SELECT DISTINCT event_id FROM events_types WHERE `
@@ -122,6 +126,8 @@ func (this *Handler) SaveUserRequest() {
 
     var response interface{}
     inf := data["data"].([]interface{})
+    log.Println("save data from blank")
+    log.Println(inf)
     param_values := GetModel("param_values")
     t := time.Now()
 
@@ -131,24 +137,8 @@ func (this *Handler) SaveUserRequest() {
             []interface{}{person_id, event_id,
                 t.Format("2006-01-02"),
                 t.Format("2006-01-02")})
-
-        for _, element := range inf {
-            param_id := element.(map[string]interface{})["name"]
-            value := element.(map[string]interface{})["value"]
-            param_values.Insert(
-                []string{"person_id", "event_id", "param_id", "value"},
-                []interface{}{person_id, event_id, param_id, value})
-        }
         response = map[string]interface{}{"result": "ok"}
     } else if len(person) != 0 {
-        for _, element := range inf {
-            param_id := element.(map[string]interface{})["name"]
-            value := element.(map[string]interface{})["value"]
-            param_values.Update(
-                []string{"value"},
-                []interface{}{value, person_id, event_id, param_id},
-                "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3)+" AND param_id=$"+strconv.Itoa(4))
-        }
         persons_events.Update(
             []string{"last_date"},
             []interface{}{t.Format("2006-01-02"),
@@ -156,7 +146,24 @@ func (this *Handler) SaveUserRequest() {
             "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3))
         response = map[string]interface{}{"result": "ok"}
     } else {
-        response = map[string]interface{}{"result": "exists"}
+        response = map[string]interface{}{"result": "WHAT?!"}//???
+    }
+
+    for _, element := range inf {
+            param_id := element.(map[string]interface{})["id"]
+            event_type_id := element.(map[string]interface{})["event_type_id"]
+            value := element.(map[string]interface{})["value"]
+
+        if db.IsExists_("param_values", []string{"person_id", "event_id", "param_id", "event_type_id"}, []interface{}{person_id, event_id, param_id, event_type_id}) {
+            param_values.Update(
+                []string{"value"},
+                []interface{}{value, person_id, event_id, param_id, event_type_id},
+                "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3)+" AND param_id=$"+strconv.Itoa(4)+" AND event_type_id=$"+strconv.Itoa(5))
+        } else {
+            param_values.Insert(
+                []string{"person_id", "event_id", "param_id", "value", "event_type_id"},
+                []interface{}{person_id, event_id, param_id, value, event_type_id})
+        }
     }
 
     result, err := json.Marshal(response)

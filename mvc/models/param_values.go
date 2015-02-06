@@ -34,6 +34,13 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
             "refTable": "events",
             "refField": "id"},
         {
+            "field":    "event_type_id",
+            "type":     "int",
+            "null":     "NOT NULL",
+            "extra":    "REFERENCES",
+            "refTable": "event_types",
+            "refField": "id"},
+        {
             "field":    "param_id",
             "type":     "int",
             "null":     "NOT NULL",
