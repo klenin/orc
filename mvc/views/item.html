@@ -12,24 +12,22 @@
         src="/js/kladr.js"></script>
 
 <div>
+    <div id="history">
+        <h5>Ранее заполненные анкеты</h5>
+        <div id="server-answer"></div>
+        <form>
+            <select id="h-events" name="h-events"></select>
+            <input type="button" value="выбрать" id="send-btn" name="submit"/>
+        </form>
+    </div>
+
     <div id="now">
-        <h4>Текущая анкета</h4>
         <div id="server-answer"></div>
         <form>
             <h1 id="event" href="#events"></h1>
             <div id="events"></div>
             <input type="button" value="сохранить" id="save-btn" name="submit"/>
         </form>
-    </div>
-
-    <div id="history">
-        <h4>Ранее заполненные анкеты</h4>
-        <div id="server-answer"></div>
-        <form style="margin-bottom: 115px;">
-            <select id="h-events" name="h-events"></select>
-            <input type="button" value="выбрать" id="send-btn" name="submit"/>
-        </form>
-        <div id="h-container"></div>
     </div>
 </div>
 
@@ -45,52 +43,68 @@ function(utils, datepicker) {
 
     var F_ids = [];
 
-    function drawParam(data, flag) {
+    function drawParam(data, event_type_id, for_saving) {
         var block;
-        console.log(data)
-        if  (data["type"] === "region"
+
+        if (data["type"] === "region"
             || data["type"] === "district"
             || data["type"] === "city"
             || data["type"] === "street"
             || data["type"] === "building"
             || data["type"] === "input") {
-            block = $("<input/>", {
-                id: data["type"],
-                name: data["id"],
-                type: "text",
-                disabled: flag
-            });
+            block = $("<input/>", {type: "text"});
+            block.attr("id", data["id"]);
+            block.attr("event_type_id", event_type_id);
+            block.val(data["value"]);
+            block.attr("for-saving", for_saving);
+
         } else if (data["type"] === "textarea") {
-            block = $("<textarea/>", {
-                id: data["type"],
-                name: data["id"],
-                disabled: flag
-            });
+            block = $("<textarea/>", {});
+            block.attr("id", data["id"]);
+            block.attr("event_type_id", event_type_id);
+            block.val(data["value"]);
+            block.attr("for-saving", for_saving);
+
         } else if (data["type"] === "date") {
-            block = $("<input/>", {
-                id: data["type"],
-                name: data["id"],
-                type: "date",
-                disabled: flag
-            });
+            block = $("<input/>", {type: "date"});
+            block.attr("id", data["id"]);
+            block.attr("event_type_id", event_type_id);
+            block.attr("for-saving", for_saving);
+            block.val(data["value"]);
             datepicker.initDatePicker(block);
         }
 
+        //block.val(data["value"]);
+
         var lable = $("<label/>", {
-            for: data["name"],
-            id: "label-" + data["name"],
             text: data["name"]
         });
 
-        var p = $("<p/>", {});
-
-        $(p).append(lable).append(block);
-        return p;
+        return $("<p/>").append(lable).append(block);
     }
 
     function getFormData(name) {
-        var result = $("#" + name + " form").serializeArray();
-        return result;
+        var values = [];
+
+        var $inputs = $("#now form #events :input[for-saving=true]");
+        $inputs.each(function() {
+            values.push({
+                "value": $(this).val(),
+                "id": $(this).attr("id"),
+                "event_type_id": $(this).attr("event_type_id"),
+            });
+        });
+
+        var $textareas = $("#now form textarea[for-saving=true]");
+        $textareas.each(function() {
+            values.push({
+                "value": $(this).val(),
+                "id": $(this).attr("id"),
+                "event_type_id": $(this).attr("event_type_id"),
+            });
+        });
+
+        return values;
     }
 
     function pushFormData(E, T, F, P, event_, events_) {
@@ -123,15 +137,22 @@ function(utils, datepicker) {
                 F_ids.push("form_id");
                 F_ids.push(F[i][j]["id"]);
 
-                var div_tab_form = $("<div/>", {id: "form-" + F[i][j]["id"]/*, class: "br"*/})
-                .append(a_form);
+                var div_tab_form = $("<div/>", {id: "form-" + F[i][j]["id"]})
+                    .append(a_form);
                 $(div_forms).append(div_tab_form);
 
                 var div_params = $("<div/>", {id: "params-" + T[i]["id"]});
                 $(div_tab_form).append(div_params);
 
+                var table = $("<table/>");
+                div_params.append(table);
+
                 for (var k = 0; k < P[i][j].length; k++) {
-                    $(div_params).append(drawParam(P[i][j][k], false));
+                    var tr = $("<tr/>").appendTo(table);
+                    var td_1 = $("<td/>").appendTo(tr);
+                    $(td_1).append(drawParam(P[i][j][k], T[i]["id"], true));
+                    tr.append($("<td/>", {id: "export-param-"+P[i][j][k]["id"]}));
+                    tr.append($("<td/>", {id: "export-val-"+P[i][j][k]["id"]}));
                 }
             }
         }
@@ -187,31 +208,32 @@ function(utils, datepicker) {
                 "event_id": $("#h-events").find(":selected").attr("value")
             },
             function(data) {
-                $("#h-container").empty();
-                $("#export-btn").remove();
                 for (var i = 0; i < data.length; ++i) {
-                    var obj = $("#h-form-" + data[i]["form_id"]);
-                    if ($.inArray(parseInt(data[i]["form_id"]), F_ids) > -1 && obj.length <= 0) {
-                        var h4_form = $("<h5/>", {}).text(data[i]["form_name"]);
-                        var div_form = $("<div/>", {id: "h-form-" + data[i]["form_id"]}).append(h4_form);
-                        $("#h-container").append(div_form);
-                    }
-                    $("#h-form-" + data[i]["form_id"]).append(drawParam({"id":data[i]["param_id"], "type":data[i]["type"], "name":data[i]["param_name"]}, true));
-                    $('#history [name="' + data[i]["param_id"] + '"]').val(data[i]["value"]);
+
+                    var e_t_id = data[i]["event_type_id"];
+                    var p_id = data[i]["param_id"];
+                    var p_v = data[i]["value"];
+
+                    $("#forms-"+e_t_id +" table #export-param-"+p_id+" input").remove();
+                    $("#forms-"+e_t_id +" table #export-val-"+p_id+" p").remove();
+                    $("#forms-"+e_t_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
+
+                    $("<input/>", {
+                        "id": "export-btn-"+e_t_id+"-"+p_id,
+                        "type": "button",
+                        "value": "экспорт",
+                        "data-event-type-id": e_t_id,
+                        "data-param-id": p_id,
+                        "data-param-val": p_v,
+                    }).appendTo("#forms-"+e_t_id+" table #export-param-"+p_id);
+
+                    $("#export-btn-"+e_t_id+"-"+p_id).click(function() {
+                        var e_t_id = $(this).attr("data-event-type-id");
+                        var p_id = $(this).attr("data-param-id");
+                        var p_v = $(this).attr("data-param-val");
+                        $("#forms-"+e_t_id+" table #"+p_id).val(p_v);
+                    });
                 }
-
-                $("<input/>", {
-                    id: "export-btn",
-                    name: "submit",
-                    type: "button",
-                    value: "экспорт",
-                }).appendTo("#history");
-
-                $("#export-btn").click(function() {
-                    for (var i = 0; i < data.length; ++i) {
-                        $('#now [name="' + data[i]["param_id"] + '"]').val(data[i]["value"]);
-                    }
-                });
             },
             "/handler/gethistoryrequest"
         );
