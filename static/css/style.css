@@ -5,12 +5,7 @@ html, body {
     padding:0px 0px 0px 0px;
 }
 
-h3  {
-    /*border-bottom:1px solid #4c9ac3;*/
-    display:block;
-}
-h4  {
-    border-bottom:1px solid #4c9ac3;
+h3 {
     display:block;
 }
 
@@ -24,7 +19,7 @@ hr {
     display:block;
 }
 
-.a-list {
+.event-list {
     border:1px solid #BBD9FA;
     display:block;
     padding:5px 15px;
@@ -32,6 +27,7 @@ hr {
     color:#000;
 }
 
+/* for grid table */
 td input {
     background:white;
 }
@@ -41,14 +37,6 @@ input {
     border:1px solid #4c9ac3;
     margin:5px 2px 5px 2px;
     width:auto;
-}
-
-.br {
-    border:1px solid #4c9ac3;
-    border-radius:8px;
-    padding:10px 10px 10px 10px;
-    margin:10px 10px 10px 10px;
-    font:normal 15px Helvetica;
 }
 
 textarea {
@@ -107,18 +95,8 @@ textarea {
     padding:0px;
 }
 
-#now, #history {
-    padding:0px 0px 0px 0px;
-    margin:0px 0px 0px 0px;
-    width:49.5%;
-}
-
 #now {
     background:#FFFAF0;
-}
-
-#history {
-    background:#F5FFFA;
 }
 
 #content-top {
@@ -131,7 +109,7 @@ textarea {
     padding-bottom:25px;
 }
 
-.div-top-left{
+.div-top-left {
     padding:0px 0px 0px 0px;
     margin:0px 0px 0px 0px;
     width:50%;
@@ -139,7 +117,7 @@ textarea {
     display:block;
 }
 
-.div-top-right{
+.div-top-right {
     padding:0px 0px 0px 0px;
     margin:0px 0px 0px 0px;
     width:50%;
@@ -147,12 +125,12 @@ textarea {
     display:block;
 }
 
-.left, #now {
+.left {
     float:left;
     display:block;
 }
 
-.right, #history{
+.right {
     float:right;
     display:block;
 }
