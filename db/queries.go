@@ -126,6 +126,17 @@ func IsExists(tableName, fieldName string, value string) bool {
     return err != sql.ErrNoRows
 }
 
+func IsExists_(tableName string, fields []string, params []interface{}) bool {
+    query := "SELECT %s FROM %s WHERE %s;"
+    f := strings.Join(fields, ", ")
+    p := strings.Join(MakePairs(fields), " AND ")
+    log.Println(fmt.Sprintf(query, f, tableName, p))
+    var result string
+    row := QueryRow(fmt.Sprintf(query, f, tableName, p), params)
+    err := row.Scan(&result)
+    return err != sql.ErrNoRows
+}
+
 func MakeParams(n int) []string {
     var result = make([]string, n)
     for i := 0; i < n; i++ {
