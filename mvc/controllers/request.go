@@ -76,17 +76,20 @@ func (this *Handler) GetListHistoryEvents() {
         return
     }
 
-    //здесь нет проверки для конкретного пользователя
-    query := `SELECT DISTINCT event_id, name FROM param_values 
-    inner join events on events.id = param_values.event_id
-    WHERE event_id IN (SELECT DISTINCT event_id FROM events_types WHERE `
+    query := `SELECT DISTINCT events.id, events.name FROM events
+        inner join events_types on events_types.event_id = events.id
+        inner join event_types on events_types.type_id = event_types.id
+        inner join persons_events on persons_events.event_id = events.id
+        inner join persons on persons.id = persons_events.person_id
+        WHERE persons.id=$1 AND events.id IN (SELECT DISTINCT event_id FROM events_types WHERE `
 
     var i int
     var params []interface{}
+    params = append(params, person_id)
 
-    for i = 1; i < reflect.ValueOf(result).Len(); i++ {
+    for i = 2; i < reflect.ValueOf(result).Len(); i++ {
         query += "type_id=$" + strconv.Itoa(i) + " OR "
-        params = append(params, result[i-1].(map[string]interface{})["type_id"])
+        params = append(params, result[i-2].(map[string]interface{})["type_id"])
     }
 
     query += "type_id=$" + strconv.Itoa(i) + ") AND person_id=$" + strconv.Itoa(i+1)

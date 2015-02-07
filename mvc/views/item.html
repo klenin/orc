@@ -170,7 +170,7 @@ function(utils, datepicker) {
                 } else {
                     for (var i = 0; i < data.length; ++i) {
                         $("#h-events").append($("<option></option>")
-                            .attr("value", data[i]["event_id"])
+                            .attr("value", data[i]["id"])
                             .text(data[i]["name"])
                         );
                     }
