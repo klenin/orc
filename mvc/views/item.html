@@ -51,8 +51,8 @@ function(utils, datepicker) {
             || data["type"] === "city"
             || data["type"] === "street"
             || data["type"] === "building"
-            || data["type"] === "input") {
-            block = $("<input/>", {type: "text"});
+            || data["type"] === "text") {
+            block = $("<input/>", {type: data["type"]});
             block.attr("id", data["id"]);
             block.attr("event_type_id", event_type_id);
             block.val(data["value"]);
