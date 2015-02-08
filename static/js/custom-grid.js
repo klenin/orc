@@ -1,4 +1,4 @@
-define(["utils", "datepicker"],
+define(["utils", "datepicker/datepicker"],
 function(utils, datepicker) {
 
     function GetColModelItem(refData, refFields, field) {
