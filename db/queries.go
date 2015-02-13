@@ -19,36 +19,46 @@ var DB, _ = sql.Open(
         " password="+password+
         " sslmode=disable")
 
-
 func Exec(query string, params []interface{}) sql.Result {
     log.Println(query)
     stmt, err := DB.Prepare(query)
     utils.HandleErr("[queries.Exec] Prepare: ", err, nil)
+    defer stmt.Close()
     result, err := stmt.Exec(params...)
     utils.HandleErr("[queries.Exec] Exec: ", err, nil)
     return result
 }
 
-func Query(query string, params []interface{}) *sql.Rows {
+func Query(query string, params []interface{}) []interface{} {
     log.Println(query)
+
     stmt, err := DB.Prepare(query)
     utils.HandleErr("[queries.Query] Prepare: ", err, nil)
-    result, err := stmt.Query(params...)
+    defer stmt.Close()
+    rows, err := stmt.Query(params...)
     utils.HandleErr("[queries.Query] Query: ", err, nil)
-    return result
+    defer rows.Close()
+
+    rowsInf := Exec(query, params)
+    columns, _ := rows.Columns()
+    size, err := rowsInf.RowsAffected()
+    utils.HandleErr("[Entity.Select] RowsAffected: ", err, nil)
+
+    return ConvertData(columns, size, rows)
 }
 
 func QueryRow(query string, params []interface{}) *sql.Row {
     log.Println(query)
     stmt, err := DB.Prepare(query)
     utils.HandleErr("[queries.QueryRow] Prepare: ", err, nil)
+    defer stmt.Close()
     result := stmt.QueryRow(params...)
     utils.HandleErr("[queries.QueryRow] Query: ", err, nil)
     return result
 }
 
 func QueryCreateSecuence(tableName string) {
-    Query("CREATE SEQUENCE "+tableName+"_id_seq;", nil)
+    Exec("CREATE SEQUENCE "+tableName+"_id_seq;", nil)
 }
 
 func QueryCreateTable(tableName string, fields []map[string]string) {
@@ -75,7 +85,7 @@ func QueryCreateTable(tableName string, fields []map[string]string) {
     }
     query = query[0 : len(query)-2]
     query += ");"
-    Query(fmt.Sprintf(query, tableName), nil)
+    Exec(fmt.Sprintf(query, tableName), nil)
 }
 
 func QuerySelect(tableName, where string, fields []string) string {
@@ -98,13 +108,13 @@ func QueryInsert(tableName string, fields []string, params []interface{}, extra 
 func QueryUpdate(tableName, where string, fields []string, params []interface{}) {
     query := "UPDATE %s SET %s WHERE %s;"
     p := strings.Join(MakePairs(fields), ", ")
-    Query(fmt.Sprintf(query, tableName, p, where), params)
+    Exec(fmt.Sprintf(query, tableName, p, where), params)
 }
 
 func QueryDelete(tableName, fieldName string, valParams []interface{}) {
     query := "DELETE FROM %s WHERE %s IN (%s)"
     params := strings.Join(MakeParams(len(valParams)), ", ")
-    Query(fmt.Sprintf(query, tableName, fieldName, params), valParams)
+    Exec(fmt.Sprintf(query, tableName, fieldName, params), valParams)
 }
 
 func IsExists(tableName, fieldName string, value string) bool {
@@ -158,12 +168,7 @@ func Select(tableName string, where []string, condition string, fields []string)
         }
     }
     query := QuerySelect(tableName, strings.Join(key, " "+condition+" "), fields)
-    rows := Query(query, val)
-    rowsInf := Exec(query, val)
-    columns, _ := rows.Columns()
-    size, err := rowsInf.RowsAffected()
-    utils.HandleErr("[Entity.Select] RowsAffected: ", err, nil)
-    return ConvertData(columns, size, rows)
+    return Query(query, val)
 }
 
 func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {

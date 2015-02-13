@@ -39,14 +39,7 @@ func (this *Handler) GetHistoryRequest() {
         inner join param_types p_t on p_t.id = p.param_type_id
         where person_id = $1 and event_id = $2;`
 
-    rows := db.Query(query, []interface{}{person_id, event_id})
-    rowsInf := db.Exec(query, []interface{}{person_id, event_id})
-
-    size, _ := rowsInf.RowsAffected()
-    columns, _ := rows.Columns()
-    result := db.ConvertData(columns, size, rows)
-
-    response, err := json.Marshal(result)
+    response, err := json.Marshal(db.Query(query, []interface{}{person_id, event_id}))
     log.Println("history information about blank")
     log.Println(string(response))
     utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, this.Response)
@@ -72,7 +65,7 @@ func (this *Handler) GetListHistoryEvents() {
     model := GetModel("forms_types")
     result, _ := model.Select(ids, "OR", []string{"type_id"})
 
-    if len(result) == 0 {
+    if reflect.ValueOf(result).Len() == 0 {
         return
     }
 
@@ -93,17 +86,10 @@ func (this *Handler) GetListHistoryEvents() {
     }
 
     query += "type_id=$" + strconv.Itoa(i) + ") AND person_id=$" + strconv.Itoa(i+1)
-
-    params = append(params, result[i-1].(map[string]interface{})["type_id"])
+    params = append(params, result[i-2].(map[string]interface{})["type_id"])
     params = append(params, person_id)
 
-    rows := db.Query(query, params)
-    rowsInf := db.Exec(query, params)
-    size, _ := rowsInf.RowsAffected()
-    columns, _ := rows.Columns()
-    events := db.ConvertData(columns, size, rows)
-
-    response, err := json.Marshal(events)
+    response, err := json.Marshal(db.Query(query, params))
     utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, this.Response)
     fmt.Fprintf(this.Response, "%s", string(response))
 }
@@ -193,7 +179,6 @@ func MegoJoin(tableName, id string) RequestModel {
     var P []interface{}
 
     E = db.Select("events", []string{"id", id}, "", []string{"id", "name"})
-
     query := db.InnerJoin(
         []string{"t.id", "t.name"},
         "events_types",
@@ -203,16 +188,10 @@ func MegoJoin(tableName, id string) RequestModel {
         []string{"e", "t"},
         []string{"id", "id"},
         "where e.id=$1")
-
-    rows := db.Query(query, []interface{}{id})
-    rowsInf := db.Exec(query, []interface{}{id})
-    l, _ := rowsInf.RowsAffected()
-    c, _ := rows.Columns()
-    T = db.ConvertData(c, l, rows)
+    T = db.Query(query, []interface{}{id})
 
     for i := 0; i < len(T); i++ {
         id := T[i].(map[string]interface{})["id"]
-
         query := db.InnerJoin(
             []string{"f.id", "f.name"},
             "forms_types",
@@ -222,12 +201,7 @@ func MegoJoin(tableName, id string) RequestModel {
             []string{"f", "t"},
             []string{"id", "id"},
             "where t.id=$1")
-
-        rows := db.Query(query, []interface{}{id})
-        rowsInf := db.Exec(query, []interface{}{id})
-        l, _ := rowsInf.RowsAffected()
-        c, _ := rows.Columns()
-        F = append(F, db.ConvertData(c, l, rows))
+        F = append(F, db.Query(query, []interface{}{id}))
     }
 
     for i := 0; i < len(F); i++ {
@@ -235,7 +209,6 @@ func MegoJoin(tableName, id string) RequestModel {
         for j := 0; j < len(F[i].([]interface{})); j++ {
             item := F[i].([]interface{})[j]
             id := item.(map[string]interface{})["id"]
-
             query := db.InnerJoin(
                 []string{"p.id", "p.name", "p_t.name as type"},
                 "params",
@@ -245,12 +218,7 @@ func MegoJoin(tableName, id string) RequestModel {
                 []string{"f", "p_t"},
                 []string{"id", "id"},
                 "where f.id=$1")
-
-            rows := db.Query(query, []interface{}{id})
-            rowsInf := db.Exec(query, []interface{}{id})
-            l, _ := rowsInf.RowsAffected()
-            c, _ := rows.Columns()
-            PP = append(PP, db.ConvertData(c, l, rows))
+            PP = append(PP, db.Query(query, []interface{}{id}))
         }
         P = append(P, PP)
     }
