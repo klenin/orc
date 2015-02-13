@@ -14,7 +14,6 @@
 <div>
     <div id="history">
         <h5>Ранее заполненные анкеты</h5>
-        <div id="server-answer"></div>
         <form>
             <select id="h-events" name="h-events"></select>
             <input type="button" value="выбрать" id="send-btn" name="submit"/>
@@ -194,6 +193,7 @@ function(utils, datepicker) {
                 $("#now form").css("visibility", "hidden");
                 if (data["result"] == "ok") {
                     $("#now #server-answer").text("Анкета отправлена.").css("color", "green");
+                    $("div #history").hide();
                 } else if (data["result"] == "exists") {
                     $("#server-answer").text("Анкета для участия в этом мероприятии уже была заполнена.").css("color", "red");
                 }
