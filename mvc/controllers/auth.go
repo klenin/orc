@@ -58,19 +58,20 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
     } else if !MatchRegexp("^.{6,36}$", password) && !passHasInvalidChars {
         result["result"] = "badPassword"
     } else {
+
+        var p_id int
+
         db.QueryInsert(
             "persons",
             []string{"fname", "lname"},
-            []interface{}{fname, lname})
-
-        db.GetNextId("persons")
-        p_id, err := strconv.Atoi(db.GetCurrId("persons"))
-        utils.HandleErr("[Handler::HandleRegister]: strconv.Atoi", err, this.Response)
+            []interface{}{fname, lname},
+            "RETURNING id").Scan(&p_id)
 
         db.QueryInsert(
             "users",
             []string{"login", "pass", "salt", "role", "person_id"},
-            []interface{}{login, hash, salt, role, p_id - 1})
+            []interface{}{login, hash, salt, role, p_id},
+            "")
     }
 
     response, err := json.Marshal(result)

@@ -34,7 +34,7 @@ func (this Entity) Select(where []string, condition string, fields []string) ([]
 }
 
 func (this Entity) Insert(fields []string, params []interface{}) {
-    db.QueryInsert(this.TableName, fields, params)
+    db.QueryInsert(this.TableName, fields, params, "")
 }
 
 func (this Entity) Update(fields []string, params []interface{}, where string) {

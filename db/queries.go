@@ -19,17 +19,6 @@ var DB, _ = sql.Open(
         " password="+password+
         " sslmode=disable")
 
-func GetCurrId(tableName string) (id string) {
-    query := fmt.Sprintf("SELECT currval('%s');", tableName+"_id_seq")
-    QueryRow(query, nil).Scan(&id)
-    return id
-}
-
-func GetNextId(tableName string) (id string) {
-    query := fmt.Sprintf("SELECT nextval('%s');", tableName+"_id_seq")
-    QueryRow(query, nil).Scan(&id)
-    return id
-}
 
 func Exec(query string, params []interface{}) sql.Result {
     log.Println(query)
@@ -99,11 +88,11 @@ func QuerySelect(tableName, where string, fields []string) string {
     }
 }
 
-func QueryInsert(tableName string, fields []string, params []interface{}) {
-    query := "INSERT INTO %s (%s) VALUES (%s);"
+func QueryInsert(tableName string, fields []string, params []interface{}, extra string) *sql.Row {
+    query := "INSERT INTO %s (%s) VALUES (%s) %s;"
     f := strings.Join(fields, ", ")
     p := strings.Join(MakeParams(len(fields)), ", ")
-    Query(fmt.Sprintf(query, tableName, f, p), params)
+    return QueryRow(fmt.Sprintf(query, tableName, f, p, extra), params)
 }
 
 func QueryUpdate(tableName, where string, fields []string, params []interface{}) {
