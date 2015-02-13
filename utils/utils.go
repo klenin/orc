@@ -7,11 +7,15 @@ import (
     "os"
     "reflect"
     "strconv"
+    "github.com/lib/pq"
 )
 
 func HandleErr(message string, err error, w http.ResponseWriter) {
     if err != nil {
-        log.Println(err.Error())
+        log.Println(message+err.Error())
+        if err, ok := err.(*pq.Error); ok {
+            log.Println("pq error:", err.Code.Name())
+        }
         if w != nil {
             http.Error(w, fmt.Sprintf(message+"%v\n", err.Error()), http.StatusMethodNotAllowed)
         } else {
