@@ -20,6 +20,10 @@ _DATABASE_
 
 # Возможные проектные решения
 
+_UPDATE DATABASE_
+
+![update1-scheme-database][update1-scheme]
+
 - **База данных**
 
     Хранение адресов, телефонов, руководителей и т.п. в виде коллекций
@@ -91,3 +95,4 @@ _Тип мероприятий_ - ... примеры: соревнование, 
 _Анкета_ - составная форма для заполнения заявки на участие в мероприятии.
 
 [old-scheme]: ../docs/img/old-scheme-database.png  "database"
+[update1-scheme]: ../docs/img/update1-scheme-database.png  "database"
