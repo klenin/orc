@@ -1,6 +1,5 @@
 package models
 
-
 func (c *ModelManager) Persons() *PersonsModel {
     model := new(PersonsModel)
 

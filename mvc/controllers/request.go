@@ -24,7 +24,7 @@ func (this *Handler) GetHistoryRequest() {
     var data map[string]string
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler::GetHistoryRequest] Decode :", err, this.Response)
+    utils.HandleErr("[Handler::GetHistoryRequest] Decode: ", err, this.Response)
 
     event_id := data["event_id"]
     id := sessions.GetValue("id", this.Request).(string)
@@ -60,7 +60,7 @@ func (this *Handler) GetListHistoryEvents() {
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler::GetListHistoryEvents] Decode :", err, this.Response)
+    utils.HandleErr("[Handler::GetListHistoryEvents] Decode: ", err, this.Response)
 
     id := sessions.GetValue("id", this.Request).(string)
     ids := utils.ArrayInterfaceToString(data["form_ids"].([]interface{}))
@@ -148,8 +148,6 @@ func (this *Handler) SaveUserRequest() {
                 person_id, event_id},
             "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3))
         response = map[string]interface{}{"result": "ok"}
-    } else {
-        response = map[string]interface{}{"result": "WHAT?!"}//???
     }
 
     for _, element := range inf {

@@ -36,7 +36,7 @@ func Load() {
 }
 
 func loadUsers() {
-    base := new(controllers.BaseController) //!!!
+    base := new(controllers.BaseController)
     firstNamesFemaleRussian, _ := ioutil.ReadFile("./resources/first-name-female")
     firstNamesMaleRussian, _ := ioutil.ReadFile("./resources/first-name-male")
     lastNamesFemaleRussian, _ := ioutil.ReadFile("./resources/last-name-female")
@@ -59,7 +59,7 @@ func loadUsers() {
         lastName := strings.TrimSpace(strings.Split(string(lastNameSource), "\n")[rand.Intn(USER_COUNT)])
         //email := firstName + "_" + lastName + strconv.Itoa(rand.Intn(1024)) + emailProviders[len(emailProviders)-1]
         //println(email)
-        base.Handler().HandleRegister("user"+strconv.Itoa(i), "secret-"+strconv.Itoa(i), "user", firstName, lastName)
+        base.Handler().HandleRegister("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "user", firstName, lastName)
     }
     base.Handler().HandleRegister("admin", "password", "admin", "", "")
 }
@@ -73,7 +73,7 @@ func loadEvents() {
         rand.Seed(int64(i))
         eventName := strings.TrimSpace(eventNameSource[rand.Intn(len(eventNameSource))])
         eventName += " по дисциплине "
-        eventName += strings.TrimSpace(subjectNameSource[rand.Intn(len(subjectNameSource))])
+        eventName += "\"" + strings.TrimSpace(subjectNameSource[rand.Intn(len(subjectNameSource))]) + "\""
         dateStart := addDate(random(1894, 2014), random(1, 12), random(1, 28))
         dateFinish := addDate(random(1894, 2014), random(1, 12), random(1, 28))
         time := addTime(random(0, 11), random(1, 60), random(1, 60))
