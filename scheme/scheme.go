@@ -8,8 +8,8 @@ import (
 
 func Init() {
     for i, v := range db.Tables {
-        db.Query(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", v), nil)
-        db.Query(fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v), nil)
+        db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", v), nil)
+        db.Exec(fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v), nil)
         controllers.GetModel(db.Tables[i]).Create()
     }
 }
