@@ -1,7 +1,16 @@
 package models
 
-func (c *ModelManager) Events() *EventModel {
-    model := new(EventModel)
+type Event struct {
+    Id         string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Name       string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    DateStart  string `name:"date_start" type:"date" null:"NOT NULL" extra:""`
+    DateFinish string `name:"date_finish" type:"date" null:"NOT NULL" extra:""`
+    Time       string `name:"time" type:"time" null:"NOT NULL" extra:""`
+    Url        string `name:"url" type:"text" null:"NULL" extra:""`
+}
+
+func (c *ModelManager) Events() *EventsModel {
+    model := new(EventsModel)
 
     model.TableName = "events"
     model.Caption = "Мероприятия"
@@ -9,49 +18,15 @@ func (c *ModelManager) Events() *EventModel {
     model.Columns = []string{"id", "name", "date_start", "date_finish", "time", "url"}
     model.ColNames = []string{"ID", "Название", "Дата начала", "Дата окончания", "Время", "Сайт"}
 
-    model.Fields = []map[string]string{
-        {
-            "field": "id",
-            "type":  "int",
-            "null":  "NOT NULL",
-            "extra": "PRIMARY"},
-        {
-            "field": "name",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": "UNIQUE"},
-        {
-            "field": "date_start",
-            "type":  "date",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field": "date_finish",
-            "type":  "date",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field": "time",
-            "type":  "time",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field": "url",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": ""},
-    }
-
-    model.Ref = false
-    model.RefData = nil
-    model.RefFields = nil
+    model.Fields = new(Event)
 
     model.Sub = true
     model.SubTable = []string{"events_types"}
     model.SubField = "event_id"
+
     return model
 }
 
-type EventModel struct {
+type EventsModel struct {
     Entity
 }

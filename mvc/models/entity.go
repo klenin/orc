@@ -1,48 +1,33 @@
 package models
 
-import (
-    "github.com/orc/db"
-)
+import "reflect"
 
 type ModelManager struct{}
 
 type Entity struct {
     TableName string
     Caption   string
-    Fields    []map[string]string
-    Columns   []string
-    ColNames  []string
-    Ref       bool
-    RefData   map[string]interface{}
-    RefFields []string
-    Sub       bool
-    SubTable  []string
-    SubField  string
+
+    Fields interface{}
+
+    Columns  []string
+    ColNames []string
+
+    Sub      bool
+    SubTable []string
+    SubField string
 }
 
-func (this Entity) Create() {
-    db.QueryCreateTable(this.TableName, this.Fields)
+func (this Entity) GetTableName() string {
+    return this.TableName
 }
 
-func (this Entity) Select(where []string, condition string, fields []string) ([]interface{}, map[string]interface{}) {
-    result1 := db.Select(this.TableName, where, condition, fields)
-    if this.Ref {
-        result2 := this.RefData
-        return result1, result2
-    }
-    return result1, nil
+func (this Entity) GetCaption() string {
+    return this.Caption
 }
 
-func (this Entity) Insert(fields []string, params []interface{}) {
-    db.QueryInsert(this.TableName, fields, params, "")
-}
-
-func (this Entity) Update(fields []string, params []interface{}, where string) {
-    db.QueryUpdate(this.TableName, where, fields, params)
-}
-
-func (this Entity) Delete(field string, params []interface{}) {
-    db.QueryDelete(this.TableName, field, params)
+func (this Entity) GetSub() bool {
+    return this.Sub
 }
 
 func (this Entity) GetSubTable(index int) string {
@@ -69,36 +54,40 @@ func (this Entity) GetColNames() []string {
     return this.ColNames
 }
 
-func (this Entity) GetTableName() string {
-    return this.TableName
+func (this Entity) GetFields() interface{} {
+    return this.Fields
 }
 
-func (this Entity) GetCaption() string {
-    return this.Caption
-}
+func (this Entity) LoadModelData(data map[string]interface{}) {
+    rv := reflect.ValueOf(this.Fields)
+    rt := rv.Type()
+    n := rt.Elem().NumField()
 
-func (this Entity) GetRefFields() []string {
-    return this.RefFields
-}
-
-func (this Entity) GetSub() bool {
-    return this.Sub
+    for key, val := range data {
+        for i := 0; i < n; i++ {
+            tag := rt.Elem().Field(i).Tag.Get("name")
+            if tag == key {
+                rv.Elem().Field(i).Set(reflect.ValueOf(val))
+                break
+            }
+        }
+    }
 }
 
 type VirtEntity interface {
+    LoadModelData(data map[string]interface{})
+
     GetTableName() string
     GetCaption() string
+
+    GetFields() interface{}
+
     GetSub() bool
     GetSubTable(index int) string
     GetSubField() string
+
     GetColumns() []string
+    GetColNames() []string
     GetColumnByIdx(index int) string
     GetColumnSlice(index int) []string
-    GetColNames() []string
-    GetRefFields() []string
-    Create()
-    Select(where []string, condition string, fields []string) ([]interface{}, map[string]interface{})
-    Insert(fields []string, params []interface{})
-    Update(fields []string, params []interface{}, where string)
-    Delete(field string, params []interface{})
 }

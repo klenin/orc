@@ -25,13 +25,11 @@ func (this *Handler) GetEventList() {
     utils.HandleErr("[Handler::GetEventList] Decode :", err, this.Response)
 
     fields := request["fields"].([]interface{})
-    tableName := request["table"].(string)
-
-    model := GetModel(tableName)
-    result, _ := model.Select(nil, "", utils.ArrayInterfaceToString(fields))
+    result := db.Select(request["table"].(string), nil, "", utils.ArrayInterfaceToString(fields))
 
     response, err := json.Marshal(map[string]interface{}{"data": result})
     utils.HandleErr("[Handle::GetEventList] Marshal: ", err, this.Response)
+
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -39,6 +37,7 @@ func (this *Handler) ResetPassword() {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
+
     this.Response.Header().Set("Access-Control-Allow-Origin", "*")
     this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     this.Response.Header().Set("Content-type", "application/json")
@@ -48,20 +47,23 @@ func (this *Handler) ResetPassword() {
     err := decoder.Decode(&request)
     utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response)
 
-    id, pass, model := request["id"], request["pass"], GetModel("users")
-    result, _ := model.Select([]string{"id", id}, "", []string{"salt"})
+    id, pass := request["id"], request["pass"]
+    result := db.Select("users", []string{"id", id}, "", []string{"salt"})
     salt := result[0].(map[string]interface{})["salt"].(string)
     hash := GetMD5Hash(pass + salt)
-    model.Update([]string{"pass"}, []interface{}{hash, id}, "id=$2")
+
+    db.QueryUpdate("users", "id=$2", []string{"pass"}, []interface{}{hash, id})
 
     response, err := json.Marshal(map[string]interface{}{"result": "ok"})
     utils.HandleErr("[Handle::ResetPassword] Marshal: ", err, this.Response)
+
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
 func (this *Handler) Index() {
     var data map[string]interface{}
-    response := ""
+    var response string
+
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
     utils.HandleErr("[Handler::Index] Decode :", err, this.Response)
@@ -85,43 +87,46 @@ func (this *Handler) Index() {
         break
 
     case "editProfile":
-        id := data["id"].(string)
-        tableName := data["table"].(string)
-        inf := data["data"].([]interface{})
-
         var fields []string
         var params []interface{}
-        for _, element := range inf {
+
+        for _, element := range data["data"].([]interface{}) {
             fields = append(fields, element.(map[string]interface{})["name"].(string))
             params = append(params, element.(map[string]interface{})["value"])
         }
-        params = append(params, id)
-        model := GetModel(tableName)
-        model.Update(fields, params, "id=$"+strconv.Itoa(len(fields)+1))
+        params = append(params, data["id"].(string))
+
+        tableName := data["table"].(string)
+        db.QueryUpdate(tableName, "id=$"+strconv.Itoa(len(fields)+1), fields, params)
 
         response, err := json.Marshal(map[string]interface{}{"result": "ok"})
         utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)
+
         fmt.Fprintf(this.Response, "%s", string(response))
         break
+
     case "checkSession":
         var userHash string
         var result interface{}
+
         id := sessions.GetValue("id", this.Request)
         hash := sessions.GetValue("hash", this.Request)
+
         if id == nil || hash == nil {
             result = map[string]interface{}{"result": "no"}
         } else {
             query := db.QuerySelect("users", "id=$1", []string{"hash"})
-            row := db.QueryRow(query, []interface{}{id.(string)})
-            row.Scan(&userHash)
+            db.QueryRow(query, []interface{}{id.(string)}).Scan(&userHash)
             if userHash == hash.(string) {
                 result = map[string]interface{}{"result": "ok"}
             } else {
-                result = map[string]interface{}{"result": "nooooo"}
+                result = map[string]interface{}{"result": "no"}
             }
         }
+
         response, err := json.Marshal(result)
         utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)
+
         fmt.Fprintf(this.Response, "%s", string(response))
         break
     }
@@ -131,9 +136,9 @@ func (this *Handler) ShowCabinet(tableName string) {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
-    table := GetModel("users")
+
     id := sessions.GetValue("id", this.Request).(string)
-    data, _ := table.Select([]string{"id", id}, "", []string{"role", "person_id"})
+    data := db.Select("users", []string{"id", id}, "", []string{"role", "person_id"})
 
     role := data[0].(map[string]interface{})["role"].(string)
     person_id := data[0].(map[string]interface{})["person_id"].(int64)
@@ -143,7 +148,7 @@ func (this *Handler) ShowCabinet(tableName string) {
         model = Model{Columns: db.Tables, ColNames: db.TableNames}
     } else if role == "user" {
         m := GetModel("persons")
-        data, _ := m.Select([]string{"id", strconv.Itoa(int(person_id))}, "", m.GetColumns())
+        data := db.Select("persons", []string{"id", strconv.Itoa(int(person_id))}, "", m.GetColumns())
         model = Model{Table: data, Columns: m.GetColumns(), ColNames: m.GetColNames()}
     }
 
@@ -152,6 +157,7 @@ func (this *Handler) ShowCabinet(tableName string) {
         "mvc/views/header.html",
         "mvc/views/footer.html")
     utils.HandleErr("[Handler::ShowCabinet] ParseFiles: ", err, this.Response)
+
     err = tmp.ExecuteTemplate(this.Response, role, model)
     utils.HandleErr("[Handler::ShowCabinet] ExecuteTemplate: ", err, this.Response)
 }

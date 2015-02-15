@@ -7,8 +7,6 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
-    "log"
-    "reflect"
     "strconv"
     "time"
 )
@@ -17,6 +15,7 @@ func (this *Handler) GetHistoryRequest() {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
+
     this.Response.Header().Set("Access-Control-Allow-Origin", "*")
     this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     this.Response.Header().Set("Content-type", "application/json")
@@ -26,11 +25,9 @@ func (this *Handler) GetHistoryRequest() {
     err := decoder.Decode(&data)
     utils.HandleErr("[Handler::GetHistoryRequest] Decode: ", err, this.Response)
 
+    user_id := sessions.GetValue("id", this.Request).(string)
     event_id := data["event_id"]
-    id := sessions.GetValue("id", this.Request).(string)
-
-    users := GetModel("users")
-    person, _ := users.Select([]string{"id", id}, "", []string{"person_id"})
+    person := db.Select("users", []string{"id", user_id}, "", []string{"person_id"})
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
     query := `select param_id, p.name, event_type_id, p_t.name as type, value, form_id from param_values
@@ -40,9 +37,8 @@ func (this *Handler) GetHistoryRequest() {
         where person_id = $1 and event_id = $2;`
 
     response, err := json.Marshal(db.Query(query, []interface{}{person_id, event_id}))
-    log.Println("history information about blank")
-    log.Println(string(response))
     utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, this.Response)
+
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -50,22 +46,19 @@ func (this *Handler) GetListHistoryEvents() {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
+
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
     utils.HandleErr("[Handler::GetListHistoryEvents] Decode: ", err, this.Response)
 
-    id := sessions.GetValue("id", this.Request).(string)
-    ids := utils.ArrayInterfaceToString(data["form_ids"].([]interface{}))
-
-    users := GetModel("users")
-    person, _ := users.Select([]string{"id", id}, "", []string{"person_id"})
+    user_id := sessions.GetValue("id", this.Request).(string)
+    person := db.Select("users", []string{"id", user_id}, "", []string{"person_id"})
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
-    model := GetModel("forms_types")
-    result, _ := model.Select(ids, "OR", []string{"type_id"})
-
-    if reflect.ValueOf(result).Len() == 0 {
+    ids := utils.ArrayInterfaceToString(data["form_ids"].([]interface{}))
+    result := db.Select("forms_types", ids, "OR", []string{"type_id"})
+    if len(result) == 0 {
         return
     }
 
@@ -78,9 +71,10 @@ func (this *Handler) GetListHistoryEvents() {
 
     var i int
     var params []interface{}
+
     params = append(params, person_id)
 
-    for i = 2; i < reflect.ValueOf(result).Len(); i++ {
+    for i = 2; i < len(result); i++ {
         query += "type_id=$" + strconv.Itoa(i) + " OR "
         params = append(params, result[i-2].(map[string]interface{})["type_id"])
     }
@@ -91,6 +85,7 @@ func (this *Handler) GetListHistoryEvents() {
 
     response, err := json.Marshal(db.Query(query, params))
     utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, this.Response)
+
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -98,63 +93,69 @@ func (this *Handler) SaveUserRequest() {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
+
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
     utils.HandleErr("[Handler] Decode :", err, this.Response)
 
-    event_id := int(data["event_id"].(float64))
     id := sessions.GetValue("id", this.Request).(string)
-
-    users := GetModel("users")
-    person, _ := users.Select([]string{"id", id}, "", []string{"person_id"})
+    event_id := int(data["event_id"].(float64))
+    person := db.Select("users", []string{"id", id}, "", []string{"person_id"})
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
-    persons_events := GetModel("persons_events")
-    person, _ = persons_events.Select([]string{"person_id", strconv.Itoa(person_id), "event_id", strconv.Itoa(event_id)}, "AND", []string{"person_id"})
+    person = db.Select(
+        "persons_events",
+        []string{"person_id", strconv.Itoa(person_id), "event_id", strconv.Itoa(event_id)},
+        "AND",
+        []string{"person_id"})
 
     var response interface{}
-    inf := data["data"].([]interface{})
-    log.Println("save data from blank")
-    log.Println(inf)
-    param_values := GetModel("param_values")
     t := time.Now()
 
     if len(person) == 0 {
-        persons_events.Insert(
+        db.QueryInsert(
+            "persons_events",
             []string{"person_id", "event_id", "reg_date", "last_date"},
-            []interface{}{person_id, event_id,
-                t.Format("2006-01-02"),
-                t.Format("2006-01-02")})
+            []interface{}{person_id, event_id, t.Format("2006-01-02"), t.Format("2006-01-02")},
+            "")
         response = map[string]interface{}{"result": "ok"}
     } else if len(person) != 0 {
-        persons_events.Update(
+        db.QueryUpdate(
+            "persons_events",
+            "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3),
             []string{"last_date"},
-            []interface{}{t.Format("2006-01-02"),
-                person_id, event_id},
-            "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3))
+            []interface{}{t.Format("2006-01-02"), person_id, event_id})
         response = map[string]interface{}{"result": "ok"}
     }
 
-    for _, element := range inf {
+    for _, element := range data["data"].([]interface{}) {
             param_id := element.(map[string]interface{})["id"]
             event_type_id := element.(map[string]interface{})["event_type_id"]
             value := element.(map[string]interface{})["value"]
 
-        if db.IsExists_("param_values", []string{"person_id", "event_id", "param_id", "event_type_id"}, []interface{}{person_id, event_id, param_id, event_type_id}) {
-            param_values.Update(
+        if db.IsExists_(
+            "param_values",
+            []string{"person_id", "event_id", "param_id", "event_type_id"},
+            []interface{}{person_id, event_id, param_id, event_type_id}) {
+
+            db.QueryUpdate(
+                "param_values",
+                "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3)+" AND param_id=$"+strconv.Itoa(4)+" AND event_type_id=$"+strconv.Itoa(5),
                 []string{"value"},
-                []interface{}{value, person_id, event_id, param_id, event_type_id},
-                "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3)+" AND param_id=$"+strconv.Itoa(4)+" AND event_type_id=$"+strconv.Itoa(5))
+                []interface{}{value, person_id, event_id, param_id, event_type_id})
         } else {
-            param_values.Insert(
+            db.QueryInsert(
+                "param_values",
                 []string{"person_id", "event_id", "param_id", "value", "event_type_id"},
-                []interface{}{person_id, event_id, param_id, value, event_type_id})
+                []interface{}{person_id, event_id, param_id, value, event_type_id},
+                "")
         }
     }
 
     result, err := json.Marshal(response)
     utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response)
+
     fmt.Fprintf(this.Response, "%s", string(result))
 }
 
@@ -222,5 +223,6 @@ func MegoJoin(tableName, id string) RequestModel {
         }
         P = append(P, PP)
     }
+
     return RequestModel{E: E, T: T, F: F, P: P}
 }

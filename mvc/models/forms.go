@@ -1,5 +1,10 @@
 package models
 
+type Forms struct {
+    Id   string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Name string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+}
+
 func (c *ModelManager) Forms() *FormsModel {
     model := new(FormsModel)
 
@@ -9,22 +14,7 @@ func (c *ModelManager) Forms() *FormsModel {
     model.Columns = []string{"id", "name"}
     model.ColNames = []string{"ID", "Название"}
 
-    model.Fields = []map[string]string{
-        {
-            "field": "id",
-            "type":  "int",
-            "null":  "NOT NULL",
-            "extra": "PRIMARY"},
-        {
-            "field": "name",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": "UNIQUE"},
-    }
-
-    model.Ref = false
-    model.RefData = nil
-    model.RefFields = nil
+    model.Fields = new(Forms)
 
     model.Sub = true
     model.SubTable = []string{"forms_types"}

@@ -3,11 +3,11 @@ package controllers
 import (
     "encoding/json"
     "fmt"
+    "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
     "strconv"
-    "strings"
 )
 
 func (c *BaseController) GridHandler() *GridHandler {
@@ -28,24 +28,22 @@ func (this *GridHandler) GetSubTable() {
     err := decoder.Decode(&request)
     utils.HandleErr("[GridHandler::GetSubTable] Decode :", err, this.Response)
 
-    id := request["id"]
-    tableName := request["table"]
-    model := GetModel(tableName)
+    model := GetModel(request["table"])
     index, _ := strconv.Atoi(request["index"])
+    subModel := GetModel(model.GetSubTable(index))
+    result := db.Select(model.GetSubTable(index), []string{model.GetSubField(), request["id"]}, "", subModel.GetColumns())
+    refFields, refData := GetModelRefDate(subModel)
 
-    subTableName := model.GetSubTable(index)
-    subModel := GetModel(subTableName)
-
-    result, refdata := subModel.Select([]string{model.GetSubField(), id}, "", subModel.GetColumns())
     response, err := json.Marshal(map[string]interface{}{
         "data":      result,
         "name":      subModel.GetTableName(),
         "caption":   subModel.GetCaption(),
         "colnames":  subModel.GetColNames(),
         "columns":   subModel.GetColumns(),
-        "refdata":   refdata,
-        "reffields": subModel.GetRefFields()})
+        "reffields": refFields,
+        "refdata":   refData})
     utils.HandleErr("[GridHandler::GetSubTable] Marshal: ", err, this.Response)
+
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -55,10 +53,9 @@ func (this *GridHandler) Load(tableName string) {
     }
 
     model := GetModel(tableName)
-    answer, _ := model.Select(nil, "", model.GetColumns())
-
-    response, err := json.Marshal(answer)
+    response, err := json.Marshal(db.Select(tableName, nil, "", model.GetColumns()))
     utils.HandleErr("[GridHandler::Load] Marshal: ", err, this.Response)
+
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
@@ -66,16 +63,19 @@ func (this *GridHandler) Select(tableName string) {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
-    model := GetModel(tableName)
-    _, refdata := model.Select(nil, "", model.GetColumns())
+
     tmp, err := template.ParseFiles(
         "mvc/views/table.html",
         "mvc/views/header.html",
         "mvc/views/footer.html")
     utils.HandleErr("[GridHandler::Select] ParseFiles: ", err, this.Response)
+
+    model := GetModel(tableName)
+    refFields, refData := GetModelRefDate(model)
+
     err = tmp.ExecuteTemplate(this.Response, "table", Model{
-        RefData:   refdata,
-        RefFields: model.GetRefFields(),
+        RefData:   refData,
+        RefFields: refFields,
         TableName: model.GetTableName(),
         ColNames:  model.GetColNames(),
         Columns:   model.GetColumns(),
@@ -88,32 +88,28 @@ func (this *GridHandler) Edit(tableName string) {
     if flag := sessions.CheackSession(this.Response, this.Request); !flag {
         return
     }
-    var i int
-    oper := this.Request.FormValue("oper")
+
     model := GetModel(tableName)
-    params := make([]interface{}, len(model.GetColumns())-1)
-    for i = 0; i < len(model.GetColumns())-1; i++ {
-        if model.GetColumnByIdx(i+1) == "date" {
-            params[i] = this.Request.FormValue(model.GetColumnByIdx(i + 1))[0:10]
-        } else {
-            params[i] = this.Request.FormValue(model.GetColumnByIdx(i + 1))
-        }
+    if model == nil {
+        return
     }
+
+    params := make(map[string]interface{}, len(model.GetColumns()))
+    for i := 0; i < len(model.GetColumns()); i++ {
+        params[model.GetColumnByIdx(i)] = this.Request.PostFormValue(model.GetColumnByIdx(i))
+    }
+    model.LoadModelData(params)
+
+    oper := this.Request.PostFormValue("oper")
     switch oper {
     case "edit":
-        params = append(params, this.Request.FormValue("id"))
-        model.Update(model.GetColumnSlice(1), params, "id=$"+strconv.Itoa(i+1))
+        db.QueryUpdate_(model)
         break
     case "add":
-        model.Insert(model.GetColumnSlice(1), params)
+        db.QueryInsert_(model, "")
         break
     case "del":
-        ids := strings.Split(this.Request.FormValue("id"), ",")
-        tmp := make([]interface{}, len(ids))
-        for i, v := range ids {
-            tmp[i] = interface{}(v)
-        }
-        model.Delete("id", tmp)
+        db.QueryDeleteByIds(tableName, this.Request.PostFormValue("id"))
         break
     }
 }

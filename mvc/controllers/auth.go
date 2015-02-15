@@ -89,8 +89,7 @@ func (this *Handler) HandleLogin(login, pass string) string {
         if passHash == GetMD5Hash(pass+salt) {
             result["result"] = "ok"
             hash := GetRandSeq(HASH_SIZE)
-            model := GetModel("users")
-            model.Update([]string{"hash"}, []interface{}{hash}, "id="+id)
+            db.QueryUpdate("users",  "id="+id, []string{"hash"}, []interface{}{hash})
             sessions.SetSession(id, hash, this.Response)
         }
     }

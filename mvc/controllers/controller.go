@@ -1,8 +1,10 @@
 package controllers
 
 import (
+    "github.com/orc/db"
     "github.com/orc/mvc/models"
     "net/http"
+    "reflect"
 )
 
 type BaseController struct{}
@@ -62,4 +64,22 @@ func GetModel(tableName string) models.VirtEntity {
         return base.ParamTypes()
     }
     panic("controller.GetModel: have no such table name")
+}
+
+func GetModelRefDate(model models.VirtEntity) (fields []string, result map[string]interface{}) {
+    result = make(map[string]interface{})
+    rt := reflect.TypeOf(model.GetFields())
+
+    for i := 0; i < rt.Elem().NumField(); i++ {
+        refFieldShow := rt.Elem().Field(i).Tag.Get("refFieldShow")
+        if refFieldShow != "" {
+            fields = append(fields, refFieldShow)
+            refField := rt.Elem().Field(i).Tag.Get("refField")
+            data := db.Select(rt.Elem().Field(i).Tag.Get("refTable"), nil, "", []string{refField, refFieldShow})
+            result[rt.Elem().Field(i).Tag.Get("name")] = make([]interface{}, len(data))
+            result[rt.Elem().Field(i).Tag.Get("name")] = data
+        }
+    }
+
+    return fields, result
 }

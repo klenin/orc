@@ -1,6 +1,14 @@
 package models
 
-import "github.com/orc/db"
+type User struct {
+    Id       string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Login    string `name:"login" type:"text" null:"NOT NULL" extra:""`
+    Pass     string `name:"pass" type:"text" null:"NOT NULL" extra:""`
+    Salt     string `name:"salt" type:"text" null:"NOT NULL" extra:""`
+    Role     string `name:"role" type:"text" null:"NOT NULL" extra:""`
+    Hash     string `name:"hash" type:"text" null:"NULL" extra:""`
+    PersonId string `name:"person_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"persons" refField:"id" refFieldShow:"fname"`
+}
 
 func (c *ModelManager) Users() *UsersModel {
     model := new(UsersModel)
@@ -11,53 +19,7 @@ func (c *ModelManager) Users() *UsersModel {
     model.Columns = []string{"id", "login", "role", "person_id"}
     model.ColNames = []string{"ID", "Логин", "Роль", "Персона"}
 
-    model.Fields = []map[string]string{
-        {
-            "field": "id",
-            "type":  "int",
-            "null":  "NOT NULL",
-            "extra": "PRIMARY"},
-        {
-            "field": "login",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field": "pass",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field": "salt",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field": "role",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field":    "person_id",
-            "type":     "int",
-            "null":     "NOT NULL",
-            "extra":    "REFERENCES",
-            "refTable": "persons",
-            "refField": "id"},
-        {
-            "field": "hash",
-            "type":  "text",
-            "null":  "NULL",
-            "extra": ""},
-    }
-
-    model.Ref = true
-    model.RefFields = []string{"fname"}
-    model.RefData = make(map[string]interface{}, 1)
-
-    result := db.Select("persons", nil, "", []string{"id", "fname"})
-    model.RefData["person_id"] = make([]interface{}, len(result))
-    model.RefData["person_id"] = result
+    model.Fields = new(User)
 
     model.Sub = false
     model.SubTable = nil

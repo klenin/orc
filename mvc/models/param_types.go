@@ -1,7 +1,12 @@
 package models
 
-func (c *ModelManager) ParamTypes() *ParamTypeModel {
-    model := new(ParamTypeModel)
+type ParamTypes struct {
+    Id   string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Name string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+}
+
+func (c *ModelManager) ParamTypes() *ParamTypesModel {
+    model := new(ParamTypesModel)
 
     model.TableName = "param_types"
     model.Caption = "Типы параметров"
@@ -9,22 +14,7 @@ func (c *ModelManager) ParamTypes() *ParamTypeModel {
     model.Columns = []string{"id", "name"}
     model.ColNames = []string{"ID", "Название"}
 
-    model.Fields = []map[string]string{
-        {
-            "field": "id",
-            "type":  "int",
-            "null":  "NOT NULL",
-            "extra": "PRIMARY"},
-        {
-            "field": "name",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": "UNIQUE"},
-    }
-
-    model.Ref = false
-    model.RefData = nil
-    model.RefFields = nil
+    model.Fields = new(ParamTypes)
 
     model.Sub = false
     model.SubTable = nil
@@ -33,6 +23,6 @@ func (c *ModelManager) ParamTypes() *ParamTypeModel {
     return model
 }
 
-type ParamTypeModel struct {
+type ParamTypesModel struct {
     Entity
 }

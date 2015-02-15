@@ -1,8 +1,12 @@
 package models
 
-import (
-    "github.com/orc/db"
-)
+type Param struct {
+    Id          string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Name        string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    FormId      string `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
+    ParamTypeId string `name:"param_type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"param_types" refField:"id" refFieldShow:"name"`
+    Identifier  string `name:"identifier" type:"int" null:"NOT NULL" extra:"UNIQUE"`
+}
 
 func (c *ModelManager) Params() *ParamsModel {
     model := new(ParamsModel)
@@ -13,49 +17,7 @@ func (c *ModelManager) Params() *ParamsModel {
     model.Columns = []string{"id", "name", "param_type_id", "form_id", "identifier"}
     model.ColNames = []string{"ID", "Название", "Тип", "Форма", "Идентификатор"}
 
-    model.Fields = []map[string]string{
-        {
-            "field": "id",
-            "type":  "int",
-            "null":  "NOT NULL",
-            "extra": "PRIMARY"},
-        {
-            "field": "name",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field": "param_type_id",
-            "type":  "int",
-            "null":  "NOT NULL",
-            "extra": "REFERENCES",
-            "refTable": "param_types",
-            "refField": "id"},
-        {
-            "field":    "form_id",
-            "type":     "int",
-            "null":     "NOT NULL",
-            "extra":    "REFERENCES",
-            "refTable": "forms",
-            "refField": "id"},
-        {
-            "field": "identifier",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": ""},
-    }
-
-    model.Ref = true
-    model.RefFields = []string{"name"}
-    model.RefData = make(map[string]interface{}, 2)
-
-    result := db.Select("forms", nil, "", []string{"id", "name"})
-    model.RefData["form_id"] = make([]interface{}, len(result))
-    model.RefData["form_id"] = result
-
-    result = db.Select("param_types", nil, "", []string{"id", "name"})
-    model.RefData["param_type_id"] = make([]interface{}, len(result))
-    model.RefData["param_type_id"] = result
+    model.Fields = new(Param)
 
     model.Sub = false
     model.SubTable = nil

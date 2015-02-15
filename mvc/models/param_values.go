@@ -1,8 +1,13 @@
 package models
 
-import (
-    "github.com/orc/db"
-)
+type ParamValues struct {
+    Id          string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    EventId     string `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    PersonId    string `name:"person_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"persons" refField:"id" refFieldShow:"fname"`
+    EventTypeId string `name:"event_type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"event_types" refField:"id" refFieldShow:"name"`
+    ParamId     string `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
+    Value       string `name:"value" type:"text" null:"NOT NULL" extra:""`
+}
 
 func (c *ModelManager) ParamValues() *ParamValuesModel {
     model := new(ParamValuesModel)
@@ -10,65 +15,10 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
     model.TableName = "param_values"
     model.Caption = "Знвчение параметров"
 
-    model.Columns = []string{"id", "person_id", "event_id", "param_id", "value"}
-    model.ColNames = []string{"ID", "Персона", "Мероприятие", "Параметр", "Значение"}
+    model.Columns = []string{"id", "person_id", "event_id", "event_type_id", "param_id", "value"}
+    model.ColNames = []string{"ID", "Персона", "Мероприятие", "Тип мероприятия", "Параметр", "Значение"}
 
-    model.Fields = []map[string]string{
-        {
-            "field": "id",
-            "type":  "int",
-            "null":  "NOT NULL",
-            "extra": "PRIMARY"},
-        {
-            "field":    "person_id",
-            "type":     "int",
-            "null":     "NOT NULL",
-            "extra":    "REFERENCES",
-            "refTable": "persons",
-            "refField": "id"},
-        {
-            "field":    "event_id",
-            "type":     "int",
-            "null":     "NOT NULL",
-            "extra":    "REFERENCES",
-            "refTable": "events",
-            "refField": "id"},
-        {
-            "field":    "event_type_id",
-            "type":     "int",
-            "null":     "NOT NULL",
-            "extra":    "REFERENCES",
-            "refTable": "event_types",
-            "refField": "id"},
-        {
-            "field":    "param_id",
-            "type":     "int",
-            "null":     "NOT NULL",
-            "extra":    "REFERENCES",
-            "refTable": "params",
-            "refField": "id"},
-        {
-            "field": "value",
-            "type":  "text",
-            "null":  "NOT NULL",
-            "extra": ""},
-    }
-
-    model.Ref = true
-    model.RefFields = []string{"fname", "name"}
-    model.RefData = make(map[string]interface{}, 3)
-
-    result := db.Select("persons", nil, "", []string{"id", "fname"})
-    model.RefData["person_id"] = make([]interface{}, len(result))
-    model.RefData["person_id"] = result
-
-    result = db.Select("events", nil, "", []string{"id", "name"})
-    model.RefData["event_id"] = make([]interface{}, len(result))
-    model.RefData["event_id"] = result
-
-    result = db.Select("params", nil, "", []string{"id", "name"})
-    model.RefData["param_id"] = make([]interface{}, len(result))
-    model.RefData["param_id"] = result
+    model.Fields = new(ParamValues)
 
     model.Sub = false
     model.SubTable = nil

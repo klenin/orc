@@ -4,8 +4,10 @@ import (
     "database/sql"
     "fmt"
     _ "github.com/lib/pq"
+    "github.com/orc/mvc/models"
     "github.com/orc/utils"
     "log"
+    "reflect"
     "strconv"
     "strings"
     "time"
@@ -88,6 +90,38 @@ func QueryCreateTable(tableName string, fields []map[string]string) {
     Exec(fmt.Sprintf(query, tableName), nil)
 }
 
+func QueryCreateTable_(tableName string) {
+    model := FindModel(tableName)
+    if model.IsNil() {
+        return
+    }
+    QueryCreateSecuence(tableName)
+    query := "CREATE TABLE IF NOT EXISTS %s ("
+    mF := model.Elem().FieldByName("Fields").Elem().Type()
+    for i := 0; i < mF.Elem().NumField(); i++ {
+        query += mF.Elem().Field(i).Tag.Get("name") + " "
+        query += mF.Elem().Field(i).Tag.Get("type") + " "
+        query += mF.Elem().Field(i).Tag.Get("null") + " "
+        switch mF.Elem().Field(i).Tag.Get("extra") {
+        case "PRIMARY":
+            query += "PRIMARY KEY DEFAULT NEXTVAL('"
+            query += tableName + "_id_seq'), "
+            break
+        case "REFERENCES":
+            query += "REFERENCES " + mF.Elem().Field(i).Tag.Get("refTable") + "(" + mF.Elem().Field(i).Tag.Get("refField") + ") ON DELETE CASCADE, "
+            break
+        case "UNIQUE":
+            query += "UNIQUE, "
+            break
+        default:
+            query += ", "
+        }
+    }
+    query = query[0 : len(query)-2]
+    query += ");"
+    Exec(fmt.Sprintf(query, tableName), nil)
+}
+
 func QuerySelect(tableName, where string, fields []string) string {
     query := "SELECT %s FROM %s"
     if where != "" {
@@ -105,16 +139,65 @@ func QueryInsert(tableName string, fields []string, params []interface{}, extra 
     return QueryRow(fmt.Sprintf(query, tableName, f, p, extra), params)
 }
 
+func QueryInsert_(m interface{}, extra string) *sql.Row {
+    var i int
+
+    query := "INSERT INTO %s ("
+    tableName := reflect.ValueOf(m).Elem().FieldByName("TableName").String()
+
+    tFields := reflect.ValueOf(m).Elem().FieldByName("Fields").Elem().Type().Elem()
+    vFields := reflect.ValueOf(m).Elem().FieldByName("Fields").Elem().Elem()
+
+    n := tFields.NumField()
+    p := make([]interface{}, n-1)
+
+    for i = 1; i < n-1; i++ {
+        query += tFields.Field(i).Tag.Get("name") + ", "
+        p[i-1] = vFields.Field(i).String()
+    }
+
+    p[i-1] = vFields.Field(i).String()
+    for i = 0; i < len(p); i++ {
+        log.Println(p[i])
+    }
+    query += tFields.Field(i).Tag.Get("name") + ") VALUES (%s) %s;"
+
+    return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
+}
+
+func QueryUpdate_(m interface{}) {
+    var i int
+
+    query := "UPDATE %s SET "
+    tableName := reflect.ValueOf(m).Elem().FieldByName("TableName").String()
+
+    tFields := reflect.ValueOf(m).Elem().FieldByName("Fields").Elem().Type().Elem()
+    vFields := reflect.ValueOf(m).Elem().FieldByName("Fields").Elem().Elem()
+
+    n := tFields.NumField()
+    p := make([]interface{}, n)
+
+    for i = 1; i < n-1; i++ {
+        query += tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(i) + ", "
+        p[i-1] = vFields.Field(i).String()
+    }
+
+    p[i-1] = vFields.Field(i).String()
+    p[i] = vFields.Field(0).String()
+    query += tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(i) + " WHERE id=$" + strconv.Itoa(i+1) + ";"
+
+    Exec(fmt.Sprintf(query, tableName), p)
+}
+
 func QueryUpdate(tableName, where string, fields []string, params []interface{}) {
     query := "UPDATE %s SET %s WHERE %s;"
     p := strings.Join(MakePairs(fields), ", ")
     Exec(fmt.Sprintf(query, tableName, p, where), params)
 }
 
-func QueryDelete(tableName, fieldName string, valParams []interface{}) {
-    query := "DELETE FROM %s WHERE %s IN (%s)"
-    params := strings.Join(MakeParams(len(valParams)), ", ")
-    Exec(fmt.Sprintf(query, tableName, fieldName, params), valParams)
+func QueryDeleteByIds(tableName, ids string) {
+    query := "DELETE FROM %s WHERE id IN (%s)"
+    Exec(fmt.Sprintf(query, tableName, ids), nil)
 }
 
 func IsExists(tableName, fieldName string, value string) bool {
@@ -240,4 +323,19 @@ func InnerJoin(
     }
     query += " " + where
     return query
+}
+
+func FindModel(modelName string) *reflect.Value {
+    baseModel := new(models.ModelManager)
+    bmt := reflect.TypeOf(baseModel)
+    for i := 0; i < bmt.NumMethod(); i++ {
+        bmtMethod := bmt.Method(i)
+        if strings.ToLower(bmtMethod.Name) == strings.ToLower(strings.Join(strings.Split(modelName, "_"), "")) {
+            params := make([]reflect.Value, 1)
+            params[0] = reflect.ValueOf(baseModel)
+            result := bmtMethod.Func.Call(params)
+            return &result[0]
+        }
+    }
+    return nil
 }

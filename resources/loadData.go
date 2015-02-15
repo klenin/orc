@@ -1,6 +1,7 @@
 package resources
 
 import (
+    "github.com/orc/db"
     "github.com/orc/mvc/controllers"
     "github.com/orc/mvc/models"
     "io/ioutil"
@@ -58,7 +59,6 @@ func loadUsers() {
         firstName := strings.TrimSpace(strings.Split(string(firstNameSource), "\n")[rand.Intn(USER_COUNT)])
         lastName := strings.TrimSpace(strings.Split(string(lastNameSource), "\n")[rand.Intn(USER_COUNT)])
         //email := firstName + "_" + lastName + strconv.Itoa(rand.Intn(1024)) + emailProviders[len(emailProviders)-1]
-        //println(email)
         base.Handler().HandleRegister("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "user", firstName, lastName)
     }
     base.Handler().HandleRegister("admin", "password", "admin", "", "")
@@ -79,7 +79,7 @@ func loadEvents() {
         time := addTime(random(0, 11), random(1, 60), random(1, 60))
         params := []interface{}{eventName, dateStart, dateFinish, time, ""}
         entity := base.Events()
-        entity.Insert(entity.GetColumnSlice(1), params)
+        db.QueryInsert("events", entity.GetColumnSlice(1), params, "")
     }
 }
 
@@ -92,7 +92,7 @@ func loadEventTypes() {
         eventTypeName := strings.TrimSpace(eventTypeNamesSourse[i])
         params := []interface{}{eventTypeName, "", topicality[rand.Intn(2)]}
         entity := base.EventTypes()
-        entity.Insert(entity.GetColumnSlice(1), params)
+        db.QueryInsert("event_types", entity.GetColumnSlice(1), params, "")
     }
 }
 
@@ -102,7 +102,7 @@ func loadForms() {
     for i := 0; i < len(formNamesSourse); i++ {
         formName := strings.TrimSpace(formNamesSourse[i])
         entity := base.Forms()
-        entity.Insert(entity.GetColumnSlice(1), []interface{}{formName})
+        db.QueryInsert("forms", entity.GetColumnSlice(1), []interface{}{formName}, "")
     }
 }
 
@@ -112,6 +112,6 @@ func loadParamTypes() {
     for i := 0; i < len(paramTypesSourse); i++ {
         paramType := strings.TrimSpace(paramTypesSourse[i])
         entity := base.ParamTypes()
-        entity.Insert(entity.GetColumnSlice(1), []interface{}{paramType})
+        db.QueryInsert("param_types", entity.GetColumnSlice(1), []interface{}{paramType}, "")
     }
 }

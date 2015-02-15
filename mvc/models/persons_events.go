@@ -1,8 +1,12 @@
 package models
 
-import (
-    "github.com/orc/db"
-)
+type PersonEvent struct {
+    Id       string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    EventId  string `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    PersonId string `name:"person_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"persons" refField:"id" refFieldShow:"fname"`
+    RegDate  string `name:"reg_date" type:"date" null:"NOT NULL" extra:""`
+    LastDate string `name:"last_date" type:"date" null:"NOT NULL" extra:""`
+}
 
 func (c *ModelManager) PersonsEvents() *PersonsEventsModel {
     model := new(PersonsEventsModel)
@@ -13,49 +17,7 @@ func (c *ModelManager) PersonsEvents() *PersonsEventsModel {
     model.Columns = []string{"id", "person_id", "event_id", "reg_date", "last_date"}
     model.ColNames = []string{"ID", "Персона", "Мероприятие", "Дата регистрации", "Дата последних изменений"}
 
-    model.Fields = []map[string]string{
-        {
-            "field": "id",
-            "type":  "int",
-            "null":  "NOT NULL",
-            "extra": "PRIMARY"},
-        {
-            "field":    "person_id",
-            "type":     "int",
-            "null":     "NOT NULL",
-            "extra":    "REFERENCES",
-            "refTable": "persons",
-            "refField": "id"},
-        {
-            "field":    "event_id",
-            "type":     "int",
-            "null":     "NOT NULL",
-            "extra":    "REFERENCES",
-            "refTable": "events",
-            "refField": "id"},
-        {
-            "field": "reg_date",
-            "type":  "date",
-            "null":  "NOT NULL",
-            "extra": ""},
-        {
-            "field": "last_date",
-            "type":  "date",
-            "null":  "NOT NULL",
-            "extra": ""},
-    }
-
-    model.Ref = true
-    model.RefFields = []string{"name", "fname"}
-    model.RefData = make(map[string]interface{}, 2)
-
-    result := db.Select("persons", nil, "", []string{"id", "fname"})
-    model.RefData["person_id"] = make([]interface{}, len(result))
-    model.RefData["person_id"] = result
-
-    result = db.Select("events", nil, "", []string{"id", "name"})
-    model.RefData["event_id"] = make([]interface{}, len(result))
-    model.RefData["event_id"] = result
+    model.Fields = new(PersonEvent)
 
     model.Sub = false
     model.SubTable = nil
