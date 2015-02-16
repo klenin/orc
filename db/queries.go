@@ -157,16 +157,13 @@ func QueryInsert_(m interface{}, extra string) *sql.Row {
     }
 
     p[i-1] = vFields.Field(i).String()
-    for i = 0; i < len(p); i++ {
-        log.Println(p[i])
-    }
     query += tFields.Field(i).Tag.Get("name") + ") VALUES (%s) %s;"
 
     return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
 }
 
 func QueryUpdate_(m interface{}) {
-    var i int
+    i, j := 1, 1
 
     query := "UPDATE %s SET "
     tableName := reflect.ValueOf(m).Elem().FieldByName("TableName").String()
@@ -175,16 +172,20 @@ func QueryUpdate_(m interface{}) {
     vFields := reflect.ValueOf(m).Elem().FieldByName("Fields").Elem().Elem()
 
     n := tFields.NumField()
-    p := make([]interface{}, n)
+    p := make([]interface{}, 0)
 
-    for i = 1; i < n-1; i++ {
-        query += tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(i) + ", "
-        p[i-1] = vFields.Field(i).String()
+    for ; j < n; j++ {
+        if vFields.Field(j).String() == "" {
+            continue
+        }
+        query += tFields.Field(j).Tag.Get("name") + "=$" + strconv.Itoa(i) + ", "
+        p = append(p, vFields.Field(j).String())
+        i++
     }
+    query = query[0:len(query)-2]
 
-    p[i-1] = vFields.Field(i).String()
-    p[i] = vFields.Field(0).String()
-    query += tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(i) + " WHERE id=$" + strconv.Itoa(i+1) + ";"
+    query += " WHERE id=$" + strconv.Itoa(i) + ";"
+    p = append(p, vFields.Field(0).String())
 
     Exec(fmt.Sprintf(query, tableName), p)
 }
