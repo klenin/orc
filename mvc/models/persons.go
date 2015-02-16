@@ -2,8 +2,8 @@ package models
 
 type Person struct {
     Id        string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    firstName string `name:"fname" type:"text" null:"NOT NULL" extra:""`
-    lastName  string `name:"lname" type:"text" null:"NOT NULL" extra:""`
+    FirstName string `name:"fname" type:"text" null:"NOT NULL" extra:""`
+    LastName  string `name:"lname" type:"text" null:"NOT NULL" extra:""`
 }
 
 func (c *ModelManager) Persons() *PersonsModel {
@@ -13,7 +13,7 @@ func (c *ModelManager) Persons() *PersonsModel {
     model.Caption = "Персоны"
 
     model.Columns = []string{"id", "fname", "lname"}
-    model.ColNames = []string{"ID", "Фамилия", "Имя"}
+    model.ColNames = []string{"ID", "Имя", "Фамилия"}
 
     model.Fields = new(Person)
 
