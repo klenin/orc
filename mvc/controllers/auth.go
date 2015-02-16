@@ -29,18 +29,18 @@ func GetMD5Hash(text string) string {
 }
 
 func GetRandSeq(size int) string {
-    rb := make([]byte,size)
+    rb := make([]byte, size)
     _, err := rand.Read(rb)
     if err != nil {
-      log.Println(err)
+        log.Println(err)
     }
-   return base64.URLEncoding.EncodeToString(rb)
+    return base64.URLEncoding.EncodeToString(rb)
 }
 
 func (this *Handler) HandleRegister(login, password, role, fname, lname string) string {
     result := map[string]string{"result": "ok"}
-    salt := time.Now().Unix()
-    hash := GetMD5Hash(password + strconv.Itoa(int(salt)))
+    salt := strconv.Itoa(int(time.Now().Unix()))
+    hash := GetMD5Hash(password + salt)
 
     passHasInvalidChars := false
     for i := 0; i < len(password); i++ {
@@ -58,50 +58,55 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
     } else if !MatchRegexp("^.{6,36}$", password) && !passHasInvalidChars {
         result["result"] = "badPassword"
     } else {
+        var p_id string
+        person := GetModel("persons")
+        person.LoadModelData(map[string]interface{}{"fname": fname, "lname": lname})
+        db.QueryInsert_(person, "RETURNING id").Scan(&p_id)
 
-        var p_id int
-
-        db.QueryInsert(
-            "persons",
-            []string{"fname", "lname"},
-            []interface{}{fname, lname},
-            "RETURNING id").Scan(&p_id)
-
-        db.QueryInsert(
-            "users",
-            []string{"login", "pass", "salt", "role", "person_id"},
-            []interface{}{login, hash, salt, role, p_id},
-            "")
+        user := GetModel("users")
+        user.LoadModelData(map[string]interface{}{"login": login, "pass": hash, "salt": salt, "role": role, "person_id": p_id})
+        db.QueryInsert_(user, "")
     }
 
     response, err := json.Marshal(result)
     utils.HandleErr("[Handler::HandleRegister] Marshal: ", err, this.Response)
+
     return string(response)
 }
 
 func (this *Handler) HandleLogin(login, pass string) string {
     var id, passHash, salt string
+
     result := map[string]interface{}{"result": "invalidCredentials"}
+
     if db.IsExists("users", "login", login) {
         query := db.QuerySelect("users", "login=$1", []string{"id", "pass", "salt"})
-        row := db.QueryRow(query, []interface{}{login})
-        row.Scan(&id, &passHash, &salt)
+        db.QueryRow(query, []interface{}{login}).Scan(&id, &passHash, &salt)
+
         if passHash == GetMD5Hash(pass+salt) {
             result["result"] = "ok"
+
             hash := GetRandSeq(HASH_SIZE)
-            db.QueryUpdate("users",  "id="+id, []string{"hash"}, []interface{}{hash})
+
+            user := GetModel("users")
+            user.LoadModelData(map[string]interface{}{"id": id, "hash": hash})
+            db.QueryUpdate_(user)
+
             sessions.SetSession(id, hash, this.Response)
         }
     }
     response, err := json.Marshal(result)
     utils.HandleErr("[Handler::HandleLogin] Marshal: ", err, this.Response)
+
     return string(response)
 }
 
 func (this *Handler) HandleLogout() string {
     result := map[string]string{"result": "ok"}
     sessions.ClearSession(this.Response)
+
     response, err := json.Marshal(result)
     utils.HandleErr("[Handler::HandleLogout] Marshal: ", err, this.Response)
+
     return string(response)
 }

@@ -52,7 +52,9 @@ func (this *Handler) ResetPassword() {
     salt := result[0].(map[string]interface{})["salt"].(string)
     hash := GetMD5Hash(pass + salt)
 
-    db.QueryUpdate("users", "id=$2", []string{"pass"}, []interface{}{hash, id})
+    user := GetModel("users")
+    user.LoadModelData(map[string]interface{}{"id": id, "pass": hash})
+    db.QueryUpdate_(user)
 
     response, err := json.Marshal(map[string]interface{}{"result": "ok"})
     utils.HandleErr("[Handle::ResetPassword] Marshal: ", err, this.Response)
@@ -87,17 +89,17 @@ func (this *Handler) Index() {
         break
 
     case "editProfile":
-        var fields []string
-        var params []interface{}
+        params := make(map[string]interface{}, 0)
 
+        params["id"] = data["id"].(string)
         for _, element := range data["data"].([]interface{}) {
-            fields = append(fields, element.(map[string]interface{})["name"].(string))
-            params = append(params, element.(map[string]interface{})["value"])
+            elem := element.(map[string]interface{})
+            params[elem["name"].(string)] = elem["value"]
         }
-        params = append(params, data["id"].(string))
 
-        tableName := data["table"].(string)
-        db.QueryUpdate(tableName, "id=$"+strconv.Itoa(len(fields)+1), fields, params)
+        model := GetModel(data["table"].(string))
+        model.LoadModelData(params)
+        db.QueryUpdate_(model)
 
         response, err := json.Marshal(map[string]interface{}{"result": "ok"})
         utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)

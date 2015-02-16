@@ -100,39 +100,43 @@ func (this *Handler) SaveUserRequest() {
     utils.HandleErr("[Handler] Decode :", err, this.Response)
 
     id := sessions.GetValue("id", this.Request).(string)
-    event_id := int(data["event_id"].(float64))
+    event_id := strconv.Itoa(int(data["event_id"].(float64)))
     person := db.Select("users", []string{"id", id}, "", []string{"person_id"})
-    person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
+    person_id := strconv.Itoa(int(person[0].(map[string]interface{})["person_id"].(int64)))
 
     person = db.Select(
         "persons_events",
-        []string{"person_id", strconv.Itoa(person_id), "event_id", strconv.Itoa(event_id)},
+        []string{"person_id", person_id, "event_id", event_id},
         "AND",
-        []string{"person_id"})
+        []string{"id", "person_id"})
 
     var response interface{}
     t := time.Now()
+    model := GetModel("persons_events")
 
     if len(person) == 0 {
-        db.QueryInsert(
-            "persons_events",
-            []string{"person_id", "event_id", "reg_date", "last_date"},
-            []interface{}{person_id, event_id, t.Format("2006-01-02"), t.Format("2006-01-02")},
-            "")
+        model.LoadModelData(map[string]interface{}{
+            "person_id": person_id,
+            "event_id":  event_id,
+            "reg_date":  t.Format("2006-01-02"),
+            "last_date": t.Format("2006-01-02"),
+        })
+        db.QueryInsert_(model, "")
         response = map[string]interface{}{"result": "ok"}
+
     } else if len(person) != 0 {
-        db.QueryUpdate(
-            "persons_events",
-            "person_id=$"+strconv.Itoa(2)+" AND event_id=$"+strconv.Itoa(3),
-            []string{"last_date"},
-            []interface{}{t.Format("2006-01-02"), person_id, event_id})
+        model.LoadModelData(map[string]interface{}{
+            "id":        strconv.Itoa(int(person[0].(map[string]interface{})["id"].(int64))),
+            "last_date": t.Format("2006-01-02"),
+        })
+        db.QueryUpdate_(model)
         response = map[string]interface{}{"result": "ok"}
     }
 
     for _, element := range data["data"].([]interface{}) {
-            param_id := element.(map[string]interface{})["id"]
-            event_type_id := element.(map[string]interface{})["event_type_id"]
-            value := element.(map[string]interface{})["value"]
+        param_id := element.(map[string]interface{})["id"]
+        event_type_id := element.(map[string]interface{})["event_type_id"]
+        value := element.(map[string]interface{})["value"]
 
         if db.IsExists_(
             "param_values",
@@ -145,11 +149,15 @@ func (this *Handler) SaveUserRequest() {
                 []string{"value"},
                 []interface{}{value, person_id, event_id, param_id, event_type_id})
         } else {
-            db.QueryInsert(
-                "param_values",
-                []string{"person_id", "event_id", "param_id", "value", "event_type_id"},
-                []interface{}{person_id, event_id, param_id, value, event_type_id},
-                "")
+            model := GetModel("param_values")
+            model.LoadModelData(map[string]interface{}{
+                "person_id": person_id,
+                "event_id": event_id,
+                "param_id": param_id,
+                "event_type_id": event_type_id,
+                "value": value,
+                })
+            db.QueryInsert_(model, "")
         }
     }
 
