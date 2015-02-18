@@ -1,13 +1,13 @@
 package controllers
 
 import (
+    "database/sql"
     "encoding/json"
     "fmt"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
-    "strconv"
 )
 
 func (c *BaseController) Handler() *Handler {
@@ -25,7 +25,7 @@ func (this *Handler) GetEventList() {
     utils.HandleErr("[Handler::GetEventList] Decode :", err, this.Response)
 
     fields := request["fields"].([]interface{})
-    result := db.Select(request["table"].(string), nil, "", utils.ArrayInterfaceToString(fields))
+    result := db.Select(request["table"].(string), utils.ArrayInterfaceToString(fields), nil, "")
 
     response, err := json.Marshal(map[string]interface{}{"data": result})
     utils.HandleErr("[Handle::GetEventList] Marshal: ", err, this.Response)
@@ -48,7 +48,7 @@ func (this *Handler) ResetPassword() {
     utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response)
 
     id, pass := request["id"].(int), request["pass"].(string)
-    result := db.Select("users", []string{"id", id}, "", []string{"salt"})
+    result := db.Select("users", []string{"salt"}, map[string]interface{}{"id": id}, "")
     salt := result[0].(map[string]interface{})["salt"].(string)
     hash := GetMD5Hash(pass + salt)
 
@@ -111,15 +111,14 @@ func (this *Handler) Index() {
         var userHash string
         var result interface{}
 
-        id := sessions.GetValue("id", this.Request)
         hash := sessions.GetValue("hash", this.Request)
 
-        if id == nil || hash == nil {
+        if hash == nil {
             result = map[string]interface{}{"result": "no"}
         } else {
-            query := db.QuerySelect("users", "id=$1", []string{"hash"})
-            db.QueryRow(query, []interface{}{id.(string)}).Scan(&userHash)
-            if userHash == hash.(string) {
+            query := db.QuerySelect("users", "hash=$1", []string{"hash"})
+            err := db.QueryRow(query, []interface{}{hash.(string)}).Scan(&userHash)
+            if err != sql.ErrNoRows {
                 result = map[string]interface{}{"result": "ok"}
             } else {
                 result = map[string]interface{}{"result": "no"}
@@ -139,8 +138,8 @@ func (this *Handler) ShowCabinet(tableName string) {
         return
     }
 
-    id := sessions.GetValue("id", this.Request).(string)
-    data := db.Select("users", []string{"id", id}, "", []string{"role", "person_id"})
+    id := sessions.GetValue("id", this.Request).(int)
+    data := db.Select("users", []string{"role", "person_id"}, map[string]interface{}{"id": id}, "")
 
     role := data[0].(map[string]interface{})["role"].(string)
     person_id := data[0].(map[string]interface{})["person_id"].(int64)
@@ -150,7 +149,7 @@ func (this *Handler) ShowCabinet(tableName string) {
         model = Model{Columns: db.Tables, ColNames: db.TableNames}
     } else if role == "user" {
         m := GetModel("persons")
-        data := db.Select("persons", []string{"id", strconv.Itoa(int(person_id))}, "", m.GetColumns())
+        data := db.Select("persons", m.GetColumns(), map[string]interface{}{"id": person_id}, "")
         model = Model{Table: data, Columns: m.GetColumns(), ColNames: m.GetColNames()}
     }
 

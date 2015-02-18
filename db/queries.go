@@ -239,17 +239,24 @@ func MakePairs(fields []string) []string {
 }
 
 /**
- * condition: the AND condition and the OR condition
- * where: [fieldName1, paramVal1, fieldName2, paramVal2, ...]
+ * condition: AND condition and OR condition
  */
-func Select(tableName string, where []string, condition string, fields []string) []interface{} {
+func Select(tableName string, fields []string, where map[string]interface{}, condition string) []interface{} {
     var key []string
     var val []interface{}
     var paramName = 1
     if len(where) != 0 {
-        for i := 0; i < len(where)-1; i += 2 {
-            key = append(key, where[i]+"=$"+strconv.Itoa(paramName))
-            val = append(val, where[i+1])
+        for k, v := range where {
+            if reflect.TypeOf(v).Name() == "" { // hope that v is array of interfaces
+                for _, vv := range v.([]interface{}) {
+                    key = append(key, k+"=$"+strconv.Itoa(paramName))
+                    val = append(val, vv)
+                    paramName++
+                }
+                continue
+            }
+            key = append(key, k+"=$"+strconv.Itoa(paramName))
+            val = append(val, v)
             paramName++
         }
     }

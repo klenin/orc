@@ -31,7 +31,11 @@ func (this *GridHandler) GetSubTable() {
     model := GetModel(request["table"])
     index, _ := strconv.Atoi(request["index"])
     subModel := GetModel(model.GetSubTable(index))
-    result := db.Select(model.GetSubTable(index), []string{model.GetSubField(), request["id"]}, "", subModel.GetColumns())
+    result := db.Select(
+        model.GetSubTable(index),
+        subModel.GetColumns(),
+        map[string]interface{}{model.GetSubField(): request["id"]},
+        "")
     refFields, refData := GetModelRefDate(subModel)
 
     response, err := json.Marshal(map[string]interface{}{
@@ -53,7 +57,7 @@ func (this *GridHandler) Load(tableName string) {
     }
 
     model := GetModel(tableName)
-    response, err := json.Marshal(db.Select(tableName, nil, "", model.GetColumns()))
+    response, err := json.Marshal(db.Select(tableName, model.GetColumns(), nil, ""))
     utils.HandleErr("[GridHandler::Load] Marshal: ", err, this.Response)
 
     fmt.Fprintf(this.Response, "%s", string(response))
@@ -98,14 +102,15 @@ func (this *GridHandler) Edit(tableName string) {
     for i := 0; i < len(model.GetColumns()); i++ {
         params[model.GetColumnByIdx(i)] = this.Request.PostFormValue(model.GetColumnByIdx(i))
     }
-    model.LoadModelData(params)
 
     oper := this.Request.PostFormValue("oper")
     switch oper {
     case "edit":
+        model.LoadModelData(params)
         db.QueryUpdate_(model)
         break
     case "add":
+        model.LoadModelData(params)
         db.QueryInsert_(model, "")
         break
     case "del":

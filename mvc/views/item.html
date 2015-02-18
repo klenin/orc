@@ -40,7 +40,7 @@ function(utils, datepicker) {
     var F = D.F;
     var P = D.P;
 
-    var F_ids = [];
+    var F_ids = {};
 
     function drawParam(data, event_type_id, for_saving) {
         var block;
@@ -130,11 +130,11 @@ function(utils, datepicker) {
             var div_forms = $("<div/>", {id: "forms-" + T[i]["id"]});
             $(div_tab_type).append(div_forms);
 
+            F_ids["form_id"] = []
             for (var j = 0; j < F[i].length; ++j) {
                 var a_form = $("<h4/>", {}).text(F[i][j]["name"]);
 
-                F_ids.push("form_id");
-                F_ids.push(F[i][j]["id"]);
+                F_ids["form_id"].push(parseInt(F[i][j]["id"]));
 
                 var div_tab_form = $("<div/>", {id: "form-" + F[i][j]["id"]})
                     .append(a_form);
@@ -186,7 +186,7 @@ function(utils, datepicker) {
     $("#save-btn").click(function() {
         utils.postRequest(
             {
-                "event_id": E[0]["id"],
+                "event_id": parseInt(E[0]["id"]),
                 "data": getFormData("now")
             },
             function(data) {
@@ -195,7 +195,7 @@ function(utils, datepicker) {
                     $("#now #server-answer").text("Анкета отправлена.").css("color", "green");
                     $("div #history").hide();
                 } else if (data["result"] == "exists") {
-                    $("#server-answer").text("Анкета для участия в этом мероприятии уже была заполнена.").css("color", "red");
+                    $("#server-answer").text("Анкета для участия в этом мероприятии уже была заполнена.").css("color", "red"); //???
                 }
             },
             "/handler/saveuserrequest"

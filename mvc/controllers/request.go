@@ -27,7 +27,7 @@ func (this *Handler) GetHistoryRequest() {
 
     user_id := sessions.GetValue("id", this.Request)
     event_id := data["event_id"]
-    person := db.Select("users", []string{"id", user_id}, "", []string{"person_id"})
+    person := db.Select("users", []string{"person_id"}, map[string]interface{}{"id": user_id}, "")
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
     query := `select param_id, p.name, event_type_id, p_t.name as type, value, form_id from param_values
@@ -53,11 +53,15 @@ func (this *Handler) GetListHistoryEvents() {
     utils.HandleErr("[Handler::GetListHistoryEvents] Decode: ", err, this.Response)
 
     user_id := sessions.GetValue("id", this.Request)
-    person := db.Select("users", []string{"id", user_id}, "", []string{"person_id"})
+    person := db.Select("users", []string{"person_id"}, map[string]interface{}{"id": user_id}, "")
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
-    ids := utils.ArrayInterfaceToString(data["form_ids"].([]interface{}))
-    result := db.Select("forms_types", ids, "OR", []string{"type_id"})
+    ids := data["form_ids"].(map[string]interface{})
+    for k, v := range ids["form_id"].([]interface{}) {
+        ids["form_id"].([]interface{})[k] = int(v.(float64))
+    }
+
+    result := db.Select("forms_types", []string{"type_id"}, ids, "OR")
     if len(result) == 0 {
         return
     }
@@ -101,14 +105,14 @@ func (this *Handler) SaveUserRequest() {
 
     id := sessions.GetValue("id", this.Request)
     event_id := int(data["event_id"].(float64))
-    person := db.Select("users", []string{"id", id}, "", []string{"person_id"})
-    person_id := strconv.Itoa(int(person[0].(map[string]interface{})["person_id"].(int64)))
+    person := db.Select("users", []string{"person_id"}, map[string]interface{}{"id": id}, "")
+    person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
     person = db.Select(
         "persons_events",
-        []string{"person_id", person_id, "event_id", event_id},
-        "AND",
-        []string{"id", "person_id"})
+        []string{"id", "person_id"},
+        map[string]interface{}{"person_id": person_id, "event_id": event_id},
+        "AND")
 
     var response interface{}
     t := time.Now()
@@ -187,7 +191,7 @@ func MegoJoin(tableName, id string) RequestModel {
     var F []interface{}
     var P []interface{}
 
-    E = db.Select("events", []string{"id", id}, "", []string{"id", "name"})
+    E = db.Select("events", []string{"id", "name"}, map[string]interface{}{"id": id}, "")
     query := db.InnerJoin(
         []string{"t.id", "t.name"},
         "events_types",
