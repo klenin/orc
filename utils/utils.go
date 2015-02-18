@@ -2,17 +2,17 @@ package utils
 
 import (
     "fmt"
+    "github.com/lib/pq"
     "log"
     "net/http"
     "os"
     "reflect"
     "strconv"
-    "github.com/lib/pq"
 )
 
 func HandleErr(message string, err error, w http.ResponseWriter) {
     if err != nil {
-        log.Println(message+err.Error())
+        log.Println(message + err.Error())
         if err, ok := err.(*pq.Error); ok {
             log.Println("pq error:", err.Code.Name())
         }
@@ -40,4 +40,46 @@ func ArrayInterfaceToString(array []interface{}) []string {
         }
     }
     return result
+}
+
+func ConvertTypeModel(type_ string, value reflect.Value) (interface{}, bool) {
+    switch type_ {
+    case "int":
+        println("val: ", strconv.Itoa(int(value.Int())))
+        return value.Int(), value.Int() != 0
+    case "text", "date", "time":
+        println("val: ", value.String())
+        return value.String(), value.String() != ""
+    }
+    panic("convertTypeModel: unknown type")
+}
+
+func C(type_ string, value interface{}) interface{} {
+    switch value.(type) {
+    case string:
+        if value.(string) == "_empty" {
+            return -1
+        }
+        switch type_ {
+        case "int":
+            if value.(string) == "_empty" {
+                return -1
+            }
+            v, err := strconv.Atoi(value.(string))
+            HandleErr("C: ", err, nil)
+            return v
+        case "text", "date", "time":
+            return value
+        }
+    case interface{}:
+        switch type_ {
+        case "int":
+            return value.(int)
+        case "text", "date", "time":
+            return value.(string)
+        case "boolean"
+            return value.(bool)
+        }
+    }
+    panic("convertTypeModel: unknown type")
 }

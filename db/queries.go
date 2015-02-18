@@ -153,10 +153,10 @@ func QueryInsert_(m interface{}, extra string) *sql.Row {
 
     for i = 1; i < n-1; i++ {
         query += tFields.Field(i).Tag.Get("name") + ", "
-        p[i-1] = vFields.Field(i).String()
+        p[i-1], _ = utils.ConvertTypeModel(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
     }
 
-    p[i-1] = vFields.Field(i).String()
+    p[i-1], _ = utils.ConvertTypeModel(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
     query += tFields.Field(i).Tag.Get("name") + ") VALUES (%s) %s;"
 
     return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
@@ -175,17 +175,19 @@ func QueryUpdate_(m interface{}) {
     p := make([]interface{}, 0)
 
     for ; j < n; j++ {
-        if vFields.Field(j).String() == "" {
+        v, ok := utils.ConvertTypeModel(tFields.Field(j).Tag.Get("type"), vFields.Field(j))
+        if ok == false {
             continue
         }
         query += tFields.Field(j).Tag.Get("name") + "=$" + strconv.Itoa(i) + ", "
-        p = append(p, vFields.Field(j).String())
+        p = append(p, v)
         i++
     }
-    query = query[0:len(query)-2]
+    query = query[0 : len(query)-2]
 
     query += " WHERE id=$" + strconv.Itoa(i) + ";"
-    p = append(p, vFields.Field(0).String())
+    v, _ := utils.ConvertTypeModel(tFields.Field(0).Tag.Get("type"), vFields.Field(0))
+    p = append(p, v)
 
     Exec(fmt.Sprintf(query, tableName), p)
 }

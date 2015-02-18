@@ -1,6 +1,9 @@
 package models
 
-import "reflect"
+import (
+    "github.com/orc/utils"
+    "reflect"
+)
 
 type ModelManager struct{}
 
@@ -67,8 +70,7 @@ func (this Entity) LoadModelData(data map[string]interface{}) {
         for i := 0; i < n; i++ {
             tag := rt.Elem().Field(i).Tag.Get("name")
             if tag == key {
-                rv.Elem().Field(i).Set(reflect.ValueOf(val))
-                break
+                rv.Elem().Field(i).Set(reflect.ValueOf(utils.C(rt.Elem().Field(i).Tag.Get("type"), val)))
             }
         }
     }
