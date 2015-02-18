@@ -1,7 +1,7 @@
 package models
 
 type Event struct {
-    Id         string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Id         int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     Name       string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
     DateStart  string `name:"date_start" type:"date" null:"NOT NULL" extra:""`
     DateFinish string `name:"date_finish" type:"date" null:"NOT NULL" extra:""`

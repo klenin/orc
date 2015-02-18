@@ -58,7 +58,7 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
     } else if !MatchRegexp("^.{6,36}$", password) || !passHasInvalidChars {
         result["result"] = "badPassword"
     } else {
-        var p_id string
+        var p_id int
         person := GetModel("persons")
         person.LoadModelData(map[string]interface{}{"fname": fname, "lname": lname})
         db.QueryInsert_(person, "RETURNING id").Scan(&p_id)
@@ -75,7 +75,8 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
 }
 
 func (this *Handler) HandleLogin(login, pass string) string {
-    var id, passHash, salt string
+    var id int
+    var passHash, salt string
 
     result := map[string]interface{}{"result": "invalidCredentials"}
 

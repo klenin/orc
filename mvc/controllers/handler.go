@@ -42,12 +42,12 @@ func (this *Handler) ResetPassword() {
     this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     this.Response.Header().Set("Content-type", "application/json")
 
-    var request map[string]string
+    var request map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&request)
     utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response)
 
-    id, pass := request["id"], request["pass"]
+    id, pass := request["id"].(int), request["pass"].(string)
     result := db.Select("users", []string{"id", id}, "", []string{"salt"})
     salt := result[0].(map[string]interface{})["salt"].(string)
     hash := GetMD5Hash(pass + salt)

@@ -1,7 +1,7 @@
 package models
 
 type Forms struct {
-    Id   string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Id   int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     Name string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
 }
 

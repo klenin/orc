@@ -1,9 +1,9 @@
 package models
 
 type EventsTypes struct {
-    Id      string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    EventId string `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
-    TypeId  string `name:"type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"event_types" refField:"id" refFieldShow:"name"`
+    Id      int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    EventId int `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    TypeId  int `name:"type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"event_types" refField:"id" refFieldShow:"name"`
 }
 
 func (c *ModelManager) EventsTypes() *EventsTypesModel {

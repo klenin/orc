@@ -1,9 +1,9 @@
 package models
 
 type PersonEvent struct {
-    Id       string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    EventId  string `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
-    PersonId string `name:"person_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"persons" refField:"id" refFieldShow:"fname"`
+    Id       int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    EventId  int    `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    PersonId int    `name:"person_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"persons" refField:"id" refFieldShow:"fname"`
     RegDate  string `name:"reg_date" type:"date" null:"NOT NULL" extra:""`
     LastDate string `name:"last_date" type:"date" null:"NOT NULL" extra:""`
 }

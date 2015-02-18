@@ -1,10 +1,10 @@
 package models
 
 type FormsTypes struct {
-    Id           string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    FormId       string `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
-    TypeId       string `name:"type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"event_types" refField:"id" refFieldShow:"name"`
-    SerialNumber string `name:"serial_number" type:"int" null:"NOT NULL" extra:"UNIQUE"`
+    Id           int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    FormId       int `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
+    TypeId       int `name:"type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"event_types" refField:"id" refFieldShow:"name"`
+    SerialNumber int `name:"serial_number" type:"int" null:"NOT NULL" extra:"UNIQUE"`
 }
 
 func (c *ModelManager) FormsTypes() *FormsTypesModel {

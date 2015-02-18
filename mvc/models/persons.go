@@ -1,7 +1,7 @@
 package models
 
 type Person struct {
-    Id        string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Id        int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     FirstName string `name:"fname" type:"text" null:"NOT NULL" extra:""`
     LastName  string `name:"lname" type:"text" null:"NOT NULL" extra:""`
 }

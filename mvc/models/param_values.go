@@ -1,11 +1,11 @@
 package models
 
 type ParamValues struct {
-    Id          string `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    EventId     string `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
-    PersonId    string `name:"person_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"persons" refField:"id" refFieldShow:"fname"`
-    EventTypeId string `name:"event_type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"event_types" refField:"id" refFieldShow:"name"`
-    ParamId     string `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
+    Id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    EventId     int    `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    PersonId    int    `name:"person_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"persons" refField:"id" refFieldShow:"fname"`
+    EventTypeId int    `name:"event_type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"event_types" refField:"id" refFieldShow:"name"`
+    ParamId     int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
     Value       string `name:"value" type:"text" null:"NOT NULL" extra:""`
 }
 

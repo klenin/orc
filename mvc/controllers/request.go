@@ -25,7 +25,7 @@ func (this *Handler) GetHistoryRequest() {
     err := decoder.Decode(&data)
     utils.HandleErr("[Handler::GetHistoryRequest] Decode: ", err, this.Response)
 
-    user_id := sessions.GetValue("id", this.Request).(string)
+    user_id := sessions.GetValue("id", this.Request)
     event_id := data["event_id"]
     person := db.Select("users", []string{"id", user_id}, "", []string{"person_id"})
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
@@ -52,7 +52,7 @@ func (this *Handler) GetListHistoryEvents() {
     err := decoder.Decode(&data)
     utils.HandleErr("[Handler::GetListHistoryEvents] Decode: ", err, this.Response)
 
-    user_id := sessions.GetValue("id", this.Request).(string)
+    user_id := sessions.GetValue("id", this.Request)
     person := db.Select("users", []string{"id", user_id}, "", []string{"person_id"})
     person_id := int(person[0].(map[string]interface{})["person_id"].(int64))
 
@@ -99,8 +99,8 @@ func (this *Handler) SaveUserRequest() {
     err := decoder.Decode(&data)
     utils.HandleErr("[Handler] Decode :", err, this.Response)
 
-    id := sessions.GetValue("id", this.Request).(string)
-    event_id := strconv.Itoa(int(data["event_id"].(float64)))
+    id := sessions.GetValue("id", this.Request)
+    event_id := int(data["event_id"].(float64))
     person := db.Select("users", []string{"id", id}, "", []string{"person_id"})
     person_id := strconv.Itoa(int(person[0].(map[string]interface{})["person_id"].(int64)))
 
@@ -151,12 +151,12 @@ func (this *Handler) SaveUserRequest() {
         } else {
             model := GetModel("param_values")
             model.LoadModelData(map[string]interface{}{
-                "person_id": person_id,
-                "event_id": event_id,
-                "param_id": param_id,
+                "person_id":     person_id,
+                "event_id":      event_id,
+                "param_id":      param_id,
                 "event_type_id": event_type_id,
-                "value": value,
-                })
+                "value":         value,
+            })
             db.QueryInsert_(model, "")
         }
     }
