@@ -55,7 +55,7 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
         result["result"] = "loginExists"
     } else if !MatchRegexp("^[a-zA-Z0-9]{2,36}$", login) {
         result["result"] = "badLogin"
-    } else if !MatchRegexp("^.{6,36}$", password) && !passHasInvalidChars {
+    } else if !MatchRegexp("^.{6,36}$", password) || !passHasInvalidChars {
         result["result"] = "badPassword"
     } else {
         var p_id string
