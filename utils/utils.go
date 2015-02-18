@@ -54,32 +54,35 @@ func ConvertTypeModel(type_ string, value reflect.Value) (interface{}, bool) {
     panic("convertTypeModel: unknown type")
 }
 
-func C(type_ string, value interface{}) interface{} {
+func ConvertTypeForModel(type_ string, value interface{}) interface{} {
     switch value.(type) {
     case string:
+        // value from grid
         if value.(string) == "_empty" {
             return -1
         }
+
         switch type_ {
         case "int":
             if value.(string) == "_empty" {
                 return -1
             }
             v, err := strconv.Atoi(value.(string))
-            HandleErr("C: ", err, nil)
+            HandleErr("[utils.ConvertTypeForModel] strconv.Atoi: ", err, nil)
             return v
         case "text", "date", "time":
             return value
         }
+
     case interface{}:
         switch type_ {
         case "int":
             return value.(int)
         case "text", "date", "time":
             return value.(string)
-        case "boolean"
+        case "boolean":
             return value.(bool)
         }
     }
-    panic("convertTypeModel: unknown type")
+    panic("utils.ConvertTypeForModel: unknown type")
 }
