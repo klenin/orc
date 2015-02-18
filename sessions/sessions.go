@@ -13,13 +13,9 @@ var CookieHandler = securecookie.New(
     securecookie.GenerateRandomKey(64),
     securecookie.GenerateRandomKey(32))
 
-func SetSession(id, hash string, response http.ResponseWriter) {
-    value := map[string]interface{}{
-        "id":   id,
-        "hash": hash,
-        "time": int(time.Now().Unix()),
-    }
-    if encoded, err := CookieHandler.Encode("session", value); err == nil {
+func SetSession(response http.ResponseWriter, values map[string]interface{}) {
+    values["time"] = int(time.Now().Unix())
+    if encoded, err := CookieHandler.Encode("session", values); err == nil {
         cookie := &http.Cookie{
             Name:   "session",
             Value:  encoded,

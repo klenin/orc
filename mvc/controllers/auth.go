@@ -92,7 +92,7 @@ func (this *Handler) HandleLogin(login, pass string) string {
             user.LoadModelData(map[string]interface{}{"id": id, "hash": hash})
             db.QueryUpdate_(user)
 
-            sessions.SetSession(id, hash, this.Response)
+            sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
         }
     }
     response, err := json.Marshal(result)
