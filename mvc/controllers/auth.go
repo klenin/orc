@@ -40,7 +40,7 @@ func GetRandSeq(size int) string {
 func (this *Handler) HandleRegister(login, password, role, fname, lname string) string {
     result := map[string]string{"result": "ok"}
     salt := strconv.Itoa(int(time.Now().Unix()))
-    hash := GetMD5Hash(password + salt)
+    pass := GetMD5Hash(password + salt)
 
     passHasInvalidChars := false
     for i := 0; i < len(password); i++ {
@@ -64,7 +64,7 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
         db.QueryInsert_(person, "RETURNING id").Scan(&p_id)
 
         user := GetModel("users")
-        user.LoadModelData(map[string]interface{}{"login": login, "pass": hash, "salt": salt, "role": role, "person_id": p_id})
+        user.LoadModelData(map[string]interface{}{"login": login, "pass": pass, "salt": salt, "role": role, "person_id": p_id})
         db.QueryInsert_(user, "")
     }
 
