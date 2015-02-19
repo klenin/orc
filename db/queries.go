@@ -245,7 +245,7 @@ func SelectRow(m interface{}, fields []string, condition string) *sql.Row {
     tableName := model.FieldByName("TableName").String()
 
     query := "SELECT %s FROM %s"
-    println("AHAHAHA: ", model.FieldByName("WherePart").Len())
+
     if model.FieldByName("WherePart").Len() != 0 {
         query += " WHERE %s;"
         v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(condition), reflect.ValueOf(1)})
