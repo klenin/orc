@@ -15,6 +15,7 @@ func (c *ModelManager) ParamTypes() *ParamTypesModel {
     model.ColNames = []string{"ID", "Название"}
 
     model.Fields = new(ParamTypes)
+    model.WherePart = make(map[string]interface{}, 0)
 
     model.Sub = false
     model.SubTable = nil

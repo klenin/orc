@@ -163,10 +163,14 @@ function(utils, datepicker) {
             {
                 "form_ids": F_ids,
             },
-            function(data) {
-                if (!data) {
-                    $("#server-answer").text("Данные отсутствуют");
-                } else {
+            function(response) {
+                if (response["result"] != "ok") {
+                    $("#server-answer").text(response["result"]).css("color", "red");
+                    return;
+                }
+
+                if (response["data"]) {
+                    var data = response["data"];
                     for (var i = 0; i < data.length; ++i) {
                         $("#h-events").append($("<option></option>")
                             .attr("value", data[i]["id"])
@@ -194,8 +198,6 @@ function(utils, datepicker) {
                 if (data["result"] == "ok") {
                     $("#now #server-answer").text("Анкета отправлена.").css("color", "green");
                     $("div #history").hide();
-                } else if (data["result"] == "exists") {
-                    $("#server-answer").text("Анкета для участия в этом мероприятии уже была заполнена.").css("color", "red"); //???
                 }
             },
             "/handler/saveuserrequest"
@@ -207,7 +209,14 @@ function(utils, datepicker) {
             {
                 "event_id": $("#h-events").find(":selected").attr("value")
             },
-            function(data) {
+            function(response) {
+                if (response["result"] != "ok") {
+                    $("#server-answer").text(response["result"]).css("color", "red");
+                    return;
+                }
+
+                var data = response["data"];
+
                 for (var i = 0; i < data.length; ++i) {
 
                     var e_t_id = data[i]["event_type_id"];
@@ -216,23 +225,25 @@ function(utils, datepicker) {
 
                     $("#forms-"+e_t_id +" table #export-param-"+p_id+" input").remove();
                     $("#forms-"+e_t_id +" table #export-val-"+p_id+" p").remove();
-                    $("#forms-"+e_t_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
+                    if (data[i]["value"] != "") {
+                        $("#forms-"+e_t_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
 
-                    $("<input/>", {
-                        "id": "export-btn-"+e_t_id+"-"+p_id,
-                        "type": "button",
-                        "value": "экспорт",
-                        "data-event-type-id": e_t_id,
-                        "data-param-id": p_id,
-                        "data-param-val": p_v,
-                    }).appendTo("#forms-"+e_t_id+" table #export-param-"+p_id);
+                        $("<input/>", {
+                            "id": "export-btn-"+e_t_id+"-"+p_id,
+                            "type": "button",
+                            "value": "экспорт",
+                            "data-event-type-id": e_t_id,
+                            "data-param-id": p_id,
+                            "data-param-val": p_v,
+                        }).appendTo("#forms-"+e_t_id+" table #export-param-"+p_id);
 
-                    $("#export-btn-"+e_t_id+"-"+p_id).click(function() {
-                        var e_t_id = $(this).attr("data-event-type-id");
-                        var p_id = $(this).attr("data-param-id");
-                        var p_v = $(this).attr("data-param-val");
-                        $("#forms-"+e_t_id+" table #"+p_id).val(p_v);
-                    });
+                        $("#export-btn-"+e_t_id+"-"+p_id).click(function() {
+                            var e_t_id = $(this).attr("data-event-type-id");
+                            var p_id = $(this).attr("data-param-id");
+                            var p_v = $(this).attr("data-param-val");
+                            $("#forms-"+e_t_id+" table #"+p_id).val(p_v);
+                        });
+                    }
                 }
             },
             "/handler/gethistoryrequest"

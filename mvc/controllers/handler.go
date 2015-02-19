@@ -25,7 +25,7 @@ func (this *Handler) GetEventList() {
     utils.HandleErr("[Handler::GetEventList] Decode :", err, this.Response)
 
     fields := request["fields"].([]interface{})
-    result := db.Select(request["table"].(string), utils.ArrayInterfaceToString(fields), nil, "")
+    result := db.Select(GetModel(request["table"].(string)), utils.ArrayInterfaceToString(fields), "")
 
     response, err := json.Marshal(map[string]interface{}{"data": result})
     utils.HandleErr("[Handle::GetEventList] Marshal: ", err, this.Response)
@@ -48,13 +48,16 @@ func (this *Handler) ResetPassword() {
     utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response)
 
     id, pass := request["id"].(int), request["pass"].(string)
-    result := db.Select("users", []string{"salt"}, map[string]interface{}{"id": id}, "")
-    salt := result[0].(map[string]interface{})["salt"].(string)
-    hash := GetMD5Hash(pass + salt)
 
     user := GetModel("users")
-    user.LoadModelData(map[string]interface{}{"id": id, "pass": hash})
-    db.QueryUpdate_(user)
+    user.LoadWherePart(map[string]interface{}{"id": id})
+
+    var salt string
+    db.SelectRow(user, []string{"salt"}, "").Scan(&salt)
+
+    user = GetModel("users")
+    user.LoadModelData(map[string]interface{}{"id": id, "pass": GetMD5Hash(pass + salt)})
+    db.QueryUpdate_(user, "")
 
     response, err := json.Marshal(map[string]interface{}{"result": "ok"})
     utils.HandleErr("[Handle::ResetPassword] Marshal: ", err, this.Response)
@@ -99,7 +102,7 @@ func (this *Handler) Index() {
 
         model := GetModel(data["table"].(string))
         model.LoadModelData(params)
-        db.QueryUpdate_(model)
+        db.QueryUpdate_(model, "")
 
         response, err := json.Marshal(map[string]interface{}{"result": "ok"})
         utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)
@@ -116,8 +119,9 @@ func (this *Handler) Index() {
         if hash == nil {
             result = map[string]interface{}{"result": "no"}
         } else {
-            query := db.QuerySelect("users", "hash=$1", []string{"hash"})
-            err := db.QueryRow(query, []interface{}{hash.(string)}).Scan(&userHash)
+            user := GetModel("users")
+            user.LoadWherePart(map[string]interface{}{"hash": hash})
+            err := db.SelectRow(user, []string{"hash"}, "").Scan(&userHash)
             if err != sql.ErrNoRows {
                 result = map[string]interface{}{"result": "ok"}
             } else {
@@ -139,17 +143,23 @@ func (this *Handler) ShowCabinet(tableName string) {
     }
 
     id := sessions.GetValue("id", this.Request).(int)
-    data := db.Select("users", []string{"role", "person_id"}, map[string]interface{}{"id": id}, "")
+    user := GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"id": id})
 
-    role := data[0].(map[string]interface{})["role"].(string)
-    person_id := data[0].(map[string]interface{})["person_id"].(int64)
+    var role string
+    var person_id int
+    err := db.SelectRow(user, []string{"role", "person_id"}, "").Scan(&role, &person_id)
+    if err != nil {
+        panic("ShowCabinet: " + err.Error())
+    }
 
     var model Model
     if role == "admin" {
         model = Model{Columns: db.Tables, ColNames: db.TableNames}
     } else if role == "user" {
         m := GetModel("persons")
-        data := db.Select("persons", m.GetColumns(), map[string]interface{}{"id": person_id}, "")
+        m.LoadWherePart(map[string]interface{}{"id": person_id})
+        data := db.Select(m, m.GetColumns(), "")
         model = Model{Table: data, Columns: m.GetColumns(), ColNames: m.GetColNames()}
     }
 

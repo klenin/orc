@@ -18,6 +18,7 @@ func (c *ModelManager) Params() *ParamsModel {
     model.ColNames = []string{"ID", "Название", "Тип", "Форма", "Идентификатор"}
 
     model.Fields = new(Param)
+    model.WherePart = make(map[string]interface{}, 0)
 
     model.Sub = false
     model.SubTable = nil

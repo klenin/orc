@@ -50,8 +50,7 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
         }
     }
 
-    isExist := db.IsExists("users", "login", login)
-    if isExist == true {
+    if db.IsExists_("users", []string{"login"}, []interface{}{login}) == true {
         result["result"] = "loginExists"
     } else if !MatchRegexp("^[a-zA-Z0-9]{2,36}$", login) {
         result["result"] = "badLogin"
@@ -77,24 +76,24 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
 func (this *Handler) HandleLogin(login, pass string) string {
     var id int
     var passHash, salt string
+    result := make(map[string]interface{}, 1)
 
-    result := map[string]interface{}{"result": "invalidCredentials"}
+    model := GetModel("users")
+    model.LoadWherePart(map[string]interface{}{"login": login})
+    err := db.SelectRow(model, []string{"id", "pass", "salt"}, "").Scan(&id, &passHash, &salt)
 
-    if db.IsExists("users", "login", login) {
-        query := db.QuerySelect("users", "login=$1", []string{"id", "pass", "salt"})
-        db.QueryRow(query, []interface{}{login}).Scan(&id, &passHash, &salt)
+    if err != nil {
+        result["result"] = "invalidCredentials"
+    } else if passHash == GetMD5Hash(pass+salt) {
+        result["result"] = "ok"
 
-        if passHash == GetMD5Hash(pass+salt) {
-            result["result"] = "ok"
+        hash := GetRandSeq(HASH_SIZE)
 
-            hash := GetRandSeq(HASH_SIZE)
+        user := GetModel("users")
+        user.LoadModelData(map[string]interface{}{"id": id, "hash": hash})
+        db.QueryUpdate_(user, "")
 
-            user := GetModel("users")
-            user.LoadModelData(map[string]interface{}{"id": id, "hash": hash})
-            db.QueryUpdate_(user)
-
-            sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
-        }
+        sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
     }
     response, err := json.Marshal(result)
     utils.HandleErr("[Handler::HandleLogin] Marshal: ", err, this.Response)

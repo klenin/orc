@@ -3,6 +3,8 @@ package models
 import (
     "github.com/orc/utils"
     "reflect"
+    "strconv"
+    "strings"
 )
 
 type ModelManager struct{}
@@ -19,6 +21,8 @@ type Entity struct {
     Sub      bool
     SubTable []string
     SubField string
+
+    WherePart map[string]interface{}
 }
 
 func (this Entity) GetTableName() string {
@@ -64,12 +68,12 @@ func (this Entity) GetFields() interface{} {
 func (this Entity) LoadModelData(data map[string]interface{}) {
     rv := reflect.ValueOf(this.Fields)
     rt := rv.Type()
-    n := rt.Elem().NumField()
 
     for key, val := range data {
-        for i := 0; i < n; i++ {
+        for i := 0; i < rt.Elem().NumField(); i++ {
             tag := rt.Elem().Field(i).Tag.Get("name")
             if tag == key {
+                println(tag)
                 rv.Elem().Field(i).Set(
                     reflect.ValueOf(
                         utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), val)))
@@ -78,8 +82,58 @@ func (this Entity) LoadModelData(data map[string]interface{}) {
     }
 }
 
+func (this Entity) LoadWherePart(data map[string]interface{}) {
+    rv := reflect.ValueOf(this.WherePart)
+    rt := reflect.ValueOf(this.Fields).Type()
+
+    for key, val := range data {
+        for i := 0; i < rt.Elem().NumField(); i++ {
+
+            if rt.Elem().Field(i).Tag.Get("name") != key {
+                continue
+            }
+
+            if val != nil && reflect.TypeOf(val).Name() == "" { // hope that v is array of interfaces
+                rv.Interface().(map[string]interface{})[key] = make([]interface{}, 0)
+                arr := make([]interface{}, 0)
+                for _, vv := range val.([]interface{}) {
+                    v_ := utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), vv)
+                    arr = append(arr, v_)
+                }
+                rv.Interface().(map[string]interface{})[key] = arr
+                continue
+            }
+
+            rv.Interface().(map[string]interface{})[key] = utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), val)
+        }
+    }
+}
+
+func (this Entity) GenerateWherePart(condition string, counter int) (string, []interface{}) {
+    var key []string
+    var val []interface{}
+
+    for k, v := range this.WherePart {
+        if reflect.TypeOf(v).Name() == "" {
+            for _, vv := range v.([]interface{}) {
+                key = append(key, k+"=$"+strconv.Itoa(counter))
+                val = append(val, vv)
+                counter++
+            }
+            continue
+        }
+        key = append(key, k+"=$"+strconv.Itoa(counter))
+        val = append(val, v)
+        counter++
+    }
+
+    return strings.Join(key, " "+condition+" "), val
+}
+
 type VirtEntity interface {
     LoadModelData(data map[string]interface{})
+    LoadWherePart(data map[string]interface{})
+    GenerateWherePart(condition string, counter int) (string, []interface{})
 
     GetTableName() string
     GetCaption() string

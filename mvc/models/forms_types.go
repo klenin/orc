@@ -17,6 +17,7 @@ func (c *ModelManager) FormsTypes() *FormsTypesModel {
     model.ColNames = []string{"ID", "Форма", "Тип", "Порядковый номер"}
 
     model.Fields = new(FormsTypes)
+    model.WherePart = make(map[string]interface{}, 0)
 
     model.Sub = false
     model.SubTable = nil

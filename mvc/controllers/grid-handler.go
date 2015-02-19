@@ -31,11 +31,8 @@ func (this *GridHandler) GetSubTable() {
     model := GetModel(request["table"])
     index, _ := strconv.Atoi(request["index"])
     subModel := GetModel(model.GetSubTable(index))
-    result := db.Select(
-        model.GetSubTable(index),
-        subModel.GetColumns(),
-        map[string]interface{}{model.GetSubField(): request["id"]},
-        "")
+    subModel.LoadWherePart(map[string]interface{}{model.GetSubField(): request["id"]})
+    result := db.Select(subModel, subModel.GetColumns(), "")
     refFields, refData := GetModelRefDate(subModel)
 
     response, err := json.Marshal(map[string]interface{}{
@@ -57,7 +54,7 @@ func (this *GridHandler) Load(tableName string) {
     }
 
     model := GetModel(tableName)
-    response, err := json.Marshal(db.Select(tableName, model.GetColumns(), nil, ""))
+    response, err := json.Marshal(db.Select(model, model.GetColumns(), ""))
     utils.HandleErr("[GridHandler::Load] Marshal: ", err, this.Response)
 
     fmt.Fprintf(this.Response, "%s", string(response))
@@ -106,8 +103,13 @@ func (this *GridHandler) Edit(tableName string) {
     oper := this.Request.PostFormValue("oper")
     switch oper {
     case "edit":
+        id, err := strconv.Atoi(this.Request.PostFormValue("id"))
+        if err != nil {
+            panic("[Grid-Handler::Edit] strconv.Atoi: " + err.Error())
+        }
         model.LoadModelData(params)
-        db.QueryUpdate_(model)
+        model.LoadWherePart(map[string]interface{}{"id": id})
+        db.QueryUpdate_(model, "")
         break
     case "add":
         model.LoadModelData(params)

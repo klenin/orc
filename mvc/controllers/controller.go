@@ -75,7 +75,7 @@ func GetModelRefDate(model models.VirtEntity) (fields []string, result map[strin
         if refFieldShow != "" {
             fields = append(fields, refFieldShow)
             refField := rt.Elem().Field(i).Tag.Get("refField")
-            data := db.Select(rt.Elem().Field(i).Tag.Get("refTable"), []string{refField, refFieldShow}, nil, "")
+            data := db.Select(GetModel(rt.Elem().Field(i).Tag.Get("refTable")), []string{refField, refFieldShow}, "")
             result[rt.Elem().Field(i).Tag.Get("name")] = make([]interface{}, len(data))
             result[rt.Elem().Field(i).Tag.Get("name")] = data
         }

@@ -16,6 +16,7 @@ func (c *ModelManager) Persons() *PersonsModel {
     model.ColNames = []string{"ID", "Имя", "Фамилия"}
 
     model.Fields = new(Person)
+    model.WherePart = make(map[string]interface{}, 0)
 
     model.Sub = true
     model.SubTable = []string{"teams_persons"}

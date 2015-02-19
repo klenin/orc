@@ -15,6 +15,7 @@ func (c *ModelManager) Forms() *FormsModel {
     model.ColNames = []string{"ID", "Название"}
 
     model.Fields = new(Forms)
+    model.WherePart = make(map[string]interface{}, 0)
 
     model.Sub = true
     model.SubTable = []string{"forms_types"}

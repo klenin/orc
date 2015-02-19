@@ -17,6 +17,7 @@ func (c *ModelManager) EventTypes() *EventTypesModel {
     model.ColNames = []string{"ID", "Тип", "Описание", "Актуальность"}
 
     model.Fields = new(EventTypes)
+    model.WherePart = make(map[string]interface{}, 0)
 
     model.Sub = true
     model.SubTable = []string{"forms_types", "events_types"}

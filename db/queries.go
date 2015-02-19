@@ -122,16 +122,6 @@ func QueryCreateTable_(tableName string) {
     Exec(fmt.Sprintf(query, tableName), nil)
 }
 
-func QuerySelect(tableName, where string, fields []string) string {
-    query := "SELECT %s FROM %s"
-    if where != "" {
-        query += " WHERE %s;"
-        return fmt.Sprintf(query, strings.Join(fields, ", "), tableName, where)
-    } else {
-        return fmt.Sprintf(query, strings.Join(fields, ", "), tableName)
-    }
-}
-
 func QueryInsert(tableName string, fields []string, params []interface{}, extra string) *sql.Row {
     query := "INSERT INTO %s (%s) VALUES (%s) %s;"
     f := strings.Join(fields, ", ")
@@ -162,19 +152,19 @@ func QueryInsert_(m interface{}, extra string) *sql.Row {
     return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
 }
 
-func QueryUpdate_(m interface{}) {
+func QueryUpdate_(m interface{}, condition string) {
+    model := reflect.ValueOf(m).Elem()
+    tableName := model.FieldByName("TableName").String()
     i, j := 1, 1
 
     query := "UPDATE %s SET "
-    tableName := reflect.ValueOf(m).Elem().FieldByName("TableName").String()
 
-    tFields := reflect.ValueOf(m).Elem().FieldByName("Fields").Elem().Type().Elem()
-    vFields := reflect.ValueOf(m).Elem().FieldByName("Fields").Elem().Elem()
+    tFields := model.FieldByName("Fields").Elem().Type().Elem()
+    vFields := model.FieldByName("Fields").Elem().Elem()
 
-    n := tFields.NumField()
     p := make([]interface{}, 0)
 
-    for ; j < n; j++ {
+    for ; j < tFields.NumField(); j++ {
         v, ok := utils.ConvertTypeModel(tFields.Field(j).Tag.Get("type"), vFields.Field(j))
         if ok == false {
             continue
@@ -185,30 +175,23 @@ func QueryUpdate_(m interface{}) {
     }
     query = query[0 : len(query)-2]
 
-    query += " WHERE id=$" + strconv.Itoa(i) + ";"
-    v, _ := utils.ConvertTypeModel(tFields.Field(0).Tag.Get("type"), vFields.Field(0))
-    p = append(p, v)
+    if i < 2 {
+        return
+    }
 
-    Exec(fmt.Sprintf(query, tableName), p)
-}
-
-func QueryUpdate(tableName, where string, fields []string, params []interface{}) {
-    query := "UPDATE %s SET %s WHERE %s;"
-    p := strings.Join(MakePairs(fields), ", ")
-    Exec(fmt.Sprintf(query, tableName, p, where), params)
+    if model.FieldByName("WherePart").Len() != 0 {
+        query += " WHERE %s;"
+        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(condition), reflect.ValueOf(i)})
+        Exec(fmt.Sprintf(query, tableName, v[0]), append(p, v[1].Interface().([]interface{})...))
+    } else {
+        query += ";"
+        Exec(fmt.Sprintf(query, tableName), p)
+    }
 }
 
 func QueryDeleteByIds(tableName, ids string) {
     query := "DELETE FROM %s WHERE id IN (%s)"
     Exec(fmt.Sprintf(query, tableName, ids), nil)
-}
-
-func IsExists(tableName, fieldName string, value string) bool {
-    var result string
-    query := QuerySelect(tableName, fieldName+"=$1", []string{fieldName})
-    row := QueryRow(query, []interface{}{value})
-    err := row.Scan(&result)
-    return err != sql.ErrNoRows
 }
 
 func IsExists_(tableName string, fields []string, params []interface{}) bool {
@@ -241,27 +224,36 @@ func MakePairs(fields []string) []string {
 /**
  * condition: AND condition and OR condition
  */
-func Select(tableName string, fields []string, where map[string]interface{}, condition string) []interface{} {
-    var key []string
-    var val []interface{}
-    var paramName = 1
-    if len(where) != 0 {
-        for k, v := range where {
-            if reflect.TypeOf(v).Name() == "" { // hope that v is array of interfaces
-                for _, vv := range v.([]interface{}) {
-                    key = append(key, k+"=$"+strconv.Itoa(paramName))
-                    val = append(val, vv)
-                    paramName++
-                }
-                continue
-            }
-            key = append(key, k+"=$"+strconv.Itoa(paramName))
-            val = append(val, v)
-            paramName++
-        }
+func Select(m interface{}, fields []string, condition string) []interface{} {
+    model := reflect.ValueOf(m).Elem()
+    tableName := model.FieldByName("TableName").String()
+
+    query := "SELECT %s FROM %s"
+
+    if model.FieldByName("WherePart").Len() != 0 {
+        query += " WHERE %s;"
+        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(condition), reflect.ValueOf(1)})
+        return Query(fmt.Sprintf(query, strings.Join(fields, ", "), tableName, v[0]), v[1].Interface().([]interface{}))
+    } else {
+        query += ";"
+        return Query(fmt.Sprintf(query, strings.Join(fields, ", "), tableName), nil)
     }
-    query := QuerySelect(tableName, strings.Join(key, " "+condition+" "), fields)
-    return Query(query, val)
+}
+
+func SelectRow(m interface{}, fields []string, condition string) *sql.Row {
+    model := reflect.ValueOf(m).Elem()
+    tableName := model.FieldByName("TableName").String()
+
+    query := "SELECT %s FROM %s"
+    println("AHAHAHA: ", model.FieldByName("WherePart").Len())
+    if model.FieldByName("WherePart").Len() != 0 {
+        query += " WHERE %s;"
+        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(condition), reflect.ValueOf(1)})
+        return QueryRow(fmt.Sprintf(query, strings.Join(fields, ", "), tableName, v[0]), v[1].Interface().([]interface{}))
+    } else {
+        query += ";"
+        return QueryRow(fmt.Sprintf(query, strings.Join(fields, ", "), tableName), nil)
+    }
 }
 
 func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
@@ -270,7 +262,7 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
     answer := make([]interface{}, size)
 
     for i, _ := range row {
-        row[i] = &values[i]
+        row[i] = &values[i] //!!!
     }
 
     j := 0

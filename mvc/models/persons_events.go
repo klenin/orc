@@ -18,6 +18,7 @@ func (c *ModelManager) PersonsEvents() *PersonsEventsModel {
     model.ColNames = []string{"ID", "Персона", "Мероприятие", "Дата регистрации", "Дата последних изменений"}
 
     model.Fields = new(PersonEvent)
+    model.WherePart = make(map[string]interface{}, 0)
 
     model.Sub = false
     model.SubTable = nil

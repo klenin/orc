@@ -20,6 +20,7 @@ func (c *ModelManager) Users() *UsersModel {
     model.ColNames = []string{"ID", "Логин", "Роль", "Персона"}
 
     model.Fields = new(User)
+    model.WherePart = make(map[string]interface{}, 0)
 
     model.Sub = false
     model.SubTable = nil
