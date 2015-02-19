@@ -1,6 +1,7 @@
 package main
 
 import (
+    "flag"
     "github.com/orc/resources"
     "github.com/orc/router"
     "github.com/orc/scheme"
@@ -12,8 +13,13 @@ import (
 func main() {
     log.Println("Server started.")
 
-    scheme.Init()
-    resources.Load()
+    testData := flag.Bool("test-data", false, "downloading test data")
+    flag.Parse()
+
+    if *testData == true {
+        scheme.Init()
+        resources.Load()
+    }
 
     http.Handle("/", new(router.FastCGIServer))
     http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js"))))

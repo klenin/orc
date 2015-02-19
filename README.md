@@ -36,6 +36,10 @@ Install [git][3]. Get a copy of repository:
 
     $ go build && orc.exe
 
+Run with downloading test data:
+
+    $ go build && orc.exe -test-data=true
+
 [1]: https://golang.org
 [2]: http://www.postgresql.org
 [3]: http://git-scm.com
