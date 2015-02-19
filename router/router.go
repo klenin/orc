@@ -16,7 +16,7 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     methodName := "index"
 
     if len(parts) < 2 {
-        //index
+        // index
     } else if len(parts) < 3 {
         if parts[1] != "" {
             controllerName = parts[1]
@@ -35,12 +35,8 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         cMethod := FindMethod(cType, methodName)
         if cMethod != nil {
             params := PopulateParams(*cMethod, parts)
-            allParams := make([]reflect.Value, len(params)+1)
-            allParams[0] = *controller
-            for i := 0; i < len(params); i++ {
-                allParams[i+1] = params[i]
-            }
-            cMethod.Func.Call(allParams)
+            allParams := make([]reflect.Value, 0)
+            cMethod.Func.Call(append(append(allParams, *controller), params...))
         } else {
             http.Error(w, "Unable to locate index method in controller.", http.StatusMethodNotAllowed)
         }
