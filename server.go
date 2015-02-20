@@ -2,9 +2,9 @@ package main
 
 import (
     "flag"
+    "github.com/orc/db"
     "github.com/orc/resources"
     "github.com/orc/router"
-    "github.com/orc/scheme"
     "log"
     "net/http"
     "os"
@@ -13,11 +13,11 @@ import (
 func main() {
     log.Println("Server started.")
 
-    testData := flag.Bool("test-data", false, "downloading test data")
+    testData := flag.Bool("test-data", false, "to load test data")
     flag.Parse()
 
     if *testData == true {
-        scheme.Init()
+        db.Init()
         resources.Load()
     }
 
