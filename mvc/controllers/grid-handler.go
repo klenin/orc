@@ -120,3 +120,35 @@ func (this *GridHandler) Edit(tableName string) {
         break
     }
 }
+
+func (this *GridHandler) ResetPassword() {
+    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+        return
+    }
+
+    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
+    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    this.Response.Header().Set("Content-type", "application/json")
+
+    var request map[string]interface{}
+    decoder := json.NewDecoder(this.Request.Body)
+    err := decoder.Decode(&request)
+    utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response)
+
+    id, pass := request["id"].(int), request["pass"].(string)
+
+    user := GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"id": id})
+
+    var salt string
+    db.SelectRow(user, []string{"salt"}, "").Scan(&salt)
+
+    user = GetModel("users")
+    user.LoadModelData(map[string]interface{}{"id": id, "pass": GetMD5Hash(pass + salt)})
+    db.QueryUpdate_(user, "")
+
+    response, err := json.Marshal(map[string]interface{}{"result": "ok"})
+    utils.HandleErr("[Handle::ResetPassword] Marshal: ", err, this.Response)
+
+    fmt.Fprintf(this.Response, "%s", string(response))
+}

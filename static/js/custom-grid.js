@@ -98,7 +98,7 @@ function(utils, datepicker) {
                                 "id": id[0]
                             },
                             function() {},
-                            "/handler/resetpassword"
+                            "/gridhandler/resetpassword"
                         );
                         $(this).dialog("close");
                     } else {
