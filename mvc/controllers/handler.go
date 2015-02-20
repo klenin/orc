@@ -22,13 +22,17 @@ func (this *Handler) GetEventList() {
     var request map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&request)
-    utils.HandleErr("[Handler::GetEventList] Decode :", err, this.Response)
+    if utils.HandleErr("[Handler::GetEventList] Decode :", err, this.Response) {
+        return
+    }
 
     fields := request["fields"].([]interface{})
     result := db.Select(GetModel(request["table"].(string)), utils.ArrayInterfaceToString(fields), "")
 
     response, err := json.Marshal(map[string]interface{}{"data": result})
-    utils.HandleErr("[Handle::GetEventList] Marshal: ", err, this.Response)
+    if utils.HandleErr("[Handle::GetEventList] Marshal: ", err, this.Response) {
+        return
+    }
 
     fmt.Fprintf(this.Response, "%s", string(response))
 }
@@ -39,7 +43,9 @@ func (this *Handler) Index() {
 
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler::Index] Decode :", err, this.Response)
+    if utils.HandleErr("[Handler::Index] Decode :", err, this.Response) {
+        return
+    }
 
     switch data["action"] {
     case "register":
@@ -73,7 +79,9 @@ func (this *Handler) Index() {
         db.QueryUpdate_(model, "")
 
         response, err := json.Marshal(map[string]interface{}{"result": "ok"})
-        utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)
+        if utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response) {
+            return
+        }
 
         fmt.Fprintf(this.Response, "%s", string(response))
         break
@@ -98,7 +106,9 @@ func (this *Handler) Index() {
         }
 
         response, err := json.Marshal(result)
-        utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response)
+        if utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response) {
+            return
+        }
 
         fmt.Fprintf(this.Response, "%s", string(response))
         break
@@ -135,7 +145,9 @@ func (this *Handler) ShowCabinet(tableName string) {
         "mvc/views/"+role+".html",
         "mvc/views/header.html",
         "mvc/views/footer.html")
-    utils.HandleErr("[Handler::ShowCabinet] ParseFiles: ", err, this.Response)
+    if utils.HandleErr("[Handler::ShowCabinet] ParseFiles: ", err, this.Response) {
+        return
+    }
 
     err = tmp.ExecuteTemplate(this.Response, role, model)
     utils.HandleErr("[Handler::ShowCabinet] ExecuteTemplate: ", err, this.Response)

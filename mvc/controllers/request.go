@@ -27,7 +27,9 @@ func (this *Handler) GetHistoryRequest() {
     var data map[string]string
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler::GetHistoryRequest] Decode: ", err, this.Response)
+    if utils.HandleErr("[Handler::GetHistoryRequest] Decode: ", err, this.Response) {
+        return
+    }
 
     user_id := sessions.GetValue("id", this.Request)
     event_id := data["event_id"]
@@ -50,7 +52,9 @@ func (this *Handler) GetHistoryRequest() {
     }
 
     response, err := json.Marshal(result)
-    utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, this.Response)
+    if utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, this.Response) {
+        return
+    }
 
     fmt.Fprintf(this.Response, "%s", string(response))
 }
@@ -66,7 +70,9 @@ func (this *Handler) GetListHistoryEvents() {
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler::GetListHistoryEvents] Decode: ", err, this.Response)
+    if utils.HandleErr("[Handler::GetListHistoryEvents] Decode: ", err, this.Response) {
+        return
+    }
 
     user := GetModel("users")
     user.LoadWherePart(map[string]interface{}{"id": sessions.GetValue("id", this.Request)})
@@ -112,7 +118,9 @@ func (this *Handler) GetListHistoryEvents() {
     }
 
     response, err := json.Marshal(result)
-    utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, this.Response)
+    if utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, this.Response) {
+        return
+    }
 
     fmt.Fprintf(this.Response, "%s", string(response))
 }
@@ -127,7 +135,9 @@ func (this *Handler) SaveUserRequest() {
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&data)
-    utils.HandleErr("[Handler::SaveUserRequest] Decode :", err, this.Response)
+    if utils.HandleErr("[Handler::SaveUserRequest] Decode :", err, this.Response) {
+        return
+    }
 
     var person_id int
     user := GetModel("users")
@@ -196,7 +206,9 @@ func (this *Handler) SaveUserRequest() {
     }
 
     result, err := json.Marshal(response)
-    utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response)
+    if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
+        return
+    }
 
     fmt.Fprintf(this.Response, "%s", string(result))
 }
@@ -206,10 +218,14 @@ func (this *Handler) GetRequest(tableName, id string) {
         "mvc/views/item.html",
         "mvc/views/header.html",
         "mvc/views/footer.html")
-    utils.HandleErr("[Handler::GetRequest] ParseFiles: ", err, this.Response)
+    if utils.HandleErr("[Handler::GetRequest] ParseFiles: ", err, this.Response) {
+        return
+    }
 
     reaponse, err := json.Marshal(MegoJoin(tableName, id))
-    utils.HandleErr("[Handler::GetRequest] Marshal: ", err, this.Response)
+    if utils.HandleErr("[Handler::GetRequest] Marshal: ", err, this.Response) {
+        return
+    }
 
     err = tmp.ExecuteTemplate(this.Response, "item", template.JS(reaponse))
     utils.HandleErr("[Handler::GetRequest] ExecuteTemplate: ", err, this.Response)

@@ -26,7 +26,9 @@ func (this *GridHandler) GetSubTable() {
     var request map[string]string
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&request)
-    utils.HandleErr("[GridHandler::GetSubTable] Decode :", err, this.Response)
+    if utils.HandleErr("[GridHandler::GetSubTable] Decode :", err, this.Response) {
+        return
+    }
 
     model := GetModel(request["table"])
     index, _ := strconv.Atoi(request["index"])
@@ -43,7 +45,9 @@ func (this *GridHandler) GetSubTable() {
         "columns":   subModel.GetColumns(),
         "reffields": refFields,
         "refdata":   refData})
-    utils.HandleErr("[GridHandler::GetSubTable] Marshal: ", err, this.Response)
+    if utils.HandleErr("[GridHandler::GetSubTable] Marshal: ", err, this.Response) {
+        return
+    }
 
     fmt.Fprintf(this.Response, "%s", string(response))
 }
@@ -55,7 +59,9 @@ func (this *GridHandler) Load(tableName string) {
 
     model := GetModel(tableName)
     response, err := json.Marshal(db.Select(model, model.GetColumns(), ""))
-    utils.HandleErr("[GridHandler::Load] Marshal: ", err, this.Response)
+    if utils.HandleErr("[GridHandler::Load] Marshal: ", err, this.Response) {
+        return
+    }
 
     fmt.Fprintf(this.Response, "%s", string(response))
 }
@@ -69,7 +75,9 @@ func (this *GridHandler) Select(tableName string) {
         "mvc/views/table.html",
         "mvc/views/header.html",
         "mvc/views/footer.html")
-    utils.HandleErr("[GridHandler::Select] ParseFiles: ", err, this.Response)
+    if utils.HandleErr("[GridHandler::Select] ParseFiles: ", err, this.Response) {
+        return
+    }
 
     model := GetModel(tableName)
     refFields, refData := GetModelRefDate(model)
@@ -133,7 +141,9 @@ func (this *GridHandler) ResetPassword() {
     var request map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
     err := decoder.Decode(&request)
-    utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response)
+    if utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response) {
+        return
+    }
 
     id, pass := request["id"].(int), request["pass"].(string)
 

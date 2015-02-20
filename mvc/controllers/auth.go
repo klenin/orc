@@ -68,7 +68,9 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
     }
 
     response, err := json.Marshal(result)
-    utils.HandleErr("[Handler::HandleRegister] Marshal: ", err, this.Response)
+    if utils.HandleErr("[Handler::HandleRegister] Marshal: ", err, this.Response) {
+        return ""
+    }
 
     return string(response)
 }
@@ -96,7 +98,9 @@ func (this *Handler) HandleLogin(login, pass string) string {
         sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
     }
     response, err := json.Marshal(result)
-    utils.HandleErr("[Handler::HandleLogin] Marshal: ", err, this.Response)
+    if utils.HandleErr("[Handler::HandleLogin] Marshal: ", err, this.Response) {
+        return ""
+    }
 
     return string(response)
 }
@@ -106,7 +110,9 @@ func (this *Handler) HandleLogout() string {
     sessions.ClearSession(this.Response)
 
     response, err := json.Marshal(result)
-    utils.HandleErr("[Handler::HandleLogout] Marshal: ", err, this.Response)
+    if utils.HandleErr("[Handler::HandleLogout] Marshal: ", err, this.Response) {
+        return ""
+    }
 
     return string(response)
 }

@@ -10,18 +10,23 @@ import (
     "strconv"
 )
 
-func HandleErr(message string, err error, w http.ResponseWriter) {
+func HandleErr(message string, err error, w http.ResponseWriter) bool {
     if err != nil {
         log.Println(message + err.Error())
+
         if err, ok := err.(*pq.Error); ok {
             log.Println("pq error:", err.Code.Name())
         }
+
         if w != nil {
             http.Error(w, fmt.Sprintf(message+"%v\n", err.Error()), http.StatusMethodNotAllowed)
         } else {
             os.Exit(1)
         }
+
+        return true
     }
+    return false
 }
 
 func ArrayInterfaceToString(array []interface{}) []string {
@@ -68,7 +73,9 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
                 return -1
             }
             v, err := strconv.Atoi(value.(string))
-            HandleErr("[utils.ConvertTypeForModel] strconv.Atoi: ", err, nil)
+            if HandleErr("[utils.ConvertTypeForModel] strconv.Atoi: ", err, nil) {
+                return nil
+            }
             return v
         case "text", "date", "time":
             return value
