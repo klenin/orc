@@ -7,6 +7,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
+    "net/http"
     "strconv"
 )
 
@@ -19,7 +20,7 @@ type GridHandler struct {
 }
 
 func (this *GridHandler) GetSubTable() {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
         return
     }
 
@@ -53,7 +54,7 @@ func (this *GridHandler) GetSubTable() {
 }
 
 func (this *GridHandler) Load(tableName string) {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
         return
     }
 
@@ -67,7 +68,7 @@ func (this *GridHandler) Load(tableName string) {
 }
 
 func (this *GridHandler) Select(tableName string) {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
         return
     }
 
@@ -94,7 +95,7 @@ func (this *GridHandler) Select(tableName string) {
 }
 
 func (this *GridHandler) Edit(tableName string) {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
         return
     }
 
@@ -130,7 +131,7 @@ func (this *GridHandler) Edit(tableName string) {
 }
 
 func (this *GridHandler) ResetPassword() {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
         return
     }
 
@@ -161,4 +162,24 @@ func (this *GridHandler) ResetPassword() {
     utils.HandleErr("[Handle::ResetPassword] Marshal: ", err, this.Response)
 
     fmt.Fprintf(this.Response, "%s", string(response))
+}
+
+func (this *GridHandler) isAdmin() bool {
+    var role string
+
+    user_id := sessions.GetValue("id", this.Request)
+    if user_id == nil {
+        http.Redirect(this.Response, this.Request, "/", 401)
+        return false
+    }
+
+    user := GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"id": user_id})
+    err := db.SelectRow(user, []string{"role"}, "").Scan(&role)
+    if err != nil || role == "user" {
+        http.Redirect(this.Response, this.Request, "/", 403)
+        return false
+    }
+
+    return role == "admin"
 }
