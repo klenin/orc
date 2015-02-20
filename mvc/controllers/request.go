@@ -8,6 +8,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
+    "net/http"
     "strconv"
     "time"
 )
@@ -74,8 +75,13 @@ func (this *Handler) GetListHistoryEvents() {
         return
     }
 
+    user_id := sessions.GetValue("id", this.Request)
+    if user_id == nil {
+        http.Redirect(this.Response, this.Request, "/", 401)
+        return
+    }
     user := GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": sessions.GetValue("id", this.Request)})
+    user.LoadWherePart(map[string]interface{}{"id": user_id})
 
     var person_id int
     err = db.SelectRow(user, []string{"person_id"}, "").Scan(&person_id)
@@ -140,8 +146,13 @@ func (this *Handler) SaveUserRequest() {
     }
 
     var person_id int
+    user_id := sessions.GetValue("id", this.Request)
+    if user_id == nil {
+        http.Redirect(this.Response, this.Request, "/", 401)
+        return
+    }
     user := GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": sessions.GetValue("id", this.Request)})
+    user.LoadWherePart(map[string]interface{}{"id": user_id})
     err = db.SelectRow(user, []string{"person_id"}, "").Scan(&person_id)
     if err != nil {
         response = map[string]interface{}{"result": err.Error()}

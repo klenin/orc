@@ -8,6 +8,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
+    "net/http"
 )
 
 func (c *BaseController) Handler() *Handler {
@@ -120,9 +121,13 @@ func (this *Handler) ShowCabinet(tableName string) {
         return
     }
 
-    id := sessions.GetValue("id", this.Request).(int)
+    user_id := sessions.GetValue("id", this.Request)
+    if user_id == nil {
+        http.Redirect(this.Response, this.Request, "/", 401)
+        return
+    }
     user := GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": id})
+    user.LoadWherePart(map[string]interface{}{"id": user_id})
 
     var role string
     var person_id int
