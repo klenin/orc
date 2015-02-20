@@ -96,6 +96,8 @@ func (this *Handler) HandleLogin(login, pass string) string {
         db.QueryUpdate_(user, "")
 
         sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
+    } else {
+        result["result"] = "badPassword"
     }
     response, err := json.Marshal(result)
     if utils.HandleErr("[Handler::HandleLogin] Marshal: ", err, this.Response) {

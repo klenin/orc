@@ -35,7 +35,10 @@ function(utils) {
             $("#password, #username").val("");
 
         } else if (data.result === "invalidCredentials") {
-            $("#server-answer").text("Неверный логин или пароль.").css("color", "red");
+            $("#server-answer").text("Неверный логин.").css("color", "red");
+
+        } else if (data.result === "badPassword") {
+            $("#server-answer").text("Неверный пароль.").css("color", "red");
         }
     };
 
