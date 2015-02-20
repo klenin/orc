@@ -40,6 +40,10 @@ Run with downloading test data:
 
     $ go build && orc.exe -test-data=true
 
+Print all server routers:
+
+    $ console routers
+
 [1]: https://golang.org
 [2]: http://www.postgresql.org
 [3]: http://git-scm.com

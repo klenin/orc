@@ -1,0 +1,25 @@
+#!/bin/bash
+
+admin_routers=(
+    '/gridhandler/select/<TableName>'
+    '/gridhandler/edit/<TableName>'
+    '/gridhandler/load/<TableName>'
+    '/gridhandler/resetPassword'
+    '/gridhandler/getSubTable'
+)
+
+user_routers=(
+    '/handler/getHistoryRequest'
+    '/handler/saveUserRequest'
+    '/handler/getListHistoryEvents'
+    '/handler'
+)
+
+if [ $1 == "routers" ]
+then
+    echo "admin"
+    printf "\t%s\n" "${admin_routers[@]}"
+
+    echo "user"
+    printf "\t%s\n" "${user_routers[@]}"
+fi
