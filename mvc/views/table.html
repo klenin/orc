@@ -73,12 +73,11 @@ function(grid) {
         {{end}}
     {{end}}
 
-    //console.log("refData");
-    //console.log(refData);
-    //console.log("colModel");
-    //console.log(colModel_);
-    //console.log("jsData");
-    //console.log(jsData);
+    console.log("refData");
+    console.log(refData);
+    console.log("colModel");
+    console.log(colModel_);
+
     $(document).ready(function() {
 
         $("#grid-table").jqGrid({
@@ -88,9 +87,9 @@ function(grid) {
             treeGrid:      false,
             colNames:      {{.ColNames}},
             colModel:      colModel_,
-            pager:         $("#grid-table-pager"),
+            pager:         "#grid-table-pager",
             gridview:      true,
-            sortname:      "invdate",
+            sortname:      "id",
             viewrecords:   true,
             height:        "100%",
             width:         "auto",
@@ -131,30 +130,27 @@ function(grid) {
                 search:  false
             },
             {   //edit
-                width: "100%",
-                recreateForm: true,
-                //viewPagerButtons:   false,
-                closeAfterEdit:     true,
-                afterSubmit:        function(response, postdata) {
-                                        $('#grid-table').jqGrid().trigger('reloadGrid');
-                                        return [true, "", response.responseText];
-                                    },
+                width:          "100%",
+                recreateForm:   true,
+                closeAfterEdit: true,
+                afterSubmit:    function(response, postdata) {
+                                    $('#grid-table').jqGrid().trigger('reloadGrid');
+                                    return [true, "", response.responseText];
+                                },
             },
             {   //add
-                width: "100%",
-                recreateForm: true,
-                //viewPagerButtons:   false,
-                clearAfterAdd:      true,
-                closeAfterAdd:      true,
-                addedrow:           "last",
-                afterSubmit:        function(response, postdata) {
-                                        $('#grid-table').jqGrid().trigger('reloadGrid');
-                                        return [true, "", response.responseText];
-                                    },
+                width:          "100%",
+                recreateForm:   true,
+                clearAfterAdd:  true,
+                closeAfterAdd:  true,
+                addedrow:       "last",
+                afterSubmit:    function(response, postdata) {
+                                    $('#grid-table').jqGrid().trigger('reloadGrid');
+                                    return [true, "", response.responseText];
+                                },
             },
             {   //del
-                closeAfterAdd:      true,
-                viewPagerButtons:   false,
+                closeAfterAdd:  true,
             }
         );
 
