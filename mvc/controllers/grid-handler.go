@@ -155,7 +155,7 @@ func (this *GridHandler) ResetPassword() {
     db.SelectRow(user, []string{"salt"}, "").Scan(&salt)
 
     user = GetModel("users")
-    user.LoadModelData(map[string]interface{}{"id": id, "pass": GetMD5Hash(pass + salt)})
+    user.LoadModelData(map[string]interface{}{"id": id, "pass": utils.GetMD5Hash(pass + salt)})
     db.QueryUpdate_(user, "")
 
     response, err := json.Marshal(map[string]interface{}{"result": "ok"})

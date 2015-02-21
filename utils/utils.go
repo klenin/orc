@@ -1,12 +1,17 @@
 package utils
 
 import (
+    "crypto/md5"
+    "crypto/rand"
+    "encoding/base64"
+    "encoding/hex"
     "fmt"
     "github.com/lib/pq"
     "log"
     "net/http"
     "os"
     "reflect"
+    "regexp"
     "strconv"
 )
 
@@ -92,4 +97,23 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
         }
     }
     panic("utils.ConvertTypeForModel: unknown type")
+}
+
+func MatchRegexp(pattern, str string) bool {
+    result, err := regexp.MatchString(pattern, str)
+    HandleErr("utils.MatchRegexp: ", err, nil)
+    return result
+}
+
+func GetMD5Hash(text string) string {
+    hasher := md5.New()
+    hasher.Write([]byte(text))
+    return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func GetRandSeq(size int) string {
+    rb := make([]byte, size)
+    _, err := rand.Read(rb)
+    HandleErr("utils.GetRandSeq: ", err, nil)
+    return base64.URLEncoding.EncodeToString(rb)
 }

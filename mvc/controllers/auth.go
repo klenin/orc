@@ -1,46 +1,21 @@
 package controllers
 
 import (
-    "crypto/md5"
-    "crypto/rand"
-    "encoding/base64"
-    "encoding/hex"
     "encoding/json"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "log"
-    "regexp"
     "strconv"
     "time"
 )
 
 const HASH_SIZE = 32
 
-func MatchRegexp(pattern, str string) bool {
-    result, _ := regexp.MatchString(pattern, str)
-    return result
-}
-
-func GetMD5Hash(text string) string {
-    hasher := md5.New()
-    hasher.Write([]byte(text))
-    return hex.EncodeToString(hasher.Sum(nil))
-}
-
-func GetRandSeq(size int) string {
-    rb := make([]byte, size)
-    _, err := rand.Read(rb)
-    if err != nil {
-        log.Println(err)
-    }
-    return base64.URLEncoding.EncodeToString(rb)
-}
-
 func (this *Handler) HandleRegister(login, password, role, fname, lname string) string {
     result := map[string]string{"result": "ok"}
     salt := strconv.Itoa(int(time.Now().Unix()))
-    pass := GetMD5Hash(password + salt)
+    pass := utils.GetMD5Hash(password + salt)
 
     passHasInvalidChars := false
     for i := 0; i < len(password); i++ {
@@ -52,9 +27,9 @@ func (this *Handler) HandleRegister(login, password, role, fname, lname string) 
 
     if db.IsExists_("users", []string{"login"}, []interface{}{login}) == true {
         result["result"] = "loginExists"
-    } else if !MatchRegexp("^[a-zA-Z0-9]{2,36}$", login) {
+    } else if !utils.MatchRegexp("^[a-zA-Z0-9]{2,36}$", login) {
         result["result"] = "badLogin"
-    } else if !MatchRegexp("^.{6,36}$", password) || passHasInvalidChars {
+    } else if !utils.MatchRegexp("^.{6,36}$", password) || passHasInvalidChars {
         result["result"] = "badPassword"
     } else {
         var p_id int
@@ -86,10 +61,10 @@ func (this *Handler) HandleLogin(login, pass string) string {
 
     if err != nil {
         result["result"] = "invalidCredentials"
-    } else if passHash == GetMD5Hash(pass+salt) {
+    } else if passHash == utils.GetMD5Hash(pass+salt) {
         result["result"] = "ok"
 
-        hash := GetRandSeq(HASH_SIZE)
+        hash := utils.GetRandSeq(HASH_SIZE)
 
         user := GetModel("users")
         user.LoadModelData(map[string]interface{}{"id": id, "hash": hash})
