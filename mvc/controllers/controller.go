@@ -62,6 +62,10 @@ func GetModel(tableName string) models.VirtEntity {
         return base.PersonsEvents()
     case "param_types":
         return base.ParamTypes()
+    case "registrations":
+        return base.Registrations()
+    case "faces":
+        return base.Faces()
     }
     panic("controller.GetModel: have no such table name")
 }

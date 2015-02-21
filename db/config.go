@@ -18,6 +18,8 @@ var Tables = []string{
     "params",
     "forms_types",
     "param_values",
+    "faces",
+    "registrations",
 }
 
 var TableNames = []string{
@@ -34,6 +36,8 @@ var TableNames = []string{
     "Параметры",
     "Формы-Типы мероприятий",
     "Значения параметров",
+    "Лица",
+    "Регистрации",
 }
 
 //var Tables = []map[string]string{
