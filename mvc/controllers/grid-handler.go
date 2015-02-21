@@ -7,6 +7,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
+    "math"
     "net/http"
     "strconv"
 )
@@ -58,8 +59,41 @@ func (this *GridHandler) Load(tableName string) {
         return
     }
 
+    limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
+    if utils.HandleErr("[GridHandler::Load]  limit Atoi: ", err, this.Response) {
+        return
+    }
+
+    page, err := strconv.Atoi(this.Request.PostFormValue("page"))
+    if utils.HandleErr("[GridHandler::Load] page Atoi: ", err, this.Response) {
+        return
+    }
+
+    sidx := this.Request.FormValue("sidx")
+    start := limit*page - limit
+
     model := GetModel(tableName)
-    response, err := json.Marshal(db.Select(model, model.GetColumns(), ""))
+    model.SetOrder(sidx)
+    model.SetLimit(limit)
+    model.SetOffset(start)
+
+    rows := db.Select(model, model.GetColumns(), "")
+    count := db.SelectCount(tableName)
+
+    var totalPages int
+    if count > 0 {
+        totalPages = int(math.Ceil(float64(count) / float64(limit)))
+    } else {
+        totalPages = 0
+    }
+
+    result := make(map[string]interface{}, 4)
+    result["rows"] = rows
+    result["page"] = page
+    result["total"] = totalPages
+    result["records"] = count
+
+    response, err := json.Marshal(result)
     if utils.HandleErr("[GridHandler::Load] Marshal: ", err, this.Response) {
         return
     }

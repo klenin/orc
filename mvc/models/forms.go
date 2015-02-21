@@ -16,6 +16,9 @@ func (c *ModelManager) Forms() *FormsModel {
 
     model.Fields = new(Forms)
     model.WherePart = make(map[string]interface{}, 0)
+    model.OrderBy = "id"
+    model.Limit = "ALL"
+    model.Offset = 0
 
     model.Sub = true
     model.SubTable = []string{"forms_types"}

@@ -23,6 +23,9 @@ type Entity struct {
     SubField string
 
     WherePart map[string]interface{}
+    OrderBy   string
+    Limit     interface{}
+    Offset    int
 }
 
 func (this Entity) GetTableName() string {
@@ -130,10 +133,50 @@ func (this Entity) GenerateWherePart(condition string, counter int) (string, []i
     return strings.Join(key, " "+condition+" "), val
 }
 
+func (this *Entity) SetOrder(orderBy string) {
+    rt := reflect.ValueOf(this.Fields).Type()
+    for i := 0; i < rt.Elem().NumField(); i++ {
+        if rt.Elem().Field(i).Tag.Get("name") == orderBy {
+            reflect.ValueOf(this).Elem().FieldByName("OrderBy").Set(reflect.ValueOf(orderBy))
+            break
+        }
+    }
+}
+
+func (this *Entity) SetLimit(limit interface{}) {
+    switch limit.(type) {
+    case string:
+        if limit.(string) != "ALL" {
+            panic("[Entity::SetLimit] Invalid value")
+        }
+        reflect.ValueOf(this).Elem().FieldByName("Limit").Set(reflect.ValueOf(limit))
+        break
+    case int:
+        if limit.(int) < 0 {
+            panic("[Entity::SetLimit] Invalid value")
+        }
+        reflect.ValueOf(this).Elem().FieldByName("Limit").Set(reflect.ValueOf(limit))
+        break
+    default:
+        panic("[Entity::SetLimit] Invalid type")
+    }
+}
+
+func (this *Entity) SetOffset(offset int) {
+    if offset < 0 {
+        panic("[Entity::SerOffset] Invalid value")
+    }
+    reflect.ValueOf(this).Elem().FieldByName("Offset").SetInt(int64(offset))
+}
+
 type VirtEntity interface {
     LoadModelData(data map[string]interface{})
     LoadWherePart(data map[string]interface{})
     GenerateWherePart(condition string, counter int) (string, []interface{})
+
+    SetOrder(orderBy string)
+    SetLimit(limit interface{})
+    SetOffset(offset int)
 
     GetTableName() string
     GetCaption() string

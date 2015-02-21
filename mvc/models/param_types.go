@@ -16,6 +16,9 @@ func (c *ModelManager) ParamTypes() *ParamTypesModel {
 
     model.Fields = new(ParamTypes)
     model.WherePart = make(map[string]interface{}, 0)
+    model.OrderBy = "id"
+    model.Limit = "ALL"
+    model.Offset = 0
 
     model.Sub = false
     model.SubTable = nil

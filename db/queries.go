@@ -228,14 +228,29 @@ func Select(m interface{}, fields []string, condition string) []interface{} {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
 
+    orderBy := " ORDER BY " + model.FieldByName("OrderBy").Interface().(string)
+
+    var limit string
+    switch model.FieldByName("Limit").Interface().(type) {
+    case string:
+        limit = " LIMIT " + model.FieldByName("Limit").Interface().(string)
+        break
+    case int:
+        limit = " LIMIT " + strconv.Itoa(model.FieldByName("Limit").Interface().(int))
+        break
+    }
+
+    offset := " OFFSET " + strconv.Itoa(model.FieldByName("Offset").Interface().(int))
+    extra := orderBy + limit + offset
+
     query := "SELECT %s FROM %s"
 
     if model.FieldByName("WherePart").Len() != 0 {
-        query += " WHERE %s;"
+        query += " WHERE %s" + extra + ";"
         v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(condition), reflect.ValueOf(1)})
         return Query(fmt.Sprintf(query, strings.Join(fields, ", "), tableName, v[0]), v[1].Interface().([]interface{}))
     } else {
-        query += ";"
+        query += extra + ";"
         return Query(fmt.Sprintf(query, strings.Join(fields, ", "), tableName), nil)
     }
 }
@@ -254,6 +269,13 @@ func SelectRow(m interface{}, fields []string, condition string) *sql.Row {
         query += ";"
         return QueryRow(fmt.Sprintf(query, strings.Join(fields, ", "), tableName), nil)
     }
+}
+
+func SelectCount(tableName string) int {
+    if FindModel(tableName) == nil {
+        panic("Table " + tableName + " not exists")
+    }
+    return int(Query("SELECT COUNT(*) FROM " + tableName + ";", nil)[0].(map[string]interface{})["count"].(int64))
 }
 
 func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {

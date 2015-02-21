@@ -20,6 +20,9 @@ func (c *ModelManager) Events() *EventsModel {
 
     model.Fields = new(Event)
     model.WherePart = make(map[string]interface{}, 0)
+    model.OrderBy = "id"
+    model.Limit = "ALL"
+    model.Offset = 0
 
     model.Sub = true
     model.SubTable = []string{"events_types"}
