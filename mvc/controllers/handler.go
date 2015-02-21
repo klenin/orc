@@ -69,7 +69,6 @@ func (this *Handler) Index() {
     case "editProfile":
         params := make(map[string]interface{}, 0)
 
-        params["id"] = data["id"].(string)
         for _, element := range data["data"].([]interface{}) {
             elem := element.(map[string]interface{})
             params[elem["name"].(string)] = elem["value"]
@@ -77,6 +76,7 @@ func (this *Handler) Index() {
 
         model := GetModel(data["table"].(string))
         model.LoadModelData(params)
+        model.LoadWherePart(map[string]interface{}{"id":  int(data["id"].(float64))})
         db.QueryUpdate_(model, "")
 
         response, err := json.Marshal(map[string]interface{}{"result": "ok"})
