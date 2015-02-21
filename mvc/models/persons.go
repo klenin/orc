@@ -1,9 +1,7 @@
 package models
 
 type Person struct {
-    Id        int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    FirstName string `name:"fname" type:"text" null:"NOT NULL" extra:""`
-    LastName  string `name:"lname" type:"text" null:"NOT NULL" extra:""`
+    Id int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
 }
 
 func (c *ModelManager) Persons() *PersonsModel {
@@ -12,8 +10,8 @@ func (c *ModelManager) Persons() *PersonsModel {
     model.TableName = "persons"
     model.Caption = "Персоны"
 
-    model.Columns = []string{"id", "fname", "lname"}
-    model.ColNames = []string{"ID", "Имя", "Фамилия"}
+    model.Columns = []string{"id"}
+    model.ColNames = []string{"ID"}
 
     model.Fields = new(Person)
     model.WherePart = make(map[string]interface{}, 0)
@@ -21,9 +19,9 @@ func (c *ModelManager) Persons() *PersonsModel {
     model.Limit = "ALL"
     model.Offset = 0
 
-    model.Sub = true
-    model.SubTable = []string{"teams_persons"}
-    model.SubField = "person_id"
+    model.Sub = false
+    model.SubTable = nil
+    model.SubField = ""
 
     return model
 }
