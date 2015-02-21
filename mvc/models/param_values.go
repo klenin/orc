@@ -13,7 +13,7 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
     model := new(ParamValuesModel)
 
     model.TableName = "param_values"
-    model.Caption = "Знвчение параметров"
+    model.Caption = "Значение параметров"
 
     model.Columns = []string{"id", "person_id", "event_id", "event_type_id", "param_id", "value"}
     model.ColNames = []string{"ID", "Персона", "Мероприятие", "Тип мероприятия", "Параметр", "Значение"}
