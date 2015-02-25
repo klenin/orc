@@ -123,8 +123,7 @@ func (this *Handler) ShowCabinet(tableName string) {
     user.LoadWherePart(map[string]interface{}{"id": user_id})
 
     var role string
-    var person_id int
-    err := db.SelectRow(user, []string{"role", "person_id"}, "").Scan(&role, &person_id)
+    err := db.SelectRow(user, []string{"role"}, "").Scan(&role)
     if err != nil {
         panic("ShowCabinet: " + err.Error())
     }
@@ -133,10 +132,40 @@ func (this *Handler) ShowCabinet(tableName string) {
     if role == "admin" {
         model = Model{Columns: db.Tables, ColNames: db.TableNames}
     } else if role == "user" {
-        m := GetModel("persons")
-        m.LoadWherePart(map[string]interface{}{"id": person_id})
-        data := db.Select(m, m.GetColumns(), "")
-        model = Model{Table: data, Columns: m.GetColumns(), ColNames: m.GetColNames()}
+        var face_id int
+        face := GetModel("faces")
+        face.LoadWherePart(map[string]interface{}{"user_id": user_id})
+        err = db.SelectRow(face, []string{"id"}, "").Scan(&face_id)
+        if err != nil {
+            response, err := json.Marshal(map[string]interface{}{"result": err.Error()})
+            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
+                return
+            }
+            fmt.Fprintf(this.Response, "%s", string(response))
+            return
+        }
+        var reg_id int
+        reg := GetModel("registrations")
+        reg.LoadWherePart(map[string]interface{}{"face_id": face_id})
+        err = db.SelectRow(reg, []string{"id"}, "").Scan(&reg_id)
+        if err != nil {
+            response, err := json.Marshal(map[string]interface{}{"result": err.Error()})
+            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
+                return
+            }
+            fmt.Fprintf(this.Response, "%s", string(response))
+            return
+        }
+
+        query := `SELECT params.name, param_values.value from param_values
+            inner join params on params.id = param_values.param_id
+            inner join reg_param_vals on reg_param_vals.param_val_id = param_values.id
+            inner join registrations on registrations.id = reg_param_vals.reg_id
+            inner join events on events.id = reg_param_vals.event_id WHERE registrations.id=$1`
+
+        regParamVals := GetModel("reg_param_vals")
+        data := db.Query(query, []interface{}{reg_id})
+        model = Model{Table: data, Columns: regParamVals.GetColumns(), ColNames: regParamVals.GetColNames()}
     }
 
     tmp, err := template.ParseFiles(

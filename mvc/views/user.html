@@ -11,17 +11,18 @@
 
 <script type="text/javascript">
     $("#title").append("Личный кабинет");
-
     var valid = false;
-    var data = {
-        {{with .Table}}
-            {{range $index, $elmt := .}}
-                {{range $i, $v := $elmt}}
-                    {{$i}}: {{$v}},
-                {{end}}
+    var data = []
+
+    {{with .Table}}
+        {{range $index, $elmt := .}}
+            var paragraph = []
+            {{range $i, $v := $elmt}}
+                paragraph.push({"id": {{$i}}, "val": {{$v}} }),
             {{end}}
+            data.push(paragraph)
         {{end}}
-    }
+    {{end}}
 
     function getFormData() {
         var result = $("form").serializeArray();
@@ -30,25 +31,23 @@
 
     require(["utils"],
     function(utils) {
-        var id = data["id"];
-
-        for (var i = 1; i < {{.Columns}}.length; ++i) {
+        for (var i = 0; i < data.length; ++i) {
 
             var lable = $("<label/>", {
-                for: {{.Columns}}[i],
-                id: "label-" + {{.Columns}}[i],
-                text: {{.ColNames}}[i]
+                for: data[i][0]["id"],
+                id: "label-" + data[i][0]["id"],
+                text: data[i][0]["val"]
             });
 
             var input = $("<input/>", {
-                    id: {{.Columns}}[i],
-                    name: {{.Columns}}[i],
-            }).val(data[{{.Columns}}[i]]);
+                id: data[i][1]["id"],
+                name: data[i][1]["id"],
+            }).val(data[i][1]["val"]);
 
             $("#cabinet form").append(lable).append(input);
 
-            $("#" + {{.Columns}}[i]).blur(function() {
-                if ($(this).val() != ""){
+            $("#" + data[i]["name"]).blur(function() {
+                if ($(this).val() != "") {
                     valid = true;
                     $(this).css({"border": "2px solid green"});
                 } else {
