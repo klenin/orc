@@ -60,6 +60,9 @@ func ConvertTypeModel(type_ string, value reflect.Value) (interface{}, bool) {
     case "text", "date", "time":
         println("val: ", value.String())
         return value.String(), value.String() != ""
+    case "boolean":
+        println("val: ", value.Bool())
+        return value.Bool(), true
     }
     panic("convertTypeModel: unknown type")
 }
@@ -84,6 +87,12 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
             return v
         case "text", "date", "time":
             return value
+        case "boolean":
+            v, err := strconv.ParseBool(value.(string))
+            if HandleErr("[utils.ConvertTypeForModel] strconv.Atoi: ", err, nil) {
+                return nil
+            }
+            return v
         }
 
     case interface{}:
@@ -96,7 +105,7 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
             return value.(bool)
         }
     }
-    panic("utils.ConvertTypeForModel: unknown type")
+    panic("utils.ConvertTypeForModel: unknown type: " + type_)
 }
 
 func MatchRegexp(pattern, str string) bool {
