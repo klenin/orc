@@ -21,6 +21,7 @@ var Tables = []string{
     "faces",
     "registrations",
     "reg_param_vals",
+    "events_regs",
 }
 
 var TableNames = []string{
@@ -40,6 +41,7 @@ var TableNames = []string{
     "Лица",
     "Регистрации",
     "Регистрация-Мероприятие-Тип мероприятия-Значение параметра",
+    "Мероприятия-Регистрации",
 }
 
 //var Tables = []map[string]string{
