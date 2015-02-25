@@ -325,10 +325,10 @@ func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
         }
         value := element.(map[string]interface{})["value"].(string)
 
-        if param_id == 1 {
+        if param_id == 2 {
             userLogin = value
             continue
-        } else if param_id == 2 || param_id == 3 {
+        } else if param_id == 3 || param_id == 4 {
             userPass = value
             continue
         }
