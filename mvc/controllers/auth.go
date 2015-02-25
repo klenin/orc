@@ -5,7 +5,6 @@ import (
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
-    "log"
     "strconv"
     "time"
 )
