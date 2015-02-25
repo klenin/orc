@@ -11,8 +11,8 @@ func (c *ModelManager) Registrations() *RegistrationModel {
     model.TableName = "registrations"
     model.Caption = "Регистрации"
 
-    model.Columns = []string{"id", "face_id", "param_values_id"}
-    model.ColNames = []string{"ID", "Лицо", "Значение"}
+    model.Columns = []string{"id", "face_id"}
+    model.ColNames = []string{"ID", "Лицо"}
 
     model.Fields = new(Registration)
     model.WherePart = make(map[string]interface{}, 0)
