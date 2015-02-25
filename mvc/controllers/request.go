@@ -10,7 +10,6 @@ import (
     "html/template"
     "net/http"
     "strconv"
-    "time"
 )
 
 func (this *Handler) GetHistoryRequest() {
@@ -35,23 +34,24 @@ func (this *Handler) GetHistoryRequest() {
     user_id := sessions.GetValue("id", this.Request)
     event_id := data["event_id"]
 
-    user := GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": user_id})
+    query := `select param_id, params.name, event_types.id as event_type_id, param_types.name as type, param_values.value, forms.id from events
+            inner join events_types on events_types.event_id = events.id
+            inner join event_types on events_types.type_id = event_types.id
+            inner join events_regs on events_regs.event_id = events.id
+            inner join registrations on registrations.id = events_regs.reg_id
+            inner join reg_param_vals on reg_param_vals.reg_id = registrations.id
+                                     and reg_param_vals.event_id = events.id
+                                     and reg_param_vals.event_type_id = event_types.id
+            inner join faces on faces.id = registrations.face_id
+            inner join users on users.id = faces.user_id
+            inner join forms_types on forms_types.type_id = event_types.id
+            inner join forms on forms.id = forms_types.form_id
+            inner join params on params.form_id = forms.id
+            inner join param_types on param_types.id = params.param_type_id
+            inner join param_values on param_values.param_id = params.id and reg_param_vals.param_val_id = param_values.id
+            where users.id = $1 and events.id = $2;`
 
-    var person_id int
-    err = db.SelectRow(user, []string{"person_id"}, "").Scan(&person_id)
-    if err != nil {
-        result["result"] = err.Error()
-    } else {
-        query := `select param_id, p.name, event_type_id, p_t.name as type, value, form_id from param_values
-                inner join params p on param_values.param_id = p.id
-                inner join forms on forms.id = p.form_id
-                inner join param_types p_t on p_t.id = p.param_type_id
-                where person_id = $1 and event_id = $2;`
-
-        result["data"] = db.Query(query, []interface{}{person_id, event_id})
-    }
-
+    result["data"] = db.Query(query, []interface{}{user_id, event_id})
     response, err := json.Marshal(result)
     if utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, this.Response) {
         return
@@ -61,7 +61,13 @@ func (this *Handler) GetHistoryRequest() {
 }
 
 func (this *Handler) GetListHistoryEvents() {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        response, err := json.Marshal(map[string]interface{}{"result": "no"})
+        if utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, this.Response) {
+            return
+        }
+
+        fmt.Fprintf(this.Response, "%s", string(response))
         return
     }
 
@@ -80,47 +86,41 @@ func (this *Handler) GetListHistoryEvents() {
         http.Redirect(this.Response, this.Request, "/", 401)
         return
     }
-    user := GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": user_id})
 
-    var person_id int
-    err = db.SelectRow(user, []string{"person_id"}, "").Scan(&person_id)
+    ids := make(map[string]interface{}, 1)
+    ids["form_id"] = make([]interface{}, 0)
+    for _, v := range data["form_ids"].(map[string]interface{})["form_id"].([]interface{}) {
+        ids["form_id"] = append(ids["form_id"].([]interface{}), int(v.(float64)))
+    }
 
-    if err == sql.ErrNoRows {
-        result["result"] = err.Error()
-    } else {
-        ids := make(map[string]interface{}, 1)
-        ids["form_id"] = make([]interface{}, 0)
-        for _, v := range data["form_ids"].(map[string]interface{})["form_id"].([]interface{}) {
-            ids["form_id"] = append(ids["form_id"].([]interface{}), int(v.(float64)))
-        }
+    formsTypes := GetModel("forms_types")
+    formsTypes.LoadWherePart(ids)
+    types := db.Select(formsTypes, []string{"type_id"}, "OR")
 
-        formsTypes := GetModel("forms_types")
-        formsTypes.LoadWherePart(ids)
-        types := db.Select(formsTypes, []string{"type_id"}, "OR")
+    if len(types) != 0 {
 
-        if len(types) != 0 {
-            query := `SELECT DISTINCT events.id, events.name FROM events
-                inner join events_types on events_types.event_id = events.id
-                inner join event_types on events_types.type_id = event_types.id
-                inner join persons_events on persons_events.event_id = events.id
-                inner join persons on persons.id = persons_events.person_id
-                WHERE persons.id=$1 AND events.id IN (SELECT DISTINCT event_id FROM events_types WHERE `
+        query := `SELECT DISTINCT events.id, events.name FROM events
+            inner join events_types on events_types.event_id = events.id
+            inner join event_types on events_types.type_id = event_types.id
+            inner join events_regs on events_regs.event_id = events.id
+            inner join registrations on registrations.id = events_regs.reg_id
+            inner join faces on faces.id = registrations.face_id
+            inner join users on users.id = faces.user_id
+            WHERE users.id=$1 AND events.id IN (SELECT DISTINCT event_id FROM events_types WHERE `
 
-            var i int
-            var params []interface{}
+        var i int
+        var params []interface{}
 
-            params = append(params, person_id)
+        params = append(params, user_id)
 
-            for i = 2; i < len(types); i++ {
-                query += "type_id=$" + strconv.Itoa(i) + " OR "
-                params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
-            }
-
-            query += "type_id=$" + strconv.Itoa(i) + ")"
+        for i = 2; i < len(types); i++ {
+            query += "type_id=$" + strconv.Itoa(i) + " OR "
             params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
-            result["data"] = db.Query(query, params)
         }
+
+        query += "type_id=$" + strconv.Itoa(i) + ")"
+        params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
+        result["data"] = db.Query(query, params)
     }
 
     response, err := json.Marshal(result)
@@ -132,11 +132,9 @@ func (this *Handler) GetListHistoryEvents() {
 }
 
 func (this *Handler) SaveUserRequest() {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
-        return
-    }
-
-    var response interface{}
+    var param_val_ids []interface{}
+    var result string
+    var reg_id int
 
     var data map[string]interface{}
     decoder := json.NewDecoder(this.Request.Body)
@@ -145,83 +143,95 @@ func (this *Handler) SaveUserRequest() {
         return
     }
 
-    var person_id int
-    user_id := sessions.GetValue("id", this.Request)
-    if user_id == nil {
-        http.Redirect(this.Response, this.Request, "/", 401)
+    event_id := int(data["event_id"].(float64))
+
+    if event_id == 1 && sessions.CheackSession(this.Response, this.Request) {
         return
     }
-    user := GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": user_id})
-    err = db.SelectRow(user, []string{"person_id"}, "").Scan(&person_id)
-    if err != nil {
-        response = map[string]interface{}{"result": err.Error()}
-    } else {
-        event_id := int(data["event_id"].(float64))
-        personsEvents := GetModel("persons_events")
-        personsEvents.LoadWherePart(map[string]interface{}{"person_id": person_id, "event_id": event_id})
-        person := db.Select(personsEvents, []string{"id"}, "AND")
 
-        model := GetModel("persons_events")
-        if len(person) == 0 {
-            model.LoadModelData(map[string]interface{}{
-                "person_id": person_id,
-                "event_id":  event_id,
-                "reg_date":  time.Now().Format("2006-01-02"),
-                "last_date": time.Now().Format("2006-01-02"),
-            })
-            db.QueryInsert_(model, "")
-            response = map[string]interface{}{"result": "ok"}
-
-        } else {
-            model.LoadModelData(map[string]interface{}{
-                "id":        strconv.Itoa(int(person[0].(map[string]interface{})["id"].(int64))),
-                "last_date": time.Now().Format("2006-01-02"),
-            })
-            db.QueryUpdate_(model, "")
-            response = map[string]interface{}{"result": "ok"}
+    if sessions.CheackSession(this.Response, this.Request) {
+        user_id := sessions.GetValue("id", this.Request)
+        if user_id == nil {
+            http.Redirect(this.Response, this.Request, "/", 401)
+            return
         }
 
-        for _, element := range data["data"].([]interface{}) {
-            param_id := element.(map[string]interface{})["id"]
-            event_type_id := element.(map[string]interface{})["event_type_id"]
-            value := element.(map[string]interface{})["value"]
-
-            paramValues := GetModel("param_values")
-
-            if db.IsExists_(
-                "param_values",
-                []string{"person_id", "event_id", "param_id", "event_type_id"},
-                []interface{}{person_id, event_id, param_id, event_type_id}) {
-
-                paramValues.LoadModelData(map[string]interface{}{"value": value})
-                paramValues.LoadWherePart(map[string]interface{}{
-                    "person_id":     person_id,
-                    "event_id":      event_id,
-                    "param_id":      param_id,
-                    "event_type_id": event_type_id,
-                })
-                db.QueryUpdate_(paramValues, "AND")
-
-            } else {
-                paramValues.LoadModelData(map[string]interface{}{
-                    "person_id":     person_id,
-                    "event_id":      event_id,
-                    "param_id":      param_id,
-                    "event_type_id": event_type_id,
-                    "value":         value,
-                })
-                db.QueryInsert_(paramValues, "")
+        var face_id int
+        face := GetModel("faces")
+        face.LoadWherePart(map[string]interface{}{"user_id": user_id})
+        err = db.SelectRow(face, []string{"id"}, "").Scan(&face_id)
+        if err != nil {
+            response, err := json.Marshal(map[string]interface{}{"result": err.Error()})
+            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
+                return
             }
+            fmt.Fprintf(this.Response, "%s", string(response))
+            return
         }
+
+        reg := GetModel("registrations")
+        reg.LoadWherePart(map[string]interface{}{"face_id": face_id})
+        err = db.SelectRow(reg, []string{"id"}, "").Scan(&reg_id)
+        if err != nil {
+            response, err := json.Marshal(map[string]interface{}{"result": err.Error()})
+            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
+                return
+            }
+            fmt.Fprintf(this.Response, "%s", string(response))
+            return
+        }
+
+        var event_reg_id int
+        eventsRegs := GetModel("events_regs")
+        eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
+        err := db.SelectRow(eventsRegs, []string{"id"}, "AND").Scan(&event_reg_id)
+
+        if err != sql.ErrNoRows {
+            response, err := json.Marshal(map[string]interface{}{"result": "Вы уже заполняли эту анкету."})
+            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
+                return
+            }
+            fmt.Fprintf(this.Response, "%s", string(response))
+            return
+        } else {
+            db.QueryInsert_(eventsRegs, "")
+        }
+
+        param_val_ids, _, _ = InsertUserParams(data["data"].([]interface{}))
+
+    } else if event_id == 1 {
+        var userLogin, userPass string
+        param_val_ids, userLogin, userPass = InsertUserParams(data["data"].([]interface{}))
+
+        result, reg_id = this.HandleRegister_(userLogin, userPass, "user")
+        if result != "ok" {
+            response, err := json.Marshal(map[string]interface{}{"result": result})
+            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
+                return
+            }
+            fmt.Fprintf(this.Response, "%s", string(response))
+            return
+        }
+        eventsRegs := GetModel("events_regs")
+        eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
+        db.QueryInsert_(eventsRegs, "")
     }
 
-    result, err := json.Marshal(response)
+    for _, v := range param_val_ids {
+        regParamValue := GetModel("reg_param_vals")
+        regParamValue.LoadModelData(map[string]interface{}{
+            "reg_id":        reg_id,
+            "event_id":      event_id,
+            "event_type_id": v.(map[string]int)["event_type_id"],
+            "param_val_id":  v.(map[string]int)["param_val_id"]})
+        db.QueryInsert_(regParamValue, "")
+    }
+
+    response, err := json.Marshal(map[string]interface{}{"result": "ok"})
     if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
         return
     }
-
-    fmt.Fprintf(this.Response, "%s", string(result))
+    fmt.Fprintf(this.Response, "%s", string(response))
 }
 
 func (this *Handler) GetRequest(tableName, id string) {
@@ -297,4 +307,42 @@ func MegoJoin(tableName, id string) RequestModel {
     }
 
     return RequestModel{E: E, T: T, F: F, P: P}
+}
+
+func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
+    param_val_ids := make([]interface{}, 0)
+    userLogin := ""
+    userPass := ""
+
+    for _, element := range data {
+        param_id, err := strconv.Atoi(element.(map[string]interface{})["id"].(string))
+        if err != nil {
+
+        }
+        event_type_id, err := strconv.Atoi(element.(map[string]interface{})["event_type_id"].(string))
+        if err != nil {
+
+        }
+        value := element.(map[string]interface{})["value"].(string)
+
+        if param_id == 1 {
+            userLogin = value
+            continue
+        } else if param_id == 2 || param_id == 3 {
+            userPass = value
+            continue
+        }
+
+        var param_val_id int
+        paramValues := GetModel("param_values")
+        paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": value})
+        db.QueryInsert_(paramValues, "RETURNING id").Scan(&param_val_id)
+
+        item := make(map[string]int, 2)
+        item["param_val_id"] = param_val_id
+        item["event_type_id"] = event_type_id
+        param_val_ids = append(param_val_ids, item)
+    }
+
+    return param_val_ids, userLogin, userPass
 }

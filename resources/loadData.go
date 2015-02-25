@@ -38,30 +38,21 @@ func Load() {
 
 func loadUsers() {
     base := new(controllers.BaseController)
-    firstNamesFemaleRussian, _ := ioutil.ReadFile("./resources/first-name-female")
-    firstNamesMaleRussian, _ := ioutil.ReadFile("./resources/first-name-male")
-    lastNamesFemaleRussian, _ := ioutil.ReadFile("./resources/last-name-female")
-    lastNamesMaleRussian, _ := ioutil.ReadFile("./resources/last-name-male")
-    genders := []string{"male", "females"}
     for i := 0; i < USER_COUNT; i++ {
         rand.Seed(int64(i))
-        gender := genders[rand.Intn(2)]
-        //emailProviders := []string{"@gmail.com", "@hotmail.com", "@yandex.ru", "@mail.com"}
-        var firstNameSource []byte
-        var lastNameSource []byte
-        if gender == "male" {
-            firstNameSource = firstNamesMaleRussian
-            lastNameSource = lastNamesMaleRussian
-        } else {
-            firstNameSource = firstNamesFemaleRussian
-            lastNameSource = lastNamesFemaleRussian
+        result, reg_id := base.Handler().HandleRegister_("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "user")
+        if result == "ok" {
+            eventsRegs := controllers.GetModel("events_regs")
+            eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
+            db.QueryInsert_(eventsRegs, "")
         }
-        firstName := strings.TrimSpace(strings.Split(string(firstNameSource), "\n")[rand.Intn(USER_COUNT)])
-        lastName := strings.TrimSpace(strings.Split(string(lastNameSource), "\n")[rand.Intn(USER_COUNT)])
-        //email := firstName + "_" + lastName + strconv.Itoa(rand.Intn(1024)) + emailProviders[len(emailProviders)-1]
-        base.Handler().HandleRegister("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "user", firstName, lastName)
     }
-    base.Handler().HandleRegister("admin", "password", "admin", "", "")
+    result, reg_id := base.Handler().HandleRegister_("admin", "password", "admin")
+    if result == "ok" {
+        eventsRegs := controllers.GetModel("events_regs")
+        eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
+        db.QueryInsert_(eventsRegs, "")
+    }
 }
 
 func loadEvents() {

@@ -49,13 +49,6 @@ func (this *Handler) Index() {
     }
 
     switch data["action"] {
-    case "register":
-        login, password := data["login"].(string), data["password"].(string)
-        fname, lname := data["fname"].(string), data["lname"].(string)
-        response = this.HandleRegister(login, password, "user", fname, lname)
-        fmt.Fprintf(this.Response, "%s", response)
-        break
-
     case "login":
         response = this.HandleLogin(data["login"].(string), data["password"].(string))
         fmt.Fprintf(this.Response, "%s", response)

@@ -141,13 +141,17 @@ func QueryInsert_(m interface{}, extra string) *sql.Row {
     n := tFields.NumField()
     p := make([]interface{}, n-1)
 
-    for i = 1; i < n-1; i++ {
+    for i = 1; i < n; i++ {
         query += tFields.Field(i).Tag.Get("name") + ", "
-        p[i-1], _ = utils.ConvertTypeModel(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
+        v, ok := utils.ConvertTypeModel(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
+        if !ok && tFields.Field(i).Tag.Get("null") == "NULL" {
+            continue
+        }
+        p[i-1] = v
     }
 
-    p[i-1], _ = utils.ConvertTypeModel(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
-    query += tFields.Field(i).Tag.Get("name") + ") VALUES (%s) %s;"
+    query = query[0:len(query)-2]
+    query += ") VALUES (%s) %s;"
 
     return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
 }
@@ -198,11 +202,12 @@ func IsExists_(tableName string, fields []string, params []interface{}) bool {
     query := "SELECT %s FROM %s WHERE %s;"
     f := strings.Join(fields, ", ")
     p := strings.Join(MakePairs(fields), " AND ")
-    log.Println(fmt.Sprintf(query, f, tableName, p))
+
     var result string
     row := QueryRow(fmt.Sprintf(query, f, tableName, p), params)
     err := row.Scan(&result)
-    return err != sql.ErrNoRows
+
+    return err != sql.ErrNoRows && result != ""
 }
 
 func MakeParams(n int) []string {

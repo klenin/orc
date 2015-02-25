@@ -1,76 +1,45 @@
 ﻿{{define "index"}}
+
 {{template "header"}}
 
 <script type="text/javascript">
-$(document).ready(function(){
-    $("ul#navigation li a").click(function() {
-        $("ul#navigation li").removeClass("selected");
-        $(this).parents().addClass("selected");
-        return false;
+    $(document).ready(function(){
+        $("ul#navigation li a").click(function() {
+            $("ul#navigation li").removeClass("selected");
+            $(this).parents().addClass("selected");
+            return false;
+        });
     });
-});
 </script>
 
 <div id="container">
 
-<div id="wrap">
-    <ul id="navigation">
-        <li><a href="#" class="active">О системе</a></li>
-        <li><a href="#">Вход</a></li>
-        <li><a href="#">Регистрация</a></li>
-    </ul>
+    <div id="wrap">
+        <ul id="navigation">
+            <li><a href="#" class="active">О системе</a></li>
+            <li><a href="#">Вход</a></li>
+        </ul>
 
-    <div id="content">
-        <div id="tab1">
-            <h3>Что это такое и как работает?</h3>
-            <p>
-                <strong>Orc</strong> - web-сервис для учета участников соревновательных мероприятий.
-            </p>
-            <h3>Какие проблемы решает?</h3>
-            <p>...</p>
+        <div id="content">
+            <div id="tab1">
+                <p>
+                    <strong>Orc</strong> - web-сервис для учета участников мероприятий.
+                </p>
+            </div>
+
+            <div id="tab2">
+                {{template "login"}}
+            </div>
         </div>
 
-        <div id="tab2">
-            <form>
-                <label for="username">Логин</label>
-                <input type="text" id="username" name="login"/>
-
-                <label for="password">Пароль</label>
-                <input type="password" id="password" name="password"/>
-<br/>
-                <input type="button" value="вход" id="login-btn" name="submit"/>
-            </form>
-        </div>
-
-        <div id="tab3">
-            <form>
-                <label for="fname">Фамилия</label>
-                <input type="text" id="fname" name="login"/>
-
-                <label for="lname">Имя</label>
-                <input type="text" id="lname" name="login"/>
-
-                <label for="pname">Отчество</label>
-                <input type="text" id="pname" name="login"/>
-
-                <label for="username">Логин</label>
-                <input type="text" id="username" name="login"/>
-
-                <label for="password">Пароль</label>
-                <input type="password" id="password" name="password"/>
-<br/>
-                <input type="button" value="регистрация" id="register-btn" name="submit"/>
-            </form>
-        </div>
-
+        <div id="server-answer"></div>
     </div>
 
-    <div id="server-answer"></div>
-</div>
-
     <p><i>Открытые мероприятия:</i></p>
-
     <div id="list-events"></div>
 
+</div>
+
 {{template "footer"}}
+
 {{end}}

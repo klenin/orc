@@ -53,27 +53,15 @@ function(utils) {
     };
 
     function jsonHandle(action, callback) {
-        if (action == "logout") {
-            var js = {
-                "action": "logout",
-            }
+        var js = {};
+        js["action"] = action;
 
-        } else if (action == "login") {
-            var js = {
-                "action": action,
-                "login": $("#tab2 #username").val(),
-                "password": $("#password").val(),
-            };
+        if (action == "login") {
+            js["login"] = $("#tab2 #username").val();
+            js["password"] = $("#password").val();
 
-        } else if (action == "register") {
-            var js = {
-                "action": action,
-                "login": $("#tab3 #username").val(),
-                "password": $("#tab3 #password").val(),
-                "fname": $("#tab3 #fname").val(),
-                "lname": $("#tab3 #lname").val(),
-                "pname": $("#tab3 #pname").val(),
-            };
+            // js["login"] = "admin";
+            // js["password"] = "password";
         }
 
         utils.postRequest(js, callback, "/handler");

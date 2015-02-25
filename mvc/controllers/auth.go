@@ -12,44 +12,6 @@ import (
 
 const HASH_SIZE = 32
 
-func (this *Handler) HandleRegister(login, password, role, fname, lname string) string {
-    result := map[string]string{"result": "ok"}
-    salt := strconv.Itoa(int(time.Now().Unix()))
-    pass := utils.GetMD5Hash(password + salt)
-
-    passHasInvalidChars := false
-    for i := 0; i < len(password); i++ {
-        if strconv.IsPrint(rune(password[i])) == false {
-            passHasInvalidChars = true
-            break
-        }
-    }
-
-    if db.IsExists_("users", []string{"login"}, []interface{}{login}) == true {
-        result["result"] = "loginExists"
-    } else if !utils.MatchRegexp("^[a-zA-Z0-9]{2,36}$", login) {
-        result["result"] = "badLogin"
-    } else if !utils.MatchRegexp("^.{6,36}$", password) || passHasInvalidChars {
-        result["result"] = "badPassword"
-    } else {
-        var p_id int
-        person := GetModel("persons")
-        person.LoadModelData(map[string]interface{}{"fname": fname, "lname": lname})
-        db.QueryInsert_(person, "RETURNING id").Scan(&p_id)
-
-        user := GetModel("users")
-        user.LoadModelData(map[string]interface{}{"login": login, "pass": pass, "salt": salt, "role": role, "person_id": p_id})
-        db.QueryInsert_(user, "")
-    }
-
-    response, err := json.Marshal(result)
-    if utils.HandleErr("[Handler::HandleRegister] Marshal: ", err, this.Response) {
-        return ""
-    }
-
-    return string(response)
-}
-
 func (this *Handler) HandleLogin(login, pass string) string {
     var id int
     var passHash, salt string
@@ -92,4 +54,44 @@ func (this *Handler) HandleLogout() string {
     }
 
     return string(response)
+}
+
+func (this *Handler) HandleRegister_(login, password, role string) (result string, reg_id int) {
+    result = "ok"
+    salt := strconv.Itoa(int(time.Now().Unix()))
+    pass := utils.GetMD5Hash(password + salt)
+
+    passHasInvalidChars := false
+    for i := 0; i < len(password); i++ {
+        if strconv.IsPrint(rune(password[i])) == false {
+            passHasInvalidChars = true
+            break
+        }
+    }
+
+    if db.IsExists_("users", []string{"login"}, []interface{}{login}) == true {
+        result = "loginExists"
+    } else if !utils.MatchRegexp("^[a-zA-Z0-9]{2,36}$", login) {
+        result = "badLogin"
+    } else if !utils.MatchRegexp("^.{6,36}$", password) || passHasInvalidChars {
+        result = "badPassword"
+    } else {
+        var user_id int
+        user := GetModel("users")
+        user.LoadModelData(map[string]interface{}{"login": login, "pass": pass, "salt": salt, "role": role})
+        db.QueryInsert_(user, "RETURNING id").Scan(&user_id)
+
+        var face_id int
+        face := GetModel("faces")
+        face.LoadModelData(map[string]interface{}{"user_id": user_id})
+        db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
+
+        registration := GetModel("registrations")
+        registration.LoadModelData(map[string]interface{}{"face_id": face_id})
+        db.QueryInsert_(registration, "RETURNING id").Scan(&reg_id)
+
+        return result, reg_id
+    }
+
+    return result, -1
 }

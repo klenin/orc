@@ -50,7 +50,8 @@ function(utils, datepicker) {
             || data["type"] === "city"
             || data["type"] === "street"
             || data["type"] === "building"
-            || data["type"] === "text") {
+            || data["type"] === "text"
+            || data["type"] === "password") {
             block = $("<input/>", {type: data["type"]});
             block.attr("id", data["id"]);
             block.attr("event_type_id", event_type_id);
@@ -164,8 +165,12 @@ function(utils, datepicker) {
                 "form_ids": F_ids,
             },
             function(response) {
-                if (response["result"] != "ok") {
+                if (response["result"] !== "ok" && response["result"] !== "no") {
                     $("#server-answer").text(response["result"]).css("color", "red");
+                    return;
+
+                } else if (response["result"] === "no") {
+                    $("#history").css("visibility", "hidden");
                     return;
                 }
 
@@ -196,7 +201,10 @@ function(utils, datepicker) {
             function(data) {
                 $("#now form").css("visibility", "hidden");
                 if (data["result"] == "ok") {
-                    $("#now #server-answer").text("Анкета отправлена.").css("color", "green");
+                    $("#now #server-answer").text("Запрос успешно выполнен.").css("color", "green");
+                    $("div #history").hide();
+                } else {
+                    $("#now #server-answer").text(data["result"]).css("color", "red");
                     $("div #history").hide();
                 }
             },
