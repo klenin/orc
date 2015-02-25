@@ -89,38 +89,42 @@ func (this *Handler) GetListHistoryEvents() {
 
     ids := make(map[string]interface{}, 1)
     ids["form_id"] = make([]interface{}, 0)
-    for _, v := range data["form_ids"].(map[string]interface{})["form_id"].([]interface{}) {
-        ids["form_id"] = append(ids["form_id"].([]interface{}), int(v.(float64)))
-    }
-
-    formsTypes := GetModel("forms_types")
-    formsTypes.LoadWherePart(ids)
-    types := db.Select(formsTypes, []string{"type_id"}, "OR")
-
-    if len(types) != 0 {
-
-        query := `SELECT DISTINCT events.id, events.name FROM events
-            inner join events_types on events_types.event_id = events.id
-            inner join event_types on events_types.type_id = event_types.id
-            inner join events_regs on events_regs.event_id = events.id
-            inner join registrations on registrations.id = events_regs.reg_id
-            inner join faces on faces.id = registrations.face_id
-            inner join users on users.id = faces.user_id
-            WHERE users.id=$1 AND events.id IN (SELECT DISTINCT event_id FROM events_types WHERE `
-
-        var i int
-        var params []interface{}
-
-        params = append(params, user_id)
-
-        for i = 2; i < len(types); i++ {
-            query += "type_id=$" + strconv.Itoa(i) + " OR "
-            params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
+    if data["form_ids"].(map[string]interface{})["form_id"] == nil {
+        result["result"] = "no"
+    } else {
+        for _, v := range data["form_ids"].(map[string]interface{})["form_id"].([]interface{}) {
+            ids["form_id"] = append(ids["form_id"].([]interface{}), int(v.(float64)))
         }
 
-        query += "type_id=$" + strconv.Itoa(i) + ")"
-        params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
-        result["data"] = db.Query(query, params)
+        formsTypes := GetModel("forms_types")
+        formsTypes.LoadWherePart(ids)
+        types := db.Select(formsTypes, []string{"type_id"}, "OR")
+
+        if len(types) != 0 {
+
+            query := `SELECT DISTINCT events.id, events.name FROM events
+                inner join events_types on events_types.event_id = events.id
+                inner join event_types on events_types.type_id = event_types.id
+                inner join events_regs on events_regs.event_id = events.id
+                inner join registrations on registrations.id = events_regs.reg_id
+                inner join faces on faces.id = registrations.face_id
+                inner join users on users.id = faces.user_id
+                WHERE users.id=$1 AND events.id IN (SELECT DISTINCT event_id FROM events_types WHERE `
+
+            var i int
+            var params []interface{}
+
+            params = append(params, user_id)
+
+            for i = 2; i < len(types); i++ {
+                query += "type_id=$" + strconv.Itoa(i) + " OR "
+                params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
+            }
+
+            query += "type_id=$" + strconv.Itoa(i) + ")"
+            params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
+            result["data"] = db.Query(query, params)
+        }
     }
 
     response, err := json.Marshal(result)
