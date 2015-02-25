@@ -1,9 +1,8 @@
 package models
 
 type Registration struct {
-    Id            int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    FaceId        int `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
-    ParamValuesId int `name:"param_values_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"param_values" refField:"id" refFieldShow:"id"`
+    Id     int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    FaceId int `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
 }
 
 func (c *ModelManager) Registrations() *RegistrationModel {
