@@ -86,17 +86,8 @@ function(utils, datepicker) {
     function getFormData(name) {
         var values = [];
 
-        var $inputs = $("#now form #events :input[for-saving=true]");
-        $inputs.each(function() {
-            values.push({
-                "value": $(this).val(),
-                "id": $(this).attr("id"),
-                "event_type_id": $(this).attr("event_type_id"),
-            });
-        });
-
-        var $textareas = $("#now form textarea[for-saving=true]");
-        $textareas.each(function() {
+        var $obj = $("#now form #events [for-saving=true]");
+        $obj.each(function() {
             values.push({
                 "value": $(this).val(),
                 "id": $(this).attr("id"),
