@@ -34,18 +34,18 @@ func (this *Handler) GetHistoryRequest() {
     user_id := sessions.GetValue("id", this.Request)
     event_id := data["event_id"]
 
-    query := `select param_id, params.name, event_types.id as event_type_id, param_types.name as type, param_values.value, forms.id from events
-            inner join events_types on events_types.event_id = events.id
-            inner join event_types on events_types.type_id = event_types.id
+    query := `select param_id, params.name, param_types.name as type, param_values.value, forms.id as form_id from events
+            inner join events_forms on events_forms.event_id = events.id
+            inner join forms on events_forms.form_id = forms.id
+
             inner join events_regs on events_regs.event_id = events.id
             inner join registrations on registrations.id = events_regs.reg_id
             inner join reg_param_vals on reg_param_vals.reg_id = registrations.id
                                      and reg_param_vals.event_id = events.id
-                                     and reg_param_vals.event_type_id = event_types.id
+
             inner join faces on faces.id = registrations.face_id
             inner join users on users.id = faces.user_id
-            inner join forms_types on forms_types.type_id = event_types.id
-            inner join forms on forms.id = forms_types.form_id
+
             inner join params on params.form_id = forms.id
             inner join param_types on param_types.id = params.param_type_id
             inner join param_values on param_values.param_id = params.id and reg_param_vals.param_val_id = param_values.id
@@ -96,33 +96,31 @@ func (this *Handler) GetListHistoryEvents() {
             ids["form_id"] = append(ids["form_id"].([]interface{}), int(v.(float64)))
         }
 
-        formsTypes := GetModel("forms_types")
-        formsTypes.LoadWherePart(ids)
-        types := db.Select(formsTypes, []string{"type_id"}, "OR")
+        eventsForms := GetModel("events_forms")
+        eventsForms.LoadWherePart(ids)
+        events := db.Select(eventsForms, []string{"event_id"}, "OR")
 
-        if len(types) != 0 {
-
+        if len(events) != 0 {
             query := `SELECT DISTINCT events.id, events.name FROM events
-                inner join events_types on events_types.event_id = events.id
-                inner join event_types on events_types.type_id = event_types.id
+                inner join events_forms on events_forms.event_id = events.id
+                inner join forms on events_forms.form_id = forms.id
                 inner join events_regs on events_regs.event_id = events.id
                 inner join registrations on registrations.id = events_regs.reg_id
                 inner join faces on faces.id = registrations.face_id
                 inner join users on users.id = faces.user_id
-                WHERE users.id=$1 AND events.id IN (SELECT DISTINCT event_id FROM events_types WHERE `
+                WHERE users.id=$1 AND events.id IN (`
 
             var i int
             var params []interface{}
-
             params = append(params, user_id)
 
-            for i = 2; i < len(types); i++ {
-                query += "type_id=$" + strconv.Itoa(i) + " OR "
-                params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
+            for i = 2; i < len(events); i++ {
+                query += "$" + strconv.Itoa(i) + ", "
+                params = append(params, int(events[i-2].(map[string]interface{})["event_id"].(int64)))
             }
 
-            query += "type_id=$" + strconv.Itoa(i) + ")"
-            params = append(params, int(types[i-2].(map[string]interface{})["type_id"].(int64)))
+            query += "$" + strconv.Itoa(i) + ")"
+            params = append(params, int(events[i-2].(map[string]interface{})["event_id"].(int64)))
             result["data"] = db.Query(query, params)
         }
     }
@@ -226,7 +224,6 @@ func (this *Handler) SaveUserRequest() {
         regParamValue.LoadModelData(map[string]interface{}{
             "reg_id":        reg_id,
             "event_id":      event_id,
-            "event_type_id": v.(map[string]int)["event_type_id"],
             "param_val_id":  v.(map[string]int)["param_val_id"]})
         db.QueryInsert_(regParamValue, "")
     }
@@ -258,7 +255,6 @@ func (this *Handler) GetRequest(tableName, id string) {
 
 func MegoJoin(tableName, id string) RequestModel {
     var E []interface{}
-    var T []interface{}
     var F []interface{}
     var P []interface{}
 
@@ -267,50 +263,31 @@ func MegoJoin(tableName, id string) RequestModel {
     E = db.Select(event, []string{"id", "name"}, "")
 
     query := db.InnerJoin(
-        []string{"t.id", "t.name"},
-        "events_types",
-        "e_t",
-        []string{"event_id", "type_id"},
-        []string{"events", "event_types"},
-        []string{"e", "t"},
+        []string{"f.id", "f.name"},
+        "events_forms",
+        "e_f",
+        []string{"event_id", "form_id"},
+        []string{"events", "forms"},
+        []string{"e", "f"},
         []string{"id", "id"},
         "where e.id=$1")
-    T = db.Query(query, []interface{}{id})
+    F = db.Query(query, []interface{}{id})
 
-    for i := 0; i < len(T); i++ {
-        id := T[i].(map[string]interface{})["id"]
+    for j := 0; j < len(F); j++ {
+        f_id := F[j].(map[string]interface{})["id"]
         query := db.InnerJoin(
-            []string{"f.id", "f.name"},
-            "forms_types",
-            "f_t",
-            []string{"form_id", "type_id"},
-            []string{"forms", "event_types"},
-            []string{"f", "t"},
+            []string{"p.id", "p.name", "p_t.name as type"},
+            "params",
+            "p",
+            []string{"form_id", "param_type_id"},
+            []string{"forms", "param_types"},
+            []string{"f", "p_t"},
             []string{"id", "id"},
-            "where t.id=$1")
-        F = append(F, db.Query(query, []interface{}{id}))
+            "where f.id=$1")
+        P = append(P, db.Query(query, []interface{}{f_id}))
     }
 
-    for i := 0; i < len(F); i++ {
-        var PP []interface{}
-        for j := 0; j < len(F[i].([]interface{})); j++ {
-            item := F[i].([]interface{})[j]
-            id := item.(map[string]interface{})["id"]
-            query := db.InnerJoin(
-                []string{"p.id", "p.name", "p_t.name as type"},
-                "params",
-                "p",
-                []string{"form_id", "param_type_id"},
-                []string{"forms", "param_types"},
-                []string{"f", "p_t"},
-                []string{"id", "id"},
-                "where f.id=$1")
-            PP = append(PP, db.Query(query, []interface{}{id}))
-        }
-        P = append(P, PP)
-    }
-
-    return RequestModel{E: E, T: T, F: F, P: P}
+    return RequestModel{E: E, F: F, P: P}
 }
 
 func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
@@ -320,10 +297,6 @@ func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
 
     for _, element := range data {
         param_id, err := strconv.Atoi(element.(map[string]interface{})["id"].(string))
-        if err != nil {
-            continue
-        }
-        event_type_id, err := strconv.Atoi(element.(map[string]interface{})["event_type_id"].(string))
         if err != nil {
             continue
         }
@@ -341,11 +314,7 @@ func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
         paramValues := GetModel("param_values")
         paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": value})
         db.QueryInsert_(paramValues, "RETURNING id").Scan(&param_val_id)
-
-        item := make(map[string]int, 2)
-        item["param_val_id"] = param_val_id
-        item["event_type_id"] = event_type_id
-        param_val_ids = append(param_val_ids, item)
+        param_val_ids = append(param_val_ids, map[string]int{"param_val_id": param_val_id})
     }
 
     return param_val_ids, userLogin, userPass

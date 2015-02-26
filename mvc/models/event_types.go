@@ -22,9 +22,9 @@ func (c *ModelManager) EventTypes() *EventTypesModel {
     model.Limit = "ALL"
     model.Offset = 0
 
-    model.Sub = true
-    model.SubTable = []string{"forms_types", "events_types"}
-    model.SubField = "type_id"
+    model.Sub = false
+    model.SubTable = nil
+    model.SubField = ""
 
     return model
 }

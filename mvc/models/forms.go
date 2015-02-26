@@ -21,7 +21,7 @@ func (c *ModelManager) Forms() *FormsModel {
     model.Offset = 0
 
     model.Sub = true
-    model.SubTable = []string{"forms_types"}
+    model.SubTable = []string{"events_forms"}
     model.SubField = "form_id"
 
     return model

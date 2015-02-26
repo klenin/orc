@@ -36,7 +36,6 @@ function(utils, datepicker) {
     var D = {{.}};
 
     var E = D.E;
-    var T = D.T;
     var F = D.F;
     var P = D.P;
 
@@ -98,55 +97,52 @@ function(utils, datepicker) {
         return values;
     }
 
-    function pushFormData(E, T, F, P, event_, events_) {
-       $("#" + event_).text(E[0]["name"]);
+    function pushFormData(E, F, P, event_, events_) {
+        console.log("E")
+        console.log(E)
+        console.log("F")
+        console.log(F)
+        console.log("P")
+        console.log(P)
 
-        var div_types = $("<div/>", {id: "event-" + E[0]["id"]});
+        $("#" + event_).text(E[0]["name"]);
 
-        var ul_types = $("<ul/>", {});
+        var div_forms = $("<div/>", {id: "event-" + E[0]["id"]});
+        var ul_forms = $("<ul/>", {});
 
-        $(div_types).append(ul_types);
-        $(div_types).appendTo("#" + events_);
+        $(div_forms).append(ul_forms);
+        $(div_forms).appendTo("#" + events_);
 
-        for (var i = 0; i < T.length; ++i) {
+        F_ids["form_id"] = []
 
-            var li_type = $("<li/>", {});
-            var a_type = $("<a/>", {href: "#" + "type-" + T[i]["id"]}).text(T[i]["name"]);
+        for (var i = 0; i < F.length; ++i) {
 
-            $(li_type).append(a_type);
-            $(ul_types).append(li_type);
+            var li_form = $("<li/>", {});
+            var a_form = $("<a/>", {href: "#" + "form-" + F[i]["id"]}).text(F[i]["name"]);
 
-            var div_tab_type = $("<div/>", {id: "type-" + T[i]["id"]});//div types
-            $(div_types).append(div_tab_type);
+            $(li_form).append(a_form);
+            $(ul_forms).append(li_form);
 
-            var div_forms = $("<div/>", {id: "forms-" + T[i]["id"]});
-            $(div_tab_type).append(div_forms);
+            var div_tab_form = $("<div/>", {id: "form-" + F[i]["id"]});
+            $(div_forms).append(div_tab_form);
 
-            F_ids["form_id"] = []
-            for (var j = 0; j < F[i].length; ++j) {
-                var a_form = $("<h4/>", {}).text(F[i][j]["name"]);
+            F_ids["form_id"].push(parseInt(F[i]["id"]));
 
-                F_ids["form_id"].push(parseInt(F[i][j]["id"]));
+            var div_params = $("<div/>", {id: "params-" + F[i]["id"]});
+            $(div_tab_form).append(div_params);
 
-                var div_tab_form = $("<div/>", {id: "form-" + F[i][j]["id"]})
-                    .append(a_form);
-                $(div_forms).append(div_tab_form);
+            var table = $("<table/>");
+            div_params.append(table);
 
-                var div_params = $("<div/>", {id: "params-" + T[i]["id"]});
-                $(div_tab_form).append(div_params);
-
-                var table = $("<table/>");
-                div_params.append(table);
-
-                for (var k = 0; k < P[i][j].length; k++) {
-                    var tr = $("<tr/>").appendTo(table);
-                    var td_1 = $("<td/>").appendTo(tr);
-                    $(td_1).append(drawParam(P[i][j][k], T[i]["id"], true));
-                    tr.append($("<td/>", {id: "export-param-"+P[i][j][k]["id"]}));
-                    tr.append($("<td/>", {id: "export-val-"+P[i][j][k]["id"]}));
-                }
+            for (var k = 0; k < P[i].length; k++) {
+                var tr = $("<tr/>").appendTo(table);
+                var td_1 = $("<td/>").appendTo(tr);
+                $(td_1).append(drawParam(P[i][k], F[i]["id"], true));
+                tr.append($("<td/>", {id: "export-param-"+P[i][k]["id"]}));
+                tr.append($("<td/>", {id: "export-val-"+P[i][k]["id"]}));
             }
         }
+
         $("#" + "event-" + E[0]["id"]).tabs();
     }
 
@@ -179,7 +175,7 @@ function(utils, datepicker) {
         );
     }
 
-    pushFormData(E, T, F, P, "event", "events");
+    pushFormData(E, F, P, "event", "events");
     getListHistoryEvents();
     kladr();
 
@@ -218,29 +214,29 @@ function(utils, datepicker) {
 
                 for (var i = 0; i < data.length; ++i) {
 
-                    var e_t_id = data[i]["event_type_id"];
+                    var f_id = data[i]["form_id"];
                     var p_id = data[i]["param_id"];
                     var p_v = data[i]["value"];
 
-                    $("#forms-"+e_t_id +" table #export-param-"+p_id+" input").remove();
-                    $("#forms-"+e_t_id +" table #export-val-"+p_id+" p").remove();
+                    $("#params-"+f_id +" table #export-param-"+p_id+" input").remove();
+                    $("#params-"+f_id +" table #export-val-"+p_id+" p").remove();
                     if (data[i]["value"] != "") {
-                        $("#forms-"+e_t_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
+                        $("#params-"+f_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
 
                         $("<input/>", {
-                            "id": "export-btn-"+e_t_id+"-"+p_id,
+                            "id": "export-btn-"+f_id+"-"+p_id,
                             "type": "button",
                             "value": "экспорт",
-                            "data-event-type-id": e_t_id,
+                            "data-event-type-id": f_id,
                             "data-param-id": p_id,
                             "data-param-val": p_v,
-                        }).appendTo("#forms-"+e_t_id+" table #export-param-"+p_id);
+                        }).appendTo("#params-"+f_id+" table #export-param-"+p_id);
 
-                        $("#export-btn-"+e_t_id+"-"+p_id).click(function() {
-                            var e_t_id = $(this).attr("data-event-type-id");
+                        $("#export-btn-"+f_id+"-"+p_id).click(function() {
+                            var f_id = $(this).attr("data-event-type-id");
                             var p_id = $(this).attr("data-param-id");
                             var p_v = $(this).attr("data-param-val");
-                            $("#forms-"+e_t_id+" table #"+p_id).val(p_v);
+                            $("#params-"+f_id+" table #"+p_id).val(p_v);
                         });
                     }
                 }

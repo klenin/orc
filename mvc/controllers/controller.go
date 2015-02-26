@@ -28,7 +28,6 @@ type Model struct {
 
 type RequestModel struct {
     E []interface{} //events
-    T []interface{} //event_types
     F []interface{} //forms
     P []interface{} //params
 }
@@ -50,8 +49,8 @@ func GetModel(tableName string) models.VirtEntity {
         return base.Forms()
     case "params":
         return base.Params()
-    case "forms_types":
-        return base.FormsTypes()
+    case "events_forms":
+        return base.EventsForms()
     case "param_values":
         return base.ParamValues()
     case "param_types":
