@@ -1,6 +1,31 @@
 define(["utils", "datepicker/datepicker"],
 function(utils, datepicker) {
 
+//check: change password-------------------------------------------------------
+    var valid = false;
+
+    $("#password-1").blur(function() {
+        var pattern = /^.{6,36}$/;
+        if (pattern.test($(this).val())){
+            $(this).css({"border": "2px solid green"});
+        } else {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+        }
+    });
+
+    $("#password-2").blur(function() {
+        var pattern = /^.{6,36}$/;
+        if (pattern.test($(this).val()) && $(this).val() === $("#password-1").val()){
+            valid = true;
+            $(this).css({"border": "2px solid green"});
+        } else {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+        }
+    });
+
+//-----------------------------------------------------------------------------
     function GetColModelItem(refData, refFields, field) {
         function timePicker(e) {
             $(e).timepicker({"timeFormat": "HH:mm"});
@@ -103,7 +128,8 @@ function(utils, datepicker) {
                         $(this).dialog("close");
                     } else {
                         $("#error").empty();
-                        $("#error").append("<strong>Значения не совпадают.</strong>");
+                        $("#error").append("Неверные значения паролей.\n"
+                            + "Пароль должен иметь длину от 6 до 36 символов.");
                         $("#error").dialog({
                             model: true,
                             buttons: {

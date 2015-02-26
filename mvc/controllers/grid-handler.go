@@ -180,7 +180,12 @@ func (this *GridHandler) ResetPassword() {
         return
     }
 
-    id, pass := request["id"].(int), request["pass"].(string)
+    pass := request["pass"].(string)
+
+    id, err :=  strconv.Atoi(request["id"].(string))
+
+    if err != nil {
+    }
 
     user := GetModel("users")
     user.LoadWherePart(map[string]interface{}{"id": id})
@@ -188,8 +193,7 @@ func (this *GridHandler) ResetPassword() {
     var salt string
     db.SelectRow(user, []string{"salt"}, "").Scan(&salt)
 
-    user = GetModel("users")
-    user.LoadModelData(map[string]interface{}{"id": id, "pass": utils.GetMD5Hash(pass + salt)})
+    user.LoadModelData(map[string]interface{}{"pass": utils.GetMD5Hash(pass + salt)})
     db.QueryUpdate_(user, "")
 
     response, err := json.Marshal(map[string]interface{}{"result": "ok"})

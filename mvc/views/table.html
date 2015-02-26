@@ -25,31 +25,6 @@ function(grid) {
 
     $("#logout-btn, #cabinet-btn").css("visibility", "visible");
 
-//check: change password-------------------------------------------------------
-    var valid = false;
-
-    $("#password-1").blur(function() {
-        var pattern = /^.{6,36}$/;
-        if (pattern.test($(this).val())){
-            $(this).css({"border": "2px solid green"});
-        } else {
-            valid = false;
-            $(this).css({"border": "2px solid red"});
-        }
-    });
-
-    $("#password-2").blur(function() {
-        var pattern = /^.{6,36}$/;
-        if (pattern.test($(this).val()) && $(this).val() === $("#password-1").val()){
-            valid = true;
-            $(this).css({"border": "2px solid green"});
-        } else {
-            valid = false;
-            $(this).css({"border": "2px solid red"});
-        }
-    });
-
-//-----------------------------------------------------------------------------
     var sameDate  = ["date_start", "date_finish", "reg_date", "last_date"];
     var refFields = {{.RefFields}};
     var refData   = {};
