@@ -187,7 +187,7 @@ func (this *Handler) SaveUserRequest() {
 
         var event_reg_id int
         eventsRegs := GetModel("events_regs")
-        eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
+        eventsRegs.LoadWherePart(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
         err := db.SelectRow(eventsRegs, []string{"id"}, "AND").Scan(&event_reg_id)
 
         if err != sql.ErrNoRows {
