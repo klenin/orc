@@ -173,11 +173,11 @@ function(grid) {
         );
 */
         if ({{.TableName}} == "users") {
-            $("#grid-table").jqGrid (
+            $("#grid-table").jqGrid(
                 "navButtonAdd",
                 "#grid-table-pager",
                 {
-                    caption: "", buttonicon: "ui-icon-key", title: "Смена пароля",
+                    caption: "", buttonicon: "ui-icon-key", title: "Сменить пароля",
                     onClickButton: grid.ResetPassword
                 }
             );
