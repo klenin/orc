@@ -14,7 +14,7 @@ func (c *ModelManager) RegParamVals() *RegParamValsModel {
     model.TableName = "reg_param_vals"
     model.Caption = "Регистрация-Мероприятие-Тип мероприятия-Значение параметра"
 
-    model.Columns = []string{"id", "reg_id", "event_id", "event_type_id", "param_val_id", "param_val_id"}
+    model.Columns = []string{"id", "reg_id", "event_id", "event_type_id", "param_val_id"}
     model.ColNames = []string{"ID", "Регистрация", "Мероприятие", "Тип мероприятия", "Значения параметра"}
 
     model.Fields = new(RegParamVal)
