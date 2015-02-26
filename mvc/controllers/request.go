@@ -321,11 +321,11 @@ func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
     for _, element := range data {
         param_id, err := strconv.Atoi(element.(map[string]interface{})["id"].(string))
         if err != nil {
-
+            continue
         }
         event_type_id, err := strconv.Atoi(element.(map[string]interface{})["event_type_id"].(string))
         if err != nil {
-
+            continue
         }
         value := element.(map[string]interface{})["value"].(string)
 
