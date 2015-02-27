@@ -3,12 +3,44 @@
 {{template "header"}}
 
 <script type="text/javascript">
+
+    function listEvents(data) {
+
+        if (data["result"] !== "ok") {
+            $("#server-answer").text(data["result"]).css("color", "red");
+            return;
+        }
+
+        for (i in data["data"]) {
+            var p = $("</p>", {});
+            $(p).append($("<a/>", {
+                text: data["data"][i]["name"],
+                href: "/handler/getrequest/event/" + data["data"][i]["id"],
+                class: "form-row",
+            }));
+            $(p).appendTo("div#list-events");
+        }
+    }
+
     $(document).ready(function(){
         $("ul#navigation li a").click(function() {
             $("ul#navigation li").removeClass("selected");
             $(this).parents().addClass("selected");
             return false;
         });
+
+        require(["utils"],
+        function(utils) {
+            utils.postRequest(
+                {
+                    "table": "events",
+                    "fields": ["id", "name"]
+                },
+                listEvents,
+                "/handler/geteventlist"
+            );
+        });
+
     });
 </script>
 

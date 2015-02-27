@@ -1,30 +1,7 @@
 ﻿require(["auth", "utils"],
 function(auth, utils) {
 
-    var valid = false;
-
-    function listEvents(data) {
-        for (i in data["data"]) {
-            var p = $("</p>", {});
-            $(p).append($("<a/>", {
-                text: data["data"][i]["name"],
-                href: "/handler/getrequest/event/" + data["data"][i]["id"],
-                class: "form-row",
-            }));
-            $(p).appendTo("div#list-events");
-        }
-    }
-
     $(document).ready(function() {
-        utils.postRequest(
-            {
-                "table": "events",
-                "fields": ["id", "name"]
-            },
-            listEvents,
-            "/handler/geteventlist"
-        );
-
         //by default
         $("#tab2").stop(false, false).show();
 
