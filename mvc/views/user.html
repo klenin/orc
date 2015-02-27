@@ -56,28 +56,6 @@
                 }
             });
         }
-
-        $("</br>").appendTo("#cabinet form");
-        $("<input/>", {
-            id: "save-btn",
-            name: "submit",
-            type: "button",
-            value: "Сохранить изменения",
-        }).appendTo("#cabinet form");
-
-        $("#save-btn").click(function() {
-            var data = getFormData();
-            utils.postRequest({
-                    "action": "editProfile",
-                    "id": id,
-                    "data": data,
-                    "table": "persons"
-                },
-                function() {
-                    $("#cabinet").css("visibility", "hidden");
-                    $("#server-answer").text("Изменения сохранены.").css("color", "green");
-                }, "/handler");
-        });
     });
 </script>
 

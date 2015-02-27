@@ -5,6 +5,7 @@ import (
     "crypto/rand"
     "encoding/base64"
     "encoding/hex"
+    "encoding/json"
     "fmt"
     "github.com/lib/pq"
     "log"
@@ -125,4 +126,22 @@ func GetRandSeq(size int) string {
     _, err := rand.Read(rb)
     HandleErr("utils.GetRandSeq: ", err, nil)
     return base64.URLEncoding.EncodeToString(rb)
+}
+
+func SendJSReply(result interface{}, responseWriter http.ResponseWriter) {
+    response, err := json.Marshal(result)
+    if HandleErr("[utils.SendJSReply] Marshal: ", err, responseWriter) {
+        fmt.Fprintf(responseWriter, "%s", err.Error())
+    } else {
+        fmt.Fprintf(responseWriter, "%s", string(response))
+    }
+}
+
+func ParseJS(r *http.Request, rw http.ResponseWriter) (request map[string]interface{}, err error) {
+    decoder := json.NewDecoder(r.Body)
+    err = decoder.Decode(&request)
+    if err != nil {
+        return nil, err
+    }
+    return request, nil
 }

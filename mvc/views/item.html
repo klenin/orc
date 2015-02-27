@@ -33,6 +33,8 @@
 <script type="text/javascript">
 require(["utils", "datepicker/datepicker"],
 function(utils, datepicker) {
+    var valid = false;
+
     var D = {{.}};
 
     var E = D.E;
@@ -73,7 +75,27 @@ function(utils, datepicker) {
             datepicker.initDatePicker(block);
         }
 
-        //block.val(data["value"]);
+
+        $("#3").blur(function() {
+            var pattern = /^.{6,36}$/;
+            if (pattern.test($(this).val())) {
+                $(this).css({"border": "2px solid green"});
+            } else {
+                valid = false;
+                $(this).css({"border": "2px solid red"});
+            }
+        });
+
+        $("#4").blur(function() {
+            var pattern = /^.{6,36}$/;
+            if (pattern.test($(this).val()) && $(this).val() === $("#3").val()) {
+                valid = true;
+                $(this).css({"border": "2px solid green"});
+            } else {
+                valid = false;
+                $(this).css({"border": "2px solid red"});
+            }
+        });
 
         var lable = $("<label/>", {
             text: data["name"]
@@ -153,12 +175,8 @@ function(utils, datepicker) {
             },
             function(response) {
                 if (response["result"] !== "ok" && response["result"] !== "no") {
-                    $("#server-answer").text(response["result"]).css("color", "red");
-                    return;
-
-                } else if (response["result"] === "no") {
+                    console.log("getListHistoryEvents: ", response["result"]);
                     $("#history").css("visibility", "hidden");
-                    return;
                 }
 
                 if (response["data"]) {
@@ -180,6 +198,10 @@ function(utils, datepicker) {
     kladr();
 
     $("#save-btn").click(function() {
+        if (!valid && E[0]["id"] == 1) {
+            return;
+        }
+
         utils.postRequest(
             {
                 "event_id": parseInt(E[0]["id"]),
@@ -187,13 +209,33 @@ function(utils, datepicker) {
             },
             function(data) {
                 $("#now form").css("visibility", "hidden");
-                if (data["result"] == "ok") {
+                if (data["result"] === "ok") {
                     $("#now #server-answer").text("Запрос успешно выполнен.").css("color", "green");
-                    $("div #history").hide();
+
+                } else if (data.result === "loginExists") {
+                    $("#now #server-answer").text("Такой логин уже существует.").css("color", "red");
+
+                } else if (data.result === "badLogin") {
+                    $("#now #server-answer").text("Логин может содержать буквы и/или "
+                        + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
+
+                } else if (data.result === "badPassword") {
+                    $("#now #server-answer").text("Пароль должен иметь длину от 6 "
+                        + "до 36 символов.").css("color", "red");
+
+                } else if (data.result === "alreadyFilled") {
+                    $("#now #server-answer").text("Анкета уже была заполнена.").css("color", "red");
+
+                } else if (data.result === "notAuthorized") {
+                    $("#now #server-answer").text("Пользователь не авторизован.").css("color", "red");
+
+                } else if (data.result === "authorized") {
+                    $("#now #server-answer").text("Пользователь уже авторизован.").css("color", "red");
+
                 } else {
                     $("#now #server-answer").text(data["result"]).css("color", "red");
-                    $("div #history").hide();
                 }
+                $("div #history").hide();
             },
             "/handler/saveuserrequest"
         );
@@ -205,8 +247,8 @@ function(utils, datepicker) {
                 "event_id": $("#h-events").find(":selected").attr("value")
             },
             function(response) {
-                if (response["result"] != "ok") {
-                    $("#server-answer").text(response["result"]).css("color", "red");
+                if (response["result"] === "notAuthorized") {
+                    $("#server-answer").text("Пользователь не авторизован.").css("color", "red");
                     return;
                 }
 
@@ -245,6 +287,7 @@ function(utils, datepicker) {
         );
     });
 });
+
 </script>
 
 {{template "footer"}}

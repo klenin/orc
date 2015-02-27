@@ -3,35 +3,30 @@ package controllers
 import (
     "database/sql"
     "encoding/json"
-    "fmt"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
-    "net/http"
     "strconv"
 )
 
 func (this *Handler) GetHistoryRequest() {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
+    user_id := sessions.GetValue("id", this.Request)
+
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+        utils.SendJSReply(map[string]interface{}{"result": "notAuthorized"}, this.Response)
         return
     }
-
-    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
-    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    this.Response.Header().Set("Content-type", "application/json")
 
     result := make(map[string]interface{}, 2)
     result["result"] = "ok"
 
-    var data map[string]string
-    decoder := json.NewDecoder(this.Request.Body)
-    err := decoder.Decode(&data)
-    if utils.HandleErr("[Handler::GetHistoryRequest] Decode: ", err, this.Response) {
+    data, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
-    user_id := sessions.GetValue("id", this.Request)
     event_id := data["event_id"]
 
     query := `select param_id, params.name, param_types.name as type, param_values.value, forms.id as form_id from events
@@ -52,38 +47,23 @@ func (this *Handler) GetHistoryRequest() {
             where users.id = $1 and events.id = $2;`
 
     result["data"] = db.Query(query, []interface{}{user_id, event_id})
-    response, err := json.Marshal(result)
-    if utils.HandleErr("[Handle::GetHistoryRequest] Marshal: ", err, this.Response) {
-        return
-    }
-
-    fmt.Fprintf(this.Response, "%s", string(response))
+    utils.SendJSReply(result, this.Response)
 }
 
 func (this *Handler) GetListHistoryEvents() {
-    if !sessions.CheackSession(this.Response, this.Request) {
-        response, err := json.Marshal(map[string]interface{}{"result": "no"})
-        if utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, this.Response) {
-            return
-        }
+    user_id := sessions.GetValue("id", this.Request)
 
-        fmt.Fprintf(this.Response, "%s", string(response))
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+        utils.SendJSReply(map[string]interface{}{"result": "notAuthorized"}, this.Response)
         return
     }
 
     result := make(map[string]interface{}, 2)
     result["result"] = "ok"
 
-    var data map[string]interface{}
-    decoder := json.NewDecoder(this.Request.Body)
-    err := decoder.Decode(&data)
-    if utils.HandleErr("[Handler::GetListHistoryEvents] Decode: ", err, this.Response) {
-        return
-    }
-
-    user_id := sessions.GetValue("id", this.Request)
-    if user_id == nil {
-        http.Redirect(this.Response, this.Request, "/", 401)
+    data, err := utils.ParseJS(this.Request, this.Response)
+    if  err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
@@ -125,12 +105,7 @@ func (this *Handler) GetListHistoryEvents() {
         }
     }
 
-    response, err := json.Marshal(result)
-    if utils.HandleErr("[Handle::GetListHistoryEvents] Marshal: ", err, this.Response) {
-        return
-    }
-
-    fmt.Fprintf(this.Response, "%s", string(response))
+    utils.SendJSReply(result, this.Response)
 }
 
 func (this *Handler) SaveUserRequest() {
@@ -138,36 +113,32 @@ func (this *Handler) SaveUserRequest() {
     var result string
     var reg_id int
 
-    var data map[string]interface{}
-    decoder := json.NewDecoder(this.Request.Body)
-    err := decoder.Decode(&data)
-    if utils.HandleErr("[Handler::SaveUserRequest] Decode :", err, this.Response) {
+    data, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
     event_id := int(data["event_id"].(float64))
 
     if event_id == 1 && sessions.CheackSession(this.Response, this.Request) {
+        utils.SendJSReply(map[string]interface{}{"result": "authorized"}, this.Response)
         return
     }
 
     if sessions.CheackSession(this.Response, this.Request) {
         user_id := sessions.GetValue("id", this.Request)
         if user_id == nil {
-            http.Redirect(this.Response, this.Request, "/", 401)
+            utils.SendJSReply(map[string]interface{}{"result": "notAuthorized"}, this.Response)
             return
         }
 
         var face_id int
         face := GetModel("faces")
         face.LoadWherePart(map[string]interface{}{"user_id": user_id})
-        err = db.SelectRow(face, []string{"id"}, "").Scan(&face_id)
+        err := db.SelectRow(face, []string{"id"}, "").Scan(&face_id)
         if err != nil {
-            response, err := json.Marshal(map[string]interface{}{"result": err.Error()})
-            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
-                return
-            }
-            fmt.Fprintf(this.Response, "%s", string(response))
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
 
@@ -175,25 +146,17 @@ func (this *Handler) SaveUserRequest() {
         reg.LoadWherePart(map[string]interface{}{"face_id": face_id})
         err = db.SelectRow(reg, []string{"id"}, "").Scan(&reg_id)
         if err != nil {
-            response, err := json.Marshal(map[string]interface{}{"result": err.Error()})
-            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
-                return
-            }
-            fmt.Fprintf(this.Response, "%s", string(response))
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
 
         var event_reg_id int
         eventsRegs := GetModel("events_regs")
         eventsRegs.LoadWherePart(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
-        err := db.SelectRow(eventsRegs, []string{"id"}, "AND").Scan(&event_reg_id)
+        err = db.SelectRow(eventsRegs, []string{"id"}, "AND").Scan(&event_reg_id)
 
         if err != sql.ErrNoRows {
-            response, err := json.Marshal(map[string]interface{}{"result": "Вы уже заполняли эту анкету."})
-            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
-                return
-            }
-            fmt.Fprintf(this.Response, "%s", string(response))
+            utils.SendJSReply(map[string]interface{}{"result": "alreadyFilled"}, this.Response)
             return
         } else {
             db.QueryInsert_(eventsRegs, "")
@@ -207,16 +170,16 @@ func (this *Handler) SaveUserRequest() {
 
         result, reg_id = this.HandleRegister_(userLogin, userPass, "user")
         if result != "ok" {
-            response, err := json.Marshal(map[string]interface{}{"result": result})
-            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
-                return
-            }
-            fmt.Fprintf(this.Response, "%s", string(response))
+            utils.SendJSReply(map[string]interface{}{"result": result}, this.Response)
             return
         }
         eventsRegs := GetModel("events_regs")
         eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
         db.QueryInsert_(eventsRegs, "")
+
+    } else {
+        utils.SendJSReply(map[string]interface{}{"result": "notAuthorized"}, this.Response)
+        return
     }
 
     for _, v := range param_val_ids {
@@ -228,11 +191,7 @@ func (this *Handler) SaveUserRequest() {
         db.QueryInsert_(regParamValue, "")
     }
 
-    response, err := json.Marshal(map[string]interface{}{"result": "ok"})
-    if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
-        return
-    }
-    fmt.Fprintf(this.Response, "%s", string(response))
+    utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
 
 func (this *Handler) GetRequest(tableName, id string) {

@@ -64,7 +64,7 @@ func GetModel(tableName string) models.VirtEntity {
     case "events_regs":
         return base.EventsRegs()
     }
-    panic("controller.GetModel: have no such table name")
+    return nil
 }
 
 func GetModelRefDate(model models.VirtEntity) (fields []string, result map[string]interface{}) {

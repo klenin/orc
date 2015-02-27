@@ -1,7 +1,6 @@
 package controllers
 
 import (
-    "encoding/json"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
@@ -11,7 +10,7 @@ import (
 
 const HASH_SIZE = 32
 
-func (this *Handler) HandleLogin(login, pass string) string {
+func (this *Handler) HandleLogin(login, pass string) interface{} {
     var id int
     var passHash, salt string
     result := make(map[string]interface{}, 1)
@@ -35,24 +34,15 @@ func (this *Handler) HandleLogin(login, pass string) string {
     } else {
         result["result"] = "badPassword"
     }
-    response, err := json.Marshal(result)
-    if utils.HandleErr("[Handler::HandleLogin] Marshal: ", err, this.Response) {
-        return ""
-    }
 
-    return string(response)
+    return result
 }
 
-func (this *Handler) HandleLogout() string {
+func (this *Handler) HandleLogout() interface{} {
     result := map[string]string{"result": "ok"}
     sessions.ClearSession(this.Response)
 
-    response, err := json.Marshal(result)
-    if utils.HandleErr("[Handler::HandleLogout] Marshal: ", err, this.Response) {
-        return ""
-    }
-
-    return string(response)
+    return result
 }
 
 func (this *Handler) HandleRegister_(login, password, role string) (result string, reg_id int) {

@@ -6,7 +6,7 @@ function(utils, datepicker) {
 
     $("#password-1").blur(function() {
         var pattern = /^.{6,36}$/;
-        if (pattern.test($(this).val())){
+        if (pattern.test($(this).val())) {
             $(this).css({"border": "2px solid green"});
         } else {
             valid = false;
@@ -16,7 +16,7 @@ function(utils, datepicker) {
 
     $("#password-2").blur(function() {
         var pattern = /^.{6,36}$/;
-        if (pattern.test($(this).val()) && $(this).val() === $("#password-1").val()){
+        if (pattern.test($(this).val()) && $(this).val() === $("#password-1").val()) {
             valid = true;
             $(this).css({"border": "2px solid green"});
         } else {

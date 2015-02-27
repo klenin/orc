@@ -68,13 +68,11 @@ func ClearSession(response http.ResponseWriter) {
 func CheackSession(response http.ResponseWriter, request *http.Request) bool {
     oldTime, ok := GetValue("time", request).(int)
     if ok != true || oldTime == 0 {
-        http.Redirect(response, request, "/", 401)
         return false
     } else {
         newTime := int(time.Now().Unix())
         if oldTime+lifetime < newTime {
             ClearSession(response)
-            http.Redirect(response, request, "/", 401)
             return false
         } else {
             setValue("time", newTime, request)

@@ -21,19 +21,23 @@ type GridHandler struct {
 }
 
 func (this *GridHandler) GetSubTable() {
-    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", 401)
         return
     }
 
-    var request map[string]string
-    decoder := json.NewDecoder(this.Request.Body)
-    err := decoder.Decode(&request)
-    if utils.HandleErr("[GridHandler::GetSubTable] Decode :", err, this.Response) {
+    if !this.isAdmin() {
         return
     }
 
-    model := GetModel(request["table"])
-    index, _ := strconv.Atoi(request["index"])
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(err.Error(), this.Response)
+        return
+    }
+
+    model := GetModel(request["table"].(string))
+    index, _ := strconv.Atoi(request["index"].(string))
     subModel := GetModel(model.GetSubTable(index))
     subModel.LoadWherePart(map[string]interface{}{model.GetSubField(): request["id"]})
     result := db.Select(subModel, subModel.GetColumns(), "")
@@ -55,7 +59,12 @@ func (this *GridHandler) GetSubTable() {
 }
 
 func (this *GridHandler) Load(tableName string) {
-    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", 401)
+        return
+    }
+
+    if !this.isAdmin() {
         return
     }
 
@@ -93,16 +102,16 @@ func (this *GridHandler) Load(tableName string) {
     result["total"] = totalPages
     result["records"] = count
 
-    response, err := json.Marshal(result)
-    if utils.HandleErr("[GridHandler::Load] Marshal: ", err, this.Response) {
-        return
-    }
-
-    fmt.Fprintf(this.Response, "%s", string(response))
+    utils.SendJSReply(result, this.Response)
 }
 
 func (this *GridHandler) Select(tableName string) {
-    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", 401)
+        return
+    }
+
+    if !this.isAdmin() {
         return
     }
 
@@ -129,12 +138,18 @@ func (this *GridHandler) Select(tableName string) {
 }
 
 func (this *GridHandler) Edit(tableName string) {
-    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", 401)
+        return
+    }
+
+    if !this.isAdmin() {
         return
     }
 
     model := GetModel(tableName)
     if model == nil {
+        utils.HandleErr("[Grid-Handler::Edit] GetModel: invalid model", nil, this.Response)
         return
     }
 
@@ -147,8 +162,8 @@ func (this *GridHandler) Edit(tableName string) {
     switch oper {
     case "edit":
         id, err := strconv.Atoi(this.Request.PostFormValue("id"))
-        if err != nil {
-            panic("[Grid-Handler::Edit] strconv.Atoi: " + err.Error())
+        if utils.HandleErr("[Grid-Handler::Edit] strconv.Atoi: ", err, this.Response) {
+            return
         }
         model.LoadModelData(params)
         model.LoadWherePart(map[string]interface{}{"id": id})
@@ -165,7 +180,12 @@ func (this *GridHandler) Edit(tableName string) {
 }
 
 func (this *GridHandler) ResetPassword() {
-    if !sessions.CheackSession(this.Response, this.Request) || !this.isAdmin() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", 401)
+        return
+    }
+
+    if !this.isAdmin() {
         return
     }
 
@@ -173,18 +193,17 @@ func (this *GridHandler) ResetPassword() {
     this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     this.Response.Header().Set("Content-type", "application/json")
 
-    var request map[string]interface{}
-    decoder := json.NewDecoder(this.Request.Body)
-    err := decoder.Decode(&request)
-    if utils.HandleErr("[Handler::ResetPassword] Decode :", err, this.Response) {
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(err.Error(), this.Response)
         return
     }
 
     pass := request["pass"].(string)
 
     id, err :=  strconv.Atoi(request["id"].(string))
-
-    if err != nil {
+    if utils.HandleErr("[Grid-Handler::ResetPassword] strconv.Atoi: ", err, this.Response) {
+        return
     }
 
     user := GetModel("users")
@@ -196,10 +215,7 @@ func (this *GridHandler) ResetPassword() {
     user.LoadModelData(map[string]interface{}{"pass": utils.GetMD5Hash(pass + salt)})
     db.QueryUpdate_(user, "")
 
-    response, err := json.Marshal(map[string]interface{}{"result": "ok"})
-    utils.HandleErr("[Handle::ResetPassword] Marshal: ", err, this.Response)
-
-    fmt.Fprintf(this.Response, "%s", string(response))
+    utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
 
 func (this *GridHandler) isAdmin() bool {

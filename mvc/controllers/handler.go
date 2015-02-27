@@ -2,8 +2,6 @@ package controllers
 
 import (
     "database/sql"
-    "encoding/json"
-    "fmt"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
@@ -20,64 +18,33 @@ type Handler struct {
 }
 
 func (this *Handler) GetEventList() {
-    var request map[string]interface{}
-    decoder := json.NewDecoder(this.Request.Body)
-    err := decoder.Decode(&request)
-    if utils.HandleErr("[Handler::GetEventList] Decode :", err, this.Response) {
-        return
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+    } else {
+        fields := request["fields"].([]interface{})
+        result := db.Select(GetModel(request["table"].(string)), utils.ArrayInterfaceToString(fields), "")
+        utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
     }
-
-    fields := request["fields"].([]interface{})
-    result := db.Select(GetModel(request["table"].(string)), utils.ArrayInterfaceToString(fields), "")
-
-    response, err := json.Marshal(map[string]interface{}{"data": result})
-    if utils.HandleErr("[Handle::GetEventList] Marshal: ", err, this.Response) {
-        return
-    }
-
-    fmt.Fprintf(this.Response, "%s", string(response))
 }
 
 func (this *Handler) Index() {
-    var data map[string]interface{}
-    var response string
+    var response interface{}
 
-    decoder := json.NewDecoder(this.Request.Body)
-    err := decoder.Decode(&data)
-    if utils.HandleErr("[Handler::Index] Decode :", err, this.Response) {
+    data, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
-    switch data["action"] {
+    switch data["action"].(string) {
     case "login":
         response = this.HandleLogin(data["login"].(string), data["password"].(string))
-        fmt.Fprintf(this.Response, "%s", response)
+        utils.SendJSReply(response, this.Response)
         break
 
     case "logout":
-        response = this.HandleLogout()
-        fmt.Fprintf(this.Response, "%s", response)
-        break
-
-    case "editProfile":
-        params := make(map[string]interface{}, 0)
-
-        for _, element := range data["data"].([]interface{}) {
-            elem := element.(map[string]interface{})
-            params[elem["name"].(string)] = elem["value"]
-        }
-
-        model := GetModel(data["table"].(string))
-        model.LoadModelData(params)
-        model.LoadWherePart(map[string]interface{}{"id":  int(data["id"].(float64))})
-        db.QueryUpdate_(model, "")
-
-        response, err := json.Marshal(map[string]interface{}{"result": "ok"})
-        if utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response) {
-            return
-        }
-
-        fmt.Fprintf(this.Response, "%s", string(response))
+        utils.SendJSReply(this.HandleLogout(), this.Response)
         break
 
     case "checkSession":
@@ -99,33 +66,27 @@ func (this *Handler) Index() {
             }
         }
 
-        response, err := json.Marshal(result)
-        if utils.HandleErr("[Handle::Index] Marshal: ", err, this.Response) {
-            return
-        }
-
-        fmt.Fprintf(this.Response, "%s", string(response))
+        utils.SendJSReply(result, this.Response)
         break
     }
 }
 
 func (this *Handler) ShowCabinet(tableName string) {
-    if flag := sessions.CheackSession(this.Response, this.Request); !flag {
-        return
-    }
-
     user_id := sessions.GetValue("id", this.Request)
-    if user_id == nil {
+
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
         http.Redirect(this.Response, this.Request, "/", 401)
         return
     }
+
     user := GetModel("users")
     user.LoadWherePart(map[string]interface{}{"id": user_id})
 
     var role string
     err := db.SelectRow(user, []string{"role"}, "").Scan(&role)
     if err != nil {
-        panic("ShowCabinet: " + err.Error())
+        utils.HandleErr("[Handle::ShowCabinet]: ", err, this.Response)
+        return
     }
 
     var model Model
@@ -137,23 +98,7 @@ func (this *Handler) ShowCabinet(tableName string) {
         face.LoadWherePart(map[string]interface{}{"user_id": user_id})
         err = db.SelectRow(face, []string{"id"}, "").Scan(&face_id)
         if err != nil {
-            response, err := json.Marshal(map[string]interface{}{"result": err.Error()})
-            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
-                return
-            }
-            fmt.Fprintf(this.Response, "%s", string(response))
-            return
-        }
-        var reg_id int
-        reg := GetModel("registrations")
-        reg.LoadWherePart(map[string]interface{}{"face_id": face_id})
-        err = db.SelectRow(reg, []string{"id"}, "").Scan(&reg_id)
-        if err != nil {
-            response, err := json.Marshal(map[string]interface{}{"result": err.Error()})
-            if utils.HandleErr("[Handle::SaveUserRequest] Marshal: ", err, this.Response) {
-                return
-            }
-            fmt.Fprintf(this.Response, "%s", string(response))
+            utils.HandleErr("[Handle::ShowCabinet]: ", err, this.Response)
             return
         }
 
@@ -161,10 +106,13 @@ func (this *Handler) ShowCabinet(tableName string) {
             inner join params on params.id = param_values.param_id
             inner join reg_param_vals on reg_param_vals.param_val_id = param_values.id
             inner join registrations on registrations.id = reg_param_vals.reg_id
-            inner join events on events.id = reg_param_vals.event_id WHERE registrations.id=$1`
+            inner join events on events.id = reg_param_vals.event_id
+            inner join events_regs on events_regs.event_id = events.id and events_regs.reg_id = registrations.id
+            inner join faces on faces.id = registrations.face_id
+            WHERE events.id=$1 AND faces.id=$2`
 
         regParamVals := GetModel("reg_param_vals")
-        data := db.Query(query, []interface{}{reg_id})
+        data := db.Query(query, []interface{}{1, face_id})
         model = Model{Table: data, Columns: regParamVals.GetColumns(), ColNames: regParamVals.GetColNames()}
     }
 

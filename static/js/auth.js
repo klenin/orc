@@ -1,32 +1,6 @@
 define(["utils"],
 function(utils) {
 
-    function registerCallback(data) {
-
-        if (data == null) {
-            $("#server-answer").text("Сервер не отвечает.").css("color", "red");
-
-        } else if (data.result === "ok") {
-            $("#tab3 form").trigger("reset");
-            $("#server-answer").text("Регистрация прошла успешно.").css("color", "green");
-            //jsonHandle("login", loginCallback);
-
-        } else if (data.result === "loginExists") {
-            $("#server-answer").text("Такой логин уже существует.").css("color", "red");
-            $("#password").val("");
-
-        } else if (data.result === "badLogin") {
-            $("#server-answer").text("Логин может содержать буквы и/или "
-                + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
-            $("#password").val("");
-
-        } else if (data.result === "badPassword") {
-            $("#server-answer").text("Пароль должен иметь длину от 6 "
-                + "до 36 символов.").css("color", "red");
-            $("#password").val("");
-        }
-    };
-
     function loginCallback(data) {
         if (data.result === "ok") {
             //$("#content, #navigation").css("display", "none");
@@ -68,7 +42,6 @@ function(utils) {
     };
 
     return {
-        registerCallback: registerCallback,
         loginCallback: loginCallback,
         logoutCallback: logoutCallback,
         jsonHandle: jsonHandle
