@@ -17,7 +17,7 @@ type Handler struct {
     Controller
 }
 
-func (this *Handler) GetEventList() {
+func (this *Handler) GetList() {
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)

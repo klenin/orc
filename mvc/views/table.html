@@ -6,14 +6,16 @@
     <div id="grid-table-pager"></div>
 
     <div style="display:none;" id="dialog-confirm" title="Смена пароля">
-
         <form>
             <label for="password-1">Пароль</label><br/>
             <input type="password" id="password-1" name="password-1"/><br/>
             <label for="password-2">Потвердите пароль</label><br/>
             <input type="password" id="password-2" name="password-2"/><br/>
         </form>
+    </div>
 
+    <div style="display:none;" id="dialog-confirm-import" title="Импорт форм">
+        <select multiple="multiple" size="5"></select>
     </div>
 
     <div id="error"></div>
@@ -77,6 +79,12 @@ function(grid) {
             sortorder:     "asc",
             multiselect:   true,
             editurl:       "/gridhandler/edit/" + {{.TableName}},
+            loadError: function (jqXHR, textStatus, errorThrown) {
+                alert('HTTP status code: ' + jqXHR.status + '\n' +
+                      'textStatus: ' + textStatus + '\n' +
+                      'errorThrown: ' + errorThrown);
+                alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+            },
 
             subGrid:            {{.Sub}},
             subGridOptions:     {
@@ -154,6 +162,15 @@ function(grid) {
                 {
                     caption: "", buttonicon: "ui-icon-key", title: "Сменить пароля",
                     onClickButton: grid.ResetPassword
+                }
+            );
+        } else if ({{.TableName}} == "events") {
+            $("#grid-table").jqGrid(
+                "navButtonAdd",
+                "#grid-table-pager",
+                {
+                    caption: "", buttonicon: "ui-icon-pin-s", title: "Прикрепить формы",
+                    onClickButton: grid.ImportForms
                 }
             );
         }

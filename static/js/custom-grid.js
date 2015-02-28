@@ -266,13 +266,93 @@ function(utils, datepicker) {
                 defaultSearch: "cn"
             }
         );
+    }
 
-}
+    function listEventTypes(data) {
+
+        if (data["result"] !== "ok") {
+            $("#error").empty();
+            $("#error").append(data["result"]);
+            $("#error").dialog({
+                model: true,
+                buttons: {
+                    "Закрыть": function() {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+            return;
+        }
+
+        for (i in data["data"]) {
+            $("#dialog-confirm-import select").append($("<option/>", {
+                // id: data["data"][i]["id"],
+                value: data["data"][i]["id"],
+                text: data["data"][i]["name"],
+                class: "form-row",
+            }));
+        }
+    }
+
+    function ImportForms() {
+        var id = $("#grid-table").jqGrid("getGridParam", "selarrrow");
+
+        if (id.length > 1 || id.length == 0) {
+            $("#error").empty();
+            $("#error").append("<strong>Выберите одну запись.</strong>");
+            $("#error").dialog({
+                model: true,
+                buttons: {
+                    "Закрыть": function() {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+            return false;
+        }
+        $("#dialog-confirm-import select").empty();
+        utils.postRequest(
+            {"event_id": id[0]},
+            listEventTypes,
+            "/gridhandler/GetEventTypesByEventId"
+        );
+
+        $("#dialog-confirm-import").dialog({
+            modal: true,
+            toTop: "150",
+            buttons: {
+                "Импорт": function() {
+                    var ids = [];
+                    $("#dialog-confirm-import select option:selected").each(function(i, selected) {
+                       ids[i] = $(selected).val();
+                    });
+                    console.log("ids");
+                    console.log(ids);
+                    console.log("id");
+                    console.log(ids);
+                    utils.postRequest(
+                        {
+                            "event_id": id[0],
+                            "event_types_ids": ids
+                        },
+                        function() {},
+                        "/gridhandler/importforms"
+                    );
+                    $(this).dialog("close");
+
+                },
+                "Отмена": function() {
+                    $(this).dialog("close");
+                },
+            }
+        });
+    }
 
     return {
         GetColModelItem: GetColModelItem,
         ResetPassword: ResetPassword,
-        AddSubTable: AddSubTable
+        AddSubTable: AddSubTable,
+        ImportForms: ImportForms
     };
 
 });

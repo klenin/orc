@@ -69,7 +69,7 @@ func (this *Handler) GetListHistoryEvents() {
 
     ids := make(map[string]interface{}, 1)
     ids["form_id"] = make([]interface{}, 0)
-    if data["form_ids"].(map[string]interface{})["form_id"] == nil {
+    if len(data["form_ids"].(map[string]interface{})["form_id"].([]interface{})) == 0 {
         result["result"] = "no"
     } else {
         for _, v := range data["form_ids"].(map[string]interface{})["form_id"].([]interface{}) {

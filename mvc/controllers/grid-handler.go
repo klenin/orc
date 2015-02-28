@@ -1,12 +1,14 @@
 package controllers
 
 import (
+    "database/sql"
     "encoding/json"
     "fmt"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
+    "log"
     "math"
     "net/http"
     "strconv"
@@ -236,4 +238,78 @@ func (this *GridHandler) isAdmin() bool {
     }
 
     return role == "admin"
+}
+
+func (this *GridHandler) GetEventTypesByEventId() {
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+    } else {
+        event_id, err := strconv.Atoi(request["event_id"].(string))
+        if utils.HandleErr("[GridHandler::GetEventTypesByEventId]  id Atoi: ", err, this.Response) {
+            return
+        }
+
+        query := db.InnerJoin(
+            []string{"t.id", "t.name"},
+            "events_types",
+            "e_t",
+            []string{"event_id", "type_id"},
+            []string{"events", "event_types"},
+            []string{"e", "t"},
+            []string{"id", "id"},
+            "where e.id=$1")
+        result := db.Query(query, []interface{}{event_id})
+
+        utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
+    }
+}
+
+func (this *GridHandler) ImportForms() {
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    event_id, err := strconv.Atoi(request["event_id"].(string))
+    if utils.HandleErr("[GridHandler::GetEventTypesByEventId]  id Atoi: ", err, this.Response) {
+        return
+    }
+
+    for _, v := range request["event_types_ids"].([]interface{}) {
+        println("event_types_ids: ", v)
+        type_id, err := strconv.Atoi(v.(string))
+        if err != nil {
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            return
+        }
+        query := `SELECT events.id from events
+        inner join events_types on events_types.event_id = events.id
+        inner join event_types on event_types.id = events_types.type_id
+        WHERE event_types.id=$1 AND events.id <> $2
+        ORDER BY id DESC LIMIT 1`
+
+        eventResult := db.Query(query, []interface{}{type_id, event_id})
+
+        query = `SELECT forms.id from forms
+        inner join events_forms on events_forms.form_id = forms.id
+        inner join events on events.id = events_forms.event_id
+        WHERE events.id=$1`
+
+        formsResult := db.Query(query, []interface{}{int(eventResult[0].(map[string]interface{})["id"].(int64))})
+
+        for i := 0; i < len(formsResult); i++ {
+            form_id := int(formsResult[i].(map[string]interface{})["id"].(int64))
+            eventsForms := GetModel("events_forms")
+            eventsForms.LoadWherePart(map[string]interface{}{"event_id":  event_id, "form_id": form_id})
+            var p int
+            err := db.SelectRow(eventsForms, []string{"id"}, "AND").Scan(&p)
+            if err != sql.ErrNoRows {
+                continue
+            }
+            eventsForms.LoadModelData(map[string]interface{}{"event_id":  event_id, "form_id": form_id})
+            db.QueryInsert_(eventsForms, "")
+        }
+    }
 }
