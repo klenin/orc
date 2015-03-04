@@ -42,9 +42,10 @@ func Query(query string, params []interface{}) []interface{} {
     defer rows.Close()
 
     rowsInf := Exec(query, params)
-    columns, _ := rows.Columns()
+    columns, err := rows.Columns()
+    utils.HandleErr("[queries.Query] Columns: ", err, nil)
     size, err := rowsInf.RowsAffected()
-    utils.HandleErr("[Entity.Select] RowsAffected: ", err, nil)
+    utils.HandleErr("[queries.Query] RowsAffected: ", err, nil)
 
     return ConvertData(columns, size, rows)
 }
@@ -61,33 +62,6 @@ func QueryRow(query string, params []interface{}) *sql.Row {
 
 func QueryCreateSecuence(tableName string) {
     Exec("CREATE SEQUENCE "+tableName+"_id_seq;", nil)
-}
-
-func QueryCreateTable(tableName string, fields []map[string]string) {
-    QueryCreateSecuence(tableName)
-    query := "CREATE TABLE IF NOT EXISTS %s ("
-    for i := 0; i < len(fields); i++ {
-        query += fields[i]["field"] + " "
-        query += fields[i]["type"] + " "
-        query += fields[i]["null"] + " "
-        switch fields[i]["extra"] {
-        case "PRIMARY":
-            query += "PRIMARY KEY DEFAULT NEXTVAL('"
-            query += tableName + "_id_seq'), "
-            break
-        case "REFERENCES":
-            query += "REFERENCES " + fields[i]["refTable"] + "(" + fields[i]["refField"] + ") ON DELETE CASCADE, "
-            break
-        case "UNIQUE":
-            query += "UNIQUE, "
-            break
-        default:
-            query += ", "
-        }
-    }
-    query = query[0 : len(query)-2]
-    query += ");"
-    Exec(fmt.Sprintf(query, tableName), nil)
 }
 
 func QueryCreateTable_(tableName string) {
@@ -122,13 +96,6 @@ func QueryCreateTable_(tableName string) {
     Exec(fmt.Sprintf(query, tableName), nil)
 }
 
-func QueryInsert(tableName string, fields []string, params []interface{}, extra string) *sql.Row {
-    query := "INSERT INTO %s (%s) VALUES (%s) %s;"
-    f := strings.Join(fields, ", ")
-    p := strings.Join(MakeParams(len(fields)), ", ")
-    return QueryRow(fmt.Sprintf(query, tableName, f, p, extra), params)
-}
-
 func QueryInsert_(m interface{}, extra string) *sql.Row {
     var i int
 
@@ -149,9 +116,12 @@ func QueryInsert_(m interface{}, extra string) *sql.Row {
         }
         p[i-1] = v
     }
-
     query = query[0:len(query)-2]
     query += ") VALUES (%s) %s;"
+
+    // if i < 2 {
+    //     return
+    // }
 
     return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
 }
@@ -289,7 +259,7 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
     answer := make([]interface{}, size)
 
     for i, _ := range row {
-        row[i] = &values[i] //!!!
+        row[i] = &values[i]
     }
 
     j := 0
