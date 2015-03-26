@@ -9,6 +9,13 @@ import (
 
 type ModelManager struct{}
 
+type ConditionEnumElem int
+
+const (
+    OR ConditionEnumElem = iota
+    AND ConditionEnumElem = iota
+)
+
 type Entity struct {
     TableName string
     Caption   string
@@ -23,6 +30,7 @@ type Entity struct {
     SubField string
 
     WherePart map[string]interface{}
+    Condition ConditionEnumElem
     OrderBy   string
     Limit     interface{}
     Offset    int
@@ -66,6 +74,16 @@ func (this Entity) GetColNames() []string {
 
 func (this Entity) GetFields() interface{} {
     return this.Fields
+}
+
+func (this Entity) GetConditionName() string {
+    switch this.Condition {
+    case OR:
+        return "OR"
+    case AND:
+        return "AND"
+    }
+    panic("Entity.GetConditionName: Invalid condition")
 }
 
 func (this Entity) LoadModelData(data map[string]interface{}) {
@@ -112,7 +130,7 @@ func (this Entity) LoadWherePart(data map[string]interface{}) {
     }
 }
 
-func (this Entity) GenerateWherePart(condition string, counter int) (string, []interface{}) {
+func (this Entity) GenerateWherePart(counter int) (string, []interface{}) {
     var key []string
     var val []interface{}
 
@@ -130,7 +148,7 @@ func (this Entity) GenerateWherePart(condition string, counter int) (string, []i
         counter++
     }
 
-    return strings.Join(key, " "+condition+" "), val
+    return strings.Join(key, " "+this.GetConditionName()+" "), val
 }
 
 func (this *Entity) SetOrder(orderBy string) {
@@ -141,6 +159,10 @@ func (this *Entity) SetOrder(orderBy string) {
             break
         }
     }
+}
+
+func (this *Entity) SetCondition(c ConditionEnumElem) {
+    reflect.ValueOf(this).Elem().FieldByName("Condition").Set(reflect.ValueOf(c))
 }
 
 func (this *Entity) SetLimit(limit interface{}) {
@@ -172,7 +194,10 @@ func (this *Entity) SetOffset(offset int) {
 type VirtEntity interface {
     LoadModelData(data map[string]interface{})
     LoadWherePart(data map[string]interface{})
-    GenerateWherePart(condition string, counter int) (string, []interface{})
+    GenerateWherePart(counter int) (string, []interface{})
+
+    GetConditionName() string
+    SetCondition(c ConditionEnumElem)
 
     SetOrder(orderBy string)
     SetLimit(limit interface{})

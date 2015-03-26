@@ -19,6 +19,7 @@ func (c *ModelManager) Params() *ParamsModel {
 
     model.Fields = new(Param)
     model.WherePart = make(map[string]interface{}, 0)
+    model.Condition = AND
     model.OrderBy = "id"
     model.Limit = "ALL"
     model.Offset = 0

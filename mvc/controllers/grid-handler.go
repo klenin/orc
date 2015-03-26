@@ -8,7 +8,6 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
-    "log"
     "math"
     "net/http"
     "strconv"
@@ -42,7 +41,7 @@ func (this *GridHandler) GetSubTable() {
     index, _ := strconv.Atoi(request["index"].(string))
     subModel := GetModel(model.GetSubTable(index))
     subModel.LoadWherePart(map[string]interface{}{model.GetSubField(): request["id"]})
-    result := db.Select(subModel, subModel.GetColumns(), "")
+    result := db.Select(subModel, subModel.GetColumns() )
     refFields, refData := GetModelRefDate(subModel)
 
     response, err := json.Marshal(map[string]interface{}{
@@ -88,7 +87,7 @@ func (this *GridHandler) Load(tableName string) {
     model.SetLimit(limit)
     model.SetOffset(start)
 
-    rows := db.Select(model, model.GetColumns(), "")
+    rows := db.Select(model, model.GetColumns())
     count := db.SelectCount(tableName)
 
     var totalPages int
@@ -169,7 +168,7 @@ func (this *GridHandler) Edit(tableName string) {
         }
         model.LoadModelData(params)
         model.LoadWherePart(map[string]interface{}{"id": id})
-        db.QueryUpdate_(model, "")
+        db.QueryUpdate_(model)
         break
     case "add":
         model.LoadModelData(params)
@@ -212,10 +211,10 @@ func (this *GridHandler) ResetPassword() {
     user.LoadWherePart(map[string]interface{}{"id": id})
 
     var salt string
-    db.SelectRow(user, []string{"salt"}, "").Scan(&salt)
+    db.SelectRow(user, []string{"salt"}).Scan(&salt)
 
     user.LoadModelData(map[string]interface{}{"pass": utils.GetMD5Hash(pass + salt)})
-    db.QueryUpdate_(user, "")
+    db.QueryUpdate_(user)
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
@@ -231,7 +230,7 @@ func (this *GridHandler) isAdmin() bool {
 
     user := GetModel("users")
     user.LoadWherePart(map[string]interface{}{"id": user_id})
-    err := db.SelectRow(user, []string{"role"}, "").Scan(&role)
+    err := db.SelectRow(user, []string{"role"}).Scan(&role)
     if err != nil || role == "user" {
         http.Redirect(this.Response, this.Request, "/", 403)
         return false
@@ -304,7 +303,7 @@ func (this *GridHandler) ImportForms() {
             eventsForms := GetModel("events_forms")
             eventsForms.LoadWherePart(map[string]interface{}{"event_id":  event_id, "form_id": form_id})
             var p int
-            err := db.SelectRow(eventsForms, []string{"id"}, "AND").Scan(&p)
+            err := db.SelectRow(eventsForms, []string{"id"}).Scan(&p)
             if err != sql.ErrNoRows {
                 continue
             }

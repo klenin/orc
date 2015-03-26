@@ -4,6 +4,7 @@ import (
     "database/sql"
     "encoding/json"
     "github.com/orc/db"
+    "github.com/orc/mvc/models"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
@@ -78,7 +79,8 @@ func (this *Handler) GetListHistoryEvents() {
 
         eventsForms := GetModel("events_forms")
         eventsForms.LoadWherePart(ids)
-        events := db.Select(eventsForms, []string{"event_id"}, "OR")
+        eventsForms.SetCondition(models.OR)
+        events := db.Select(eventsForms, []string{"event_id"})
 
         if len(events) != 0 {
             query := `SELECT DISTINCT events.id, events.name FROM events
@@ -136,7 +138,7 @@ func (this *Handler) SaveUserRequest() {
         var face_id int
         face := GetModel("faces")
         face.LoadWherePart(map[string]interface{}{"user_id": user_id})
-        err := db.SelectRow(face, []string{"id"}, "").Scan(&face_id)
+        err := db.SelectRow(face, []string{"id"}).Scan(&face_id)
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
@@ -144,7 +146,7 @@ func (this *Handler) SaveUserRequest() {
 
         reg := GetModel("registrations")
         reg.LoadWherePart(map[string]interface{}{"face_id": face_id})
-        err = db.SelectRow(reg, []string{"id"}, "").Scan(&reg_id)
+        err = db.SelectRow(reg, []string{"id"}).Scan(&reg_id)
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
@@ -153,12 +155,13 @@ func (this *Handler) SaveUserRequest() {
         var event_reg_id int
         eventsRegs := GetModel("events_regs")
         eventsRegs.LoadWherePart(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
-        err = db.SelectRow(eventsRegs, []string{"id"}, "AND").Scan(&event_reg_id)
+        err = db.SelectRow(eventsRegs, []string{"id"}).Scan(&event_reg_id)
 
         if err != sql.ErrNoRows {
             utils.SendJSReply(map[string]interface{}{"result": "alreadyFilled"}, this.Response)
             return
         } else {
+            eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
             db.QueryInsert_(eventsRegs, "")
         }
 
@@ -219,7 +222,7 @@ func MegoJoin(tableName, id string) RequestModel {
 
     event := GetModel("events")
     event.LoadWherePart(map[string]interface{}{"id": id})
-    E = db.Select(event, []string{"id", "name"}, "")
+    E = db.Select(event, []string{"id", "name"})
 
     query := db.InnerJoin(
         []string{"f.id", "f.name"},

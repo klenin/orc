@@ -23,7 +23,7 @@ func (this *Handler) GetList() {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     } else {
         fields := request["fields"].([]interface{})
-        result := db.Select(GetModel(request["table"].(string)), utils.ArrayInterfaceToString(fields), "")
+        result := db.Select(GetModel(request["table"].(string)), utils.ArrayInterfaceToString(fields))
         utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
     }
 }
@@ -58,7 +58,7 @@ func (this *Handler) Index() {
         } else {
             user := GetModel("users")
             user.LoadWherePart(map[string]interface{}{"hash": hash})
-            err := db.SelectRow(user, []string{"hash"}, "").Scan(&userHash)
+            err := db.SelectRow(user, []string{"hash"}).Scan(&userHash)
             if err != sql.ErrNoRows {
                 result = map[string]interface{}{"result": "ok"}
             } else {
@@ -83,7 +83,7 @@ func (this *Handler) ShowCabinet(tableName string) {
     user.LoadWherePart(map[string]interface{}{"id": user_id})
 
     var role string
-    err := db.SelectRow(user, []string{"role"}, "").Scan(&role)
+    err := db.SelectRow(user, []string{"role"}).Scan(&role)
     if err != nil {
         utils.HandleErr("[Handle::ShowCabinet]: ", err, this.Response)
         return
@@ -96,7 +96,7 @@ func (this *Handler) ShowCabinet(tableName string) {
         var face_id int
         face := GetModel("faces")
         face.LoadWherePart(map[string]interface{}{"user_id": user_id})
-        err = db.SelectRow(face, []string{"id"}, "").Scan(&face_id)
+        err = db.SelectRow(face, []string{"id"}).Scan(&face_id)
         if err != nil {
             utils.HandleErr("[Handle::ShowCabinet]: ", err, this.Response)
             return

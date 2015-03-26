@@ -20,6 +20,7 @@ func (c *ModelManager) Users() *UsersModel {
 
     model.Fields = new(User)
     model.WherePart = make(map[string]interface{}, 0)
+    model.Condition = AND
     model.OrderBy = "id"
     model.Limit = "ALL"
     model.Offset = 0

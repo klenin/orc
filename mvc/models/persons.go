@@ -15,6 +15,7 @@ func (c *ModelManager) Persons() *PersonsModel {
 
     model.Fields = new(Person)
     model.WherePart = make(map[string]interface{}, 0)
+    model.Condition = AND
     model.OrderBy = "id"
     model.Limit = "ALL"
     model.Offset = 0

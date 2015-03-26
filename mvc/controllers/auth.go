@@ -17,7 +17,7 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
 
     model := GetModel("users")
     model.LoadWherePart(map[string]interface{}{"login": login})
-    err := db.SelectRow(model, []string{"id", "pass", "salt"}, "").Scan(&id, &passHash, &salt)
+    err := db.SelectRow(model, []string{"id", "pass", "salt"}).Scan(&id, &passHash, &salt)
 
     if err != nil {
         result["result"] = "invalidCredentials"
@@ -28,7 +28,7 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
 
         user := GetModel("users")
         user.LoadModelData(map[string]interface{}{"id": id, "hash": hash})
-        db.QueryUpdate_(user, "")
+        db.QueryUpdate_(user)
 
         sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
     } else {

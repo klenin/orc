@@ -126,7 +126,7 @@ func QueryInsert_(m interface{}, extra string) *sql.Row {
     return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
 }
 
-func QueryUpdate_(m interface{}, condition string) {
+func QueryUpdate_(m interface{}) {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
     i, j := 1, 1
@@ -155,7 +155,7 @@ func QueryUpdate_(m interface{}, condition string) {
 
     if model.FieldByName("WherePart").Len() != 0 {
         query += " WHERE %s;"
-        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(condition), reflect.ValueOf(i)})
+        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(i)})
         Exec(fmt.Sprintf(query, tableName, v[0]), append(p, v[1].Interface().([]interface{})...))
     } else {
         query += ";"
@@ -199,7 +199,7 @@ func MakePairs(fields []string) []string {
 /**
  * condition: AND condition and OR condition
  */
-func Select(m interface{}, fields []string, condition string) []interface{} {
+func Select(m interface{}, fields []string) []interface{} {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
 
@@ -222,7 +222,7 @@ func Select(m interface{}, fields []string, condition string) []interface{} {
 
     if model.FieldByName("WherePart").Len() != 0 {
         query += " WHERE %s" + extra + ";"
-        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(condition), reflect.ValueOf(1)})
+        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(1)})
         return Query(fmt.Sprintf(query, strings.Join(fields, ", "), tableName, v[0]), v[1].Interface().([]interface{}))
     } else {
         query += extra + ";"
@@ -230,7 +230,7 @@ func Select(m interface{}, fields []string, condition string) []interface{} {
     }
 }
 
-func SelectRow(m interface{}, fields []string, condition string) *sql.Row {
+func SelectRow(m interface{}, fields []string) *sql.Row {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
 
@@ -238,7 +238,7 @@ func SelectRow(m interface{}, fields []string, condition string) *sql.Row {
 
     if model.FieldByName("WherePart").Len() != 0 {
         query += " WHERE %s;"
-        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(condition), reflect.ValueOf(1)})
+        v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(1)})
         return QueryRow(fmt.Sprintf(query, strings.Join(fields, ", "), tableName, v[0]), v[1].Interface().([]interface{}))
     } else {
         query += ";"

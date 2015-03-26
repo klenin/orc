@@ -18,6 +18,7 @@ func (c *ModelManager) EventTypes() *EventTypesModel {
 
     model.Fields = new(EventTypes)
     model.WherePart = make(map[string]interface{}, 0)
+    model.Condition = AND
     model.OrderBy = "id"
     model.Limit = "ALL"
     model.Offset = 0
