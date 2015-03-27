@@ -75,7 +75,7 @@ func (this *Handler) ShowCabinet(tableName string) {
     user_id := sessions.GetValue("id", this.Request)
 
     if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
-        http.Redirect(this.Response, this.Request, "/", 401)
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 

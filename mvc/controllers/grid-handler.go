@@ -23,7 +23,7 @@ type GridHandler struct {
 
 func (this *GridHandler) GetSubTable() {
     if !sessions.CheackSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", 401)
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
@@ -61,7 +61,7 @@ func (this *GridHandler) GetSubTable() {
 
 func (this *GridHandler) Load(tableName string) {
     if !sessions.CheackSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", 401)
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
@@ -108,7 +108,7 @@ func (this *GridHandler) Load(tableName string) {
 
 func (this *GridHandler) Select(tableName string) {
     if !sessions.CheackSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", 401)
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
@@ -140,7 +140,7 @@ func (this *GridHandler) Select(tableName string) {
 
 func (this *GridHandler) Edit(tableName string) {
     if !sessions.CheackSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", 401)
+        http.Error(this.Response, "", http.StatusUnauthorized)
         return
     }
 
@@ -168,11 +168,14 @@ func (this *GridHandler) Edit(tableName string) {
         }
         model.LoadModelData(params)
         model.LoadWherePart(map[string]interface{}{"id": id})
-        db.QueryUpdate_(model)
+        err = db.QueryUpdate_(model).Scan()
+        utils.HandleErr("", err, this.Response)
         break
     case "add":
         model.LoadModelData(params)
-        db.QueryInsert_(model, "")
+        var id int
+        err := db.QueryInsert_(model, "RETURNING id").Scan(&id)
+        utils.HandleErr("", err, this.Response)
         break
     case "del":
         db.QueryDeleteByIds(tableName, this.Request.PostFormValue("id"))
@@ -182,7 +185,7 @@ func (this *GridHandler) Edit(tableName string) {
 
 func (this *GridHandler) ResetPassword() {
     if !sessions.CheackSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", 401)
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
@@ -224,7 +227,7 @@ func (this *GridHandler) isAdmin() bool {
 
     user_id := sessions.GetValue("id", this.Request)
     if user_id == nil {
-        http.Redirect(this.Response, this.Request, "/", 401)
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return false
     }
 
@@ -232,7 +235,7 @@ func (this *GridHandler) isAdmin() bool {
     user.LoadWherePart(map[string]interface{}{"id": user_id})
     err := db.SelectRow(user, []string{"role"}).Scan(&role)
     if err != nil || role == "user" {
-        http.Redirect(this.Response, this.Request, "/", 403)
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return false
     }
 

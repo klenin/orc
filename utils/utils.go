@@ -22,6 +22,12 @@ func HandleErr(message string, err error, w http.ResponseWriter) bool {
 
         if err, ok := err.(*pq.Error); ok {
             log.Println("pq error:", err.Code.Name())
+
+            switch err.Code.Name() {
+            case "unique_violation":
+                http.Error(w, "Нарушение ограничения уникальности", http.StatusNotModified)
+                return true
+            }
         }
 
         if w != nil {

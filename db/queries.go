@@ -126,7 +126,7 @@ func QueryInsert_(m interface{}, extra string) *sql.Row {
     return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
 }
 
-func QueryUpdate_(m interface{}) {
+func QueryUpdate_(m interface{}) *sql.Row {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
     i, j := 1, 1
@@ -150,16 +150,16 @@ func QueryUpdate_(m interface{}) {
     query = query[0 : len(query)-2]
 
     if i < 2 {
-        return
+        return nil
     }
 
     if model.FieldByName("WherePart").Len() != 0 {
         query += " WHERE %s;"
         v := model.MethodByName("GenerateWherePart").Call([]reflect.Value{reflect.ValueOf(i)})
-        Exec(fmt.Sprintf(query, tableName, v[0]), append(p, v[1].Interface().([]interface{})...))
+        return QueryRow(fmt.Sprintf(query, tableName, v[0]), append(p, v[1].Interface().([]interface{})...))
     } else {
         query += ";"
-        Exec(fmt.Sprintf(query, tableName), p)
+        return QueryRow(fmt.Sprintf(query, tableName), p)
     }
 }
 

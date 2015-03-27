@@ -57,6 +57,48 @@ function(grid) {
 
     $(document).ready(function() {
 
+        var errTextFormat = function(data) {
+            var prompt, errMsg, noErr;
+
+            switch (data.status) {
+            case 200:
+                noErr = true;
+                prompt = "Запрос успешно выполнен";
+                errMsg = "";
+                break;
+
+            case 304:
+                noErr = false;
+                prompt = "Используйте другое значение";
+                errMsg = "Нарушение ограничения уникальности";
+                break;
+
+            case 401:
+                noErr = false;
+                prompt = "Войдите на сайт";
+                errMsg = "Ошибка авторизации";
+                break;
+            }
+
+            var myInfo = '<div class="ui-state-highlight ui-corner-all">'
+                             + '<span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>'
+                             + '<strong>'+ prompt + '</strong><br/>' + '</div>';
+            var infoTR = $("table#TblGrid_"+$("#grid-table")[0].id+">tbody>tr.tinfo");
+            var infoTD = infoTR.children("td.topinfo");
+
+            infoTD.html(myInfo);
+            infoTR.show();
+
+            setTimeout(function() {
+                infoTD.children("div").fadeOut('slow',
+                    function() {
+                      infoTR.hide();
+                 });
+            }, 3000);
+
+            return [noErr, errMsg];
+        };
+
         $("#grid-table").jqGrid({
             url:           "/gridhandler/load/" + {{.TableName}},
             datatype:      "json",
@@ -80,17 +122,17 @@ function(grid) {
             multiselect:   true,
             editurl:       "/gridhandler/edit/" + {{.TableName}},
             loadError: function (jqXHR, textStatus, errorThrown) {
-                alert('HTTP status code: ' + jqXHR.status + '\n' +
-                      'textStatus: ' + textStatus + '\n' +
-                      'errorThrown: ' + errorThrown);
+                alert('HTTP status code: ' + jqXHR.status + '\n'
+                    + 'textStatus: ' + textStatus + '\n'
+                    + 'errorThrown: ' + errorThrown);
                 alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
             },
 
             subGrid:            {{.Sub}},
             subGridOptions:     {
-                                    "plusicon":       "ui-icon-triangle-1-e",
-                                    "minusicon":      "ui-icon-triangle-1-s",
-                                    "openicon":       "ui-icon-arrowreturn-1-e",
+                                    "plusicon": "ui-icon-triangle-1-e",
+                                    "minusicon": "ui-icon-triangle-1-s",
+                                    "openicon": "ui-icon-arrowreturn-1-e",
                                     "reloadOnExpand": true,
                                     "selectOnExpand": true
                                 },
@@ -113,24 +155,20 @@ function(grid) {
                 search:  false
             },
             {   //edit
-                width:          "100%",
-                recreateForm:   true,
-                closeAfterEdit: true,
-                afterSubmit:    function(response, postdata) {
-                                    $('#grid-table').jqGrid().trigger('reloadGrid');
-                                    return [true, "", response.responseText];
-                                },
+                width:           "100%",
+                recreateForm:    true,
+                closeAfterEdit:  true,
+                afterSubmit:     errTextFormat,
+                errorTextFormat: errTextFormat,
             },
             {   //add
-                width:          "100%",
-                recreateForm:   true,
-                clearAfterAdd:  true,
-                closeAfterAdd:  true,
-                addedrow:       "last",
-                afterSubmit:    function(response, postdata) {
-                                    $('#grid-table').jqGrid().trigger('reloadGrid');
-                                    return [true, "", response.responseText];
-                                },
+                width:           "100%",
+                recreateForm:    true,
+                // clearAfterAdd:   true,
+                // closeAfterAdd:   true,
+                addedrow:        "last",
+                afterSubmit:     errTextFormat,
+                errorTextFormat: errTextFormat,
             },
             {   //del
                 closeAfterAdd:  true,
