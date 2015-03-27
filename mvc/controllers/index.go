@@ -1,9 +1,14 @@
 package controllers
 
 import (
+    "encoding/json"
     "github.com/orc/db"
     "github.com/orc/utils"
     "html/template"
+    "io/ioutil"
+    "net/http"
+    "strconv"
+    "time"
 )
 
 func (c *BaseController) Index() *IndexController {
@@ -28,6 +33,54 @@ func (this *IndexController) Index() {
 
     err = tmp.ExecuteTemplate(this.Response, "index", nil)
     utils.HandleErr("[IndexController::Index] ExecuteTemplate: ", err, this.Response)
+}
+
+func (this *IndexController) LoadContestsFromCats() {
+    url := "http://imcs.dvfu.ru/cats/main.pl?f=contests;filter=unfinished;json=1"
+    result, err := http.Get(url)
+    if utils.HandleErr("[loadContestsFromCats] http.Get(url): ", err, this.Response) {
+        return
+    }
+    defer result.Body.Close()
+
+    body, err := ioutil.ReadAll(result.Body)
+    if utils.HandleErr("[loadContestsFromCats] ioutil.ReadAll(data.Body): ", err, this.Response) {
+        return
+    }
+
+    var data map[string]interface{}
+    err = json.Unmarshal(body, &data)
+    if utils.HandleErr("[loadContestsFromCats] json.Unmarshal(body, &data): ", err, this.Response) {
+        return
+    }
+
+    for _, v := range data["contests"].([]interface{}) {
+        contest := v.(map[string]interface{})
+        event := GetModel("events")
+        time_, err := time.Parse("20060102T150405", contest["start_time"].(string))
+        if utils.HandleErr("[loadContestsFromCats] time.Parse: ", err, this.Response) {
+            continue
+        }
+        start_date, err := time.Parse("02.01.2006 15:04", contest["start_date"].(string))
+        if utils.HandleErr("[loadContestsFromCats] time.Parse: ", err, this.Response) {
+            continue
+        }
+        finish_date, err := time.Parse("02.01.2006 15:04", contest["finish_date"].(string))
+        if utils.HandleErr("[loadContestsFromCats] time.Parse: ", err, this.Response) {
+            continue
+        }
+        event.LoadModelData(map[string]interface{}{
+            "name":        contest["name"],
+            "date_start":  start_date.Format("2006-01-02 15:04:05"),
+            "date_finish": finish_date.Format("2006-01-02 15:04:05"),
+            "time":        time_.Format("15:04:05"),
+            "url":         "http://imcs.dvfu.ru/cats/main.pl?f=contests;cid="+strconv.Itoa(int(contest["id"].(float64))),
+        })
+        var id int
+        err = db.QueryInsert_(event, "RETURNING id").Scan(&id)
+        utils.HandleErr("[loadContestsFromCats] db.QueryInsert_().Scan(&id): ", err, this.Response)
+    }
+
 }
 
 func CreateRegistrationEvent() {
