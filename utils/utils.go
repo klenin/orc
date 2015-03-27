@@ -10,7 +10,7 @@ import (
     "github.com/lib/pq"
     "log"
     "net/http"
-    "os"
+    // "os"
     "reflect"
     "regexp"
     "strconv"
@@ -23,19 +23,30 @@ func HandleErr(message string, err error, w http.ResponseWriter) bool {
         if err, ok := err.(*pq.Error); ok {
             log.Println("pq error:", err.Code.Name())
 
+            if w == nil {
+                return true
+            }
+
             switch err.Code.Name() {
             case "unique_violation":
                 http.Error(w, "Нарушение ограничения уникальности", http.StatusNotModified)
                 return true
+            case "datetime_field_overflow":
+                http.Error(w, "Выход за границы временных значений", http.StatusNotModified)
+                return true
             }
         }
 
-        if w != nil {
-            http.Error(w, fmt.Sprintf(message+"%v\n", err.Error()), http.StatusMethodNotAllowed)
-        } else {
-            os.Exit(1)
+        if w == nil {
+            return true
         }
 
+        if err.Error() == "sql: no rows in result set" {
+            return false
+        }
+
+        http.Error(w, fmt.Sprintf(message+"%v\n", err.Error()), http.StatusMethodNotAllowed)
+        // os.Exit(1)
         return true
     }
     return false
