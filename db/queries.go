@@ -19,7 +19,7 @@ var DB, _ = sql.Open(
         " user="+user+
         " dbname="+dbname+
         " password="+password+
-        " sslmode=disable")
+        " sslmode=require")
 
 func Exec(query string, params []interface{}) sql.Result {
     log.Println(query)
