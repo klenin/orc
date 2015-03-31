@@ -38,12 +38,15 @@ func Load() {
 
 func LoadAdmin() {
     base := new(controllers.BaseController)
+
     result, reg_id := base.Handler().HandleRegister_("admin", "password", "", "admin")
+
     if result == "ok" {
         eventsRegs := controllers.GetModel("events_regs")
         eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
         db.QueryInsert_(eventsRegs, "")
     }
+
     query := `select users.token from events_regs
             INNER JOIN events on events_regs.event_id = events.id
             INNER JOIN registrations on registrations.id = events_regs.reg_id
@@ -68,6 +71,7 @@ func loadUsers() {
             eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
             db.QueryInsert_(eventsRegs, "")
         }
+
         query := `select users.token from events_regs
             INNER JOIN events on events_regs.event_id = events.id
             INNER JOIN registrations on registrations.id = events_regs.reg_id
