@@ -36,6 +36,16 @@ func Load() {
     loadParamTypes()
 }
 
+func LoadAdmin() {
+    base := new(controllers.BaseController)
+    result, reg_id := base.Handler().HandleRegister_("admin", "password", "admin")
+    if result == "ok" {
+        eventsRegs := controllers.GetModel("events_regs")
+        eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
+        db.QueryInsert_(eventsRegs, "")
+    }
+}
+
 func loadUsers() {
     base := new(controllers.BaseController)
     for i := 0; i < USER_COUNT; i++ {
@@ -46,12 +56,6 @@ func loadUsers() {
             eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
             db.QueryInsert_(eventsRegs, "")
         }
-    }
-    result, reg_id := base.Handler().HandleRegister_("admin", "password", "admin")
-    if result == "ok" {
-        eventsRegs := controllers.GetModel("events_regs")
-        eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
-        db.QueryInsert_(eventsRegs, "")
     }
 }
 

@@ -19,6 +19,7 @@ func main() {
 
     db.Init()
     controllers.CreateRegistrationEvent()
+    resources.LoadAdmin()
 
     if *testData == true {
         resources.Load()
