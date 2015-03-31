@@ -68,9 +68,10 @@ func loadEvents() {
         dateStart := addDate(random(1894, 2014), random(1, 12), random(1, 28))
         dateFinish := addDate(random(1894, 2014), random(1, 12), random(1, 28))
         time := addTime(random(0, 11), random(1, 60), random(1, 60))
-        params := []interface{}{eventName, dateStart, dateFinish, time, ""}
+        params := map[string]interface{}{"name": eventName, "data_start": dateStart, "date_finish": dateFinish, "time": time, "url": ""}
         entity := base.Events()
-        db.QueryInsert("events", entity.GetColumnSlice(1), params, "")
+        entity.LoadModelData(params)
+        db.QueryInsert_(entity, "")
     }
 }
 
@@ -81,9 +82,10 @@ func loadEventTypes() {
     for i := 0; i < len(eventTypeNamesSourse); i++ {
         //rand.Seed(int64(i))
         eventTypeName := strings.TrimSpace(eventTypeNamesSourse[i])
-        params := []interface{}{eventTypeName, "", topicality[rand.Intn(2)]}
+        params := map[string]interface{}{"name": eventTypeName, "description": "", "topicality": topicality[rand.Intn(2)]}
         entity := base.EventTypes()
-        db.QueryInsert("event_types", entity.GetColumnSlice(1), params, "")
+        entity.LoadModelData(params)
+        db.QueryInsert_(entity, "")
     }
 }
 
@@ -93,7 +95,8 @@ func loadForms() {
     for i := 0; i < len(formNamesSourse); i++ {
         formName := strings.TrimSpace(formNamesSourse[i])
         entity := base.Forms()
-        db.QueryInsert("forms", entity.GetColumnSlice(1), []interface{}{formName}, "")
+        entity.LoadModelData(map[string]interface{}{"name": formName})
+        db.QueryInsert_(entity, "")
     }
 }
 
@@ -103,6 +106,7 @@ func loadParamTypes() {
     for i := 0; i < len(paramTypesSourse); i++ {
         paramType := strings.TrimSpace(paramTypesSourse[i])
         entity := base.ParamTypes()
-        db.QueryInsert("param_types", entity.GetColumnSlice(1), []interface{}{paramType}, "")
+        entity.LoadModelData(map[string]interface{}{"name": paramType})
+        db.QueryInsert_(entity, "")
     }
 }
