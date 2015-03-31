@@ -32,7 +32,12 @@ func main() {
     http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
     http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))
 
-    if err := http.ListenAndServe(":8080", nil); err != nil {
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "5000"
+    }
+
+    if err := http.ListenAndServe(":" + port, nil); err != nil {
         log.Println("Error listening: ", err.Error())
         os.Exit(1)
     }
