@@ -25,8 +25,8 @@ func main() {
         resources.Load()
     }
 
-    base := new(controllers.BaseController)
-    base.Index().LoadContestsFromCats()
+    // base := new(controllers.BaseController)
+    // base.Index().LoadContestsFromCats()
 
     http.Handle("/", new(router.FastCGIServer))
     http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js"))))
