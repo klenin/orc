@@ -34,6 +34,24 @@ Install [git][3]. Get a copy of repository:
 
 ### Running
 
+Create database `orc`:
+
+    CREATE DATABASE orc;
+
+Create a user account called `admin` and grant permission for database called `orc`:
+
+    CREATE USER admin WITH PASSWORD 'admin';
+    GRANT ALL PRIVILEGES ON DATABASE orc to admin;
+
+Local postgres connection string for a database called `orc`:
+
+    $ export DATABASE_URL="user=admin host=localhost dbname=orc password=password sslmode=disable"
+
+Port (port is 5000 by default):
+
+    $ export PORT="6543"
+
+Run:
     $ go build && orc.exe
 
 Run with downloading test data:
