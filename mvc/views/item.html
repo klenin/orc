@@ -52,7 +52,8 @@ function(utils, datepicker) {
             || data["type"] === "street"
             || data["type"] === "building"
             || data["type"] === "text"
-            || data["type"] === "password") {
+            || data["type"] === "password"
+            || data["type"] === "phon") {
             block = $("<input/>", {type: data["type"]});
             block.attr("id", data["id"]);
             block.attr("event_type_id", event_type_id);
@@ -74,28 +75,6 @@ function(utils, datepicker) {
             block.val(data["value"]);
             datepicker.initDatePicker(block);
         }
-
-
-        $("#3").blur(function() {
-            var pattern = /^.{6,36}$/;
-            if (pattern.test($(this).val())) {
-                $(this).css({"border": "2px solid green"});
-            } else {
-                valid = false;
-                $(this).css({"border": "2px solid red"});
-            }
-        });
-
-        $("#4").blur(function() {
-            var pattern = /^.{6,36}$/;
-            if (pattern.test($(this).val()) && $(this).val() === $("#3").val()) {
-                valid = true;
-                $(this).css({"border": "2px solid green"});
-            } else {
-                valid = false;
-                $(this).css({"border": "2px solid red"});
-            }
-        });
 
         var lable = $("<label/>", {
             text: data["name"]
@@ -197,7 +176,30 @@ function(utils, datepicker) {
     getListHistoryEvents();
     kladr();
 
+    $("input#2").blur(function() {
+        var pattern = /^.{6,36}$/;
+        if (pattern.test($(this).val())) {
+            $(this).css({"border": "2px solid green"});
+        } else {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+        }
+    });
+
+    $("input#3").blur(function() {
+        var pattern = /^.{6,36}$/;
+        if (pattern.test($(this).val()) && $(this).val() === $("input#2").val()) {
+            valid = true;
+            $(this).css({"border": "2px solid green"});
+        } else {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+        }
+    });
+
     $("#save-btn").click(function() {
+        console.log("ID+3")
+        console.log($("[id=3]"))
         if (!valid && E[0]["id"] == 1) {
             return;
         }
