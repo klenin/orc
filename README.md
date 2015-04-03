@@ -52,15 +52,45 @@ Port (port is 5000 by default):
     $ export PORT="6543"
 
 Run:
+
     $ go build && orc.exe
 
 Run with downloading test data:
 
     $ go build && orc.exe -test-data=true
 
-Print all server routers:
+### Configuring Apache
 
-    $ console routers
+Install modules `mod_proxy` and `mod_proxy_http`. Uncomment lines in `httpd.conf`:
+
+    LoadModule proxy_module modules/mod_proxy.so
+    LoadModule proxy_http_module modules/mod_proxy_http.so
+
+Add to httpd-vhosts.conf:
+
+    <VirtualHost localhost:6543>
+        DocumentRoot "path/to/orc"
+        ServerName localhost:6543
+
+        # Other directives here
+
+    </VirtualHost>
+
+    <VirtualHost *:80>
+        DocumentRoot "path/to/localhost"
+        ServerName localhost
+
+        # Add directives from routes.txt
+
+    </VirtualHost>
+
+Generate routes:
+
+    $ export HOST="http://localhost:6543"
+    $ export LINK="events"
+    $ go run gen.go > routes.txt
+
+
 
 [1]: https://golang.org
 [2]: http://www.postgresql.org
