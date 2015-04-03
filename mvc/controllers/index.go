@@ -275,5 +275,4 @@ func CreateRegistrationEvent() {
     //     "form_id":       form_id6,
     //     "param_type_id": param_text_type_id,
     //     "identifier":    16})
-    db.QueryInsert_(params, "RETURNING id")
 }
