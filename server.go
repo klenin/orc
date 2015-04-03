@@ -17,7 +17,7 @@ func main() {
     testData := flag.Bool("test-data", false, "to load test data")
     flag.Parse()
 
-    db.Init()
+    // db.Init()
     controllers.CreateRegistrationEvent()
     resources.LoadAdmin()
 
