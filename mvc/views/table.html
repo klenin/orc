@@ -18,6 +18,8 @@
         <select multiple="multiple" size="5"></select>
     </div>
 
+    <div style="display:none;" id="dialog-persons" title="Участники"></div>
+
     <div id="error"></div>
 </div>
 
@@ -202,6 +204,7 @@ function(grid) {
                     onClickButton: grid.ResetPassword
                 }
             );
+
         } else if ({{.TableName}} == "events") {
             $("#grid-table").jqGrid(
                 "navButtonAdd",
@@ -209,6 +212,15 @@ function(grid) {
                 {
                     caption: "", buttonicon: "ui-icon-pin-s", title: "Прикрепить формы",
                     onClickButton: grid.ImportForms
+                }
+            );
+
+            $("#grid-table").jqGrid(
+                "navButtonAdd",
+                "#grid-table-pager",
+                {
+                    caption: "", buttonicon: "ui-icon-person", title: "Список участников",
+                    onClickButton: grid.GetPersons
                 }
             );
         }

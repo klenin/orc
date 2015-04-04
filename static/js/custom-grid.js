@@ -96,16 +96,7 @@ function(utils, datepicker) {
     function ResetPassword() {
         var id = $("#grid-table").jqGrid("getGridParam", "selarrrow");
         if (id.length > 1 || id.length == 0) {
-            $("#error").empty();
-            $("#error").append("<strong>Выберите одну запись.</strong>");
-            $("#error").dialog({
-                model: true,
-                buttons: {
-                    "Закрыть": function() {
-                        $(this).dialog("close");
-                    }
-                }
-            });
+            showErrorMsg("<strong>Выберите одну запись.</strong>");
             return false;
         }
 
@@ -127,17 +118,8 @@ function(utils, datepicker) {
                         );
                         $(this).dialog("close");
                     } else {
-                        $("#error").empty();
-                        $("#error").append("Неверные значения паролей.\n"
+                        showErrorMsg("Неверные значения паролей.\n"
                             + "Пароль должен иметь длину от 6 до 36 символов.");
-                        $("#error").dialog({
-                            model: true,
-                            buttons: {
-                                "Закрыть": function() {
-                                    $(this).dialog("close");
-                                }
-                            }
-                        });
                     }
                 },
                 "Отмена": function() {
@@ -173,11 +155,7 @@ function(utils, datepicker) {
         }
 
         utils.postRequest(
-            {
-                "table": tableName,
-                "id": row_id,
-                "index": index
-            },
+            { "table": tableName, "id": row_id, "index": index },
             collbackSUB,
             "/gridhandler/getsubtable"
         );
@@ -216,7 +194,6 @@ function(utils, datepicker) {
             {   //edit
                 width: "100%",
                 recreateForm: true,
-                //viewPagerButtons:   false,
                 closeAfterEdit:     true,
                 afterSubmit:        function(response, postdata) {
                                         $('#grid-table').jqGrid().trigger('reloadGrid');
@@ -226,7 +203,6 @@ function(utils, datepicker) {
             {   //add
                 width: "100%",
                 recreateForm: true,
-                //viewPagerButtons:   false,
                 clearAfterAdd:      true,
                 closeAfterAdd:      true,
                 addedrow:           "last",
@@ -241,52 +217,16 @@ function(utils, datepicker) {
             }
         );
 
-/*          $("#" + subgrid_table_id).jqGrid (
-            "navButtonAdd",
-            "#" + pager_id,
-            {
-                caption: "", buttonicon: "ui-icon-calculator", title: "Выбрать колонки",
-                onClickButton: function() {
-                    $("#"+subgrid_table_id).jqGrid("columnChooser", {
-                        done: function(perm) {
-                            if (perm) {
-                                $("#" + subgrid_table_id).jqGrid("remapColumns", perm, true);
-                            }
-                        }
-                    });
-                }
-            }
-        );
-*/
-        $("#" + subgrid_table_id).jqGrid(
-            "filterToolbar",
-            {
-                stringResult:  true,
-                searchOnEnter: false,
-                defaultSearch: "cn"
-            }
-        );
     }
 
     function listEventTypes(data) {
-
         if (data["result"] !== "ok") {
-            $("#error").empty();
-            $("#error").append(data["result"]);
-            $("#error").dialog({
-                model: true,
-                buttons: {
-                    "Закрыть": function() {
-                        $(this).dialog("close");
-                    }
-                }
-            });
+            showErrorMsg(data["result"]);
             return;
         }
 
         for (i in data["data"]) {
             $("#dialog-confirm-import select").append($("<option/>", {
-                // id: data["data"][i]["id"],
                 value: data["data"][i]["id"],
                 text: data["data"][i]["name"],
                 class: "form-row",
@@ -298,23 +238,16 @@ function(utils, datepicker) {
         var id = $("#grid-table").jqGrid("getGridParam", "selarrrow");
 
         if (id.length > 1 || id.length == 0) {
-            $("#error").empty();
-            $("#error").append("<strong>Выберите одну запись.</strong>");
-            $("#error").dialog({
-                model: true,
-                buttons: {
-                    "Закрыть": function() {
-                        $(this).dialog("close");
-                    }
-                }
-            });
+            showErrorMsg("<strong>Выберите одну запись.</strong>");
             return false;
         }
+
         $("#dialog-confirm-import select").empty();
+
         utils.postRequest(
-            {"event_id": id[0]},
+            { "event_id": id[0] },
             listEventTypes,
-            "/gridhandler/GetEventTypesByEventId"
+            "/gridhandler/geteventtypesbyeventid"
         );
 
         $("#dialog-confirm-import").dialog({
@@ -326,15 +259,8 @@ function(utils, datepicker) {
                     $("#dialog-confirm-import select option:selected").each(function(i, selected) {
                        ids[i] = $(selected).val();
                     });
-                    console.log("ids");
-                    console.log(ids);
-                    console.log("id");
-                    console.log(ids);
                     utils.postRequest(
-                        {
-                            "event_id": id[0],
-                            "event_types_ids": ids
-                        },
+                        { "event_id": id[0], "event_types_ids": ids },
                         function() {},
                         "/gridhandler/importforms"
                     );
@@ -348,11 +274,101 @@ function(utils, datepicker) {
         });
     }
 
+    function listPersons(data) {
+        if (data["result"] !== "ok") {
+            showErrorMsg(data["result"]);
+            return;
+        }
+
+        var result = $("<div/>");
+
+        for (i in data["data"]) {
+            result.append($("<div/>", {
+                id: data["data"][i]["id"],
+                text: data["data"][i]["name"],
+                class: "form-row",
+            }));
+        }
+
+        w = window.open();
+        w.document.title = "Участники";
+        $(w.document.body).html(result);
+    }
+
+    function listParams(data) {
+        if (data["result"] !== "ok") {
+            showErrorMsg(data["result"]);
+            return;
+        }
+
+        var select = $("<select/>", { multiple: "multiple" });
+        for (i in data["data"]) {
+            select.append($("<option/>", {
+                value: data["data"][i]["id"],
+                text: data["data"][i]["name"],
+                class: "form-row",
+            }));
+        }
+        $("#dialog-persons").append(select);
+    }
+
+    function GetPersons() {
+        var id = $("#grid-table").jqGrid("getGridParam", "selarrrow");
+
+        if (id.length > 1 || id.length == 0) {
+            showErrorMsg("<strong>Выберите одну запись.</strong>")
+            return false;
+        }
+
+        $("#dialog-persons").empty();
+
+        utils.postRequest(
+            { "event_id": id[0] },
+            listParams,
+            "/gridhandler/getparamsbyeventid"
+        );
+
+        $("#dialog-persons").dialog({
+            modal: true,
+            toTop: "150",
+            buttons: {
+                "Получить список участников": function() {
+                    var ids = [];
+                    $("#dialog-persons select option:selected").each(function(i, selected) {
+                       ids[i] = $(selected).val();
+                    });
+                    utils.postRequest(
+                        { "event_id": id[0], "params_ids": ids },
+                        listPersons,
+                        "/gridhandler/getpersonsbyeventid"
+                    );
+                },
+                "Отмена": function() {
+                    $(this).dialog("close");
+                },
+            }
+        });
+    }
+
+    function showErrorMsg(msg) {
+        $("#error").empty();
+        $("#error").append(msg);
+        $("#error").dialog({
+            model: true,
+            buttons: {
+                "Закрыть": function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    }
+
     return {
         GetColModelItem: GetColModelItem,
         ResetPassword: ResetPassword,
         AddSubTable: AddSubTable,
-        ImportForms: ImportForms
+        ImportForms: ImportForms,
+        GetPersons: GetPersons
     };
 
 });
