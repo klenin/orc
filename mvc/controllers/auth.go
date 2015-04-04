@@ -27,7 +27,8 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
         hash := utils.GetRandSeq(HASH_SIZE)
 
         user := GetModel("users")
-        user.LoadModelData(map[string]interface{}{"id": id, "hash": hash})
+        user.LoadModelData(map[string]interface{}{"hash": hash})
+        user.LoadWherePart(map[string]interface{}{"id": id})
         db.QueryUpdate_(user)
 
         sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
