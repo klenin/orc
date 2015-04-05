@@ -1,3 +1,5 @@
+# Перед импортом закрой все процессы, в которых задействована база данных orc
+
 @echo off
 
 psql --host=localhost --port=5432 --username=postgres -c "DROP DATABASE IF EXISTS orc;"
