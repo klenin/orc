@@ -13,7 +13,7 @@ function(utils) {
 
         } else if (data.result === "badPassword") {
             $("#server-answer").text("Неверный пароль.").css("color", "red");
-        } else if data.result === "notEnabled") {
+        } else if (data.result === "notEnabled") {
             $("#server-answer").text("Ваш аккаунт заблокирован.").css("color", "red");
         }
     };
