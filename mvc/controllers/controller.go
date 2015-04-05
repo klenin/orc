@@ -5,6 +5,7 @@ import (
     "github.com/orc/mvc/models"
     "net/http"
     "reflect"
+    "html/template"
 )
 
 type BaseController struct{}
@@ -83,4 +84,20 @@ func GetModelRefDate(model models.VirtEntity) (fields []string, result map[strin
     }
 
     return fields, result
+}
+
+func (this *Controller) Render(filenames []string, tmpname string, data interface{}) {
+    filenames = append(filenames, "mvc/views/header.html")
+    filenames = append(filenames, "mvc/views/footer.html")
+    tmpl, err := template.ParseFiles(filenames...)
+    if err != nil {
+        http.Error(this.Response, err.Error(), http.StatusInternalServerError)
+    }
+    if err := tmpl.ExecuteTemplate(this.Response, tmpname, data); err != nil {
+        http.Error(this.Response, err.Error(), http.StatusInternalServerError)
+    }
+}
+
+type VirtController interface {
+    Render(filename string, data interface{})
 }

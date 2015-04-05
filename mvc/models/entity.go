@@ -36,47 +36,47 @@ type Entity struct {
     Offset    int
 }
 
-func (this Entity) GetTableName() string {
+func (this *Entity) GetTableName() string {
     return this.TableName
 }
 
-func (this Entity) GetCaption() string {
+func (this *Entity) GetCaption() string {
     return this.Caption
 }
 
-func (this Entity) GetSub() bool {
+func (this *Entity) GetSub() bool {
     return this.Sub
 }
 
-func (this Entity) GetSubTable(index int) string {
+func (this *Entity) GetSubTable(index int) string {
     return this.SubTable[index]
 }
 
-func (this Entity) GetSubField() string {
+func (this *Entity) GetSubField() string {
     return this.SubField
 }
 
-func (this Entity) GetColumns() []string {
+func (this *Entity) GetColumns() []string {
     return this.Columns
 }
 
-func (this Entity) GetColumnByIdx(index int) string {
+func (this *Entity) GetColumnByIdx(index int) string {
     return this.Columns[index]
 }
 
-func (this Entity) GetColumnSlice(index int) []string {
+func (this *Entity) GetColumnSlice(index int) []string {
     return this.Columns[index:]
 }
 
-func (this Entity) GetColNames() []string {
+func (this *Entity) GetColNames() []string {
     return this.ColNames
 }
 
-func (this Entity) GetFields() interface{} {
+func (this *Entity) GetFields() interface{} {
     return this.Fields
 }
 
-func (this Entity) GetConditionName() string {
+func (this *Entity) GetConditionName() string {
     switch this.Condition {
     case OR:
         return "OR"
@@ -86,7 +86,7 @@ func (this Entity) GetConditionName() string {
     panic("Entity.GetConditionName: Invalid condition")
 }
 
-func (this Entity) LoadModelData(data map[string]interface{}) {
+func (this *Entity) LoadModelData(data map[string]interface{}) {
     rv := reflect.ValueOf(this.Fields)
     rt := rv.Type()
 

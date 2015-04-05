@@ -5,7 +5,6 @@ import (
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
-    "html/template"
     "net/http"
 )
 
@@ -116,14 +115,5 @@ func (this *Handler) ShowCabinet(tableName string) {
         model = Model{Table: data, Columns: regParamVals.GetColumns(), ColNames: regParamVals.GetColNames()}
     }
 
-    tmp, err := template.ParseFiles(
-        "mvc/views/"+role+".html",
-        "mvc/views/header.html",
-        "mvc/views/footer.html")
-    if utils.HandleErr("[Handler::ShowCabinet] ParseFiles: ", err, this.Response) {
-        return
-    }
-
-    err = tmp.ExecuteTemplate(this.Response, role, model)
-    utils.HandleErr("[Handler::ShowCabinet] ExecuteTemplate: ", err, this.Response)
+    this.Render([]string{"mvc/views/"+role+".html"}, role, model)
 }

@@ -233,7 +233,7 @@ func Select(m interface{}, fields []string) []interface{} {
     }
 }
 
-func SelectRow(m interface{}, fields []string) *sql.Row {
+func SelectRow(m models.VirtEntity, fields []string) *sql.Row {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
 

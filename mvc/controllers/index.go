@@ -4,7 +4,6 @@ import (
     "encoding/json"
     "github.com/orc/db"
     "github.com/orc/utils"
-    "html/template"
     "io/ioutil"
     "net/http"
     "strconv"
@@ -21,18 +20,7 @@ type IndexController struct {
 
 func (this *IndexController) Index() {
     this.Response.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-    tmp, err := template.ParseFiles(
-        "mvc/views/index.html",
-        "mvc/views/header.html",
-        "mvc/views/footer.html",
-        "mvc/views/login.html")
-    if utils.HandleErr("[IndexController::Index] ParseFiles: ", err, this.Response) {
-        return
-    }
-
-    err = tmp.ExecuteTemplate(this.Response, "index", nil)
-    utils.HandleErr("[IndexController::Index] ExecuteTemplate: ", err, this.Response)
+    this.Render([]string{"mvc/views/login.html", "mvc/views/index.html"}, "index", nil)
 }
 
 func (this *IndexController) LoadContestsFromCats() {
@@ -144,6 +132,17 @@ func CreateRegistrationEvent() {
         "identifier":    4})
     db.QueryInsert_(params, "RETURNING id")
 
+    var param_email_type_id int
+    paramTypes.LoadModelData(map[string]interface{}{"name": "email"})
+    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_email_type_id)
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "E-mail",
+        "form_id":       form_id1,
+        "param_type_id": param_text_type_id,
+        "identifier":    5})
+    db.QueryInsert_(params, "RETURNING id")
+
     /* Турнир юных программистов */
 
     // events.LoadModelData(map[string]interface{}{
@@ -164,29 +163,18 @@ func CreateRegistrationEvent() {
     //     "name":          "Фамиля",
     //     "form_id":       form_id3,
     //     "param_type_id": param_text_type_id,
-    //     "identifier":    5})
+    //     "identifier":    6})
     // db.QueryInsert_(params, "RETURNING id")
 
     // params.LoadModelData(map[string]interface{}{
     //     "name":          "Имя",
     //     "form_id":       form_id3,
     //     "param_type_id": param_text_type_id,
-    //     "identifier":    6})
+    //     "identifier":    7})
     // db.QueryInsert_(params, "RETURNING id")
 
     // params.LoadModelData(map[string]interface{}{
     //     "name":          "Отчество",
-    //     "form_id":       form_id3,
-    //     "param_type_id": param_text_type_id,
-    //     "identifier":    7})
-    // db.QueryInsert_(params, "RETURNING id")
-
-    // var param_email_type_id int
-    // paramTypes.LoadModelData(map[string]interface{}{"name": "email"})
-    // db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_email_type_id)
-
-    // params.LoadModelData(map[string]interface{}{
-    //     "name":          "E-mail",
     //     "form_id":       form_id3,
     //     "param_type_id": param_text_type_id,
     //     "identifier":    8})

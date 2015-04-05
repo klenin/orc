@@ -38,24 +38,48 @@ func Load() {
 
 func LoadAdmin() {
     base := new(controllers.BaseController)
-    result, reg_id := base.Handler().HandleRegister_("admin", "password", "admin")
+    result, reg_id := base.Handler().HandleRegister_("admin", "password", "", "admin")
     if result == "ok" {
         eventsRegs := controllers.GetModel("events_regs")
         eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
         db.QueryInsert_(eventsRegs, "")
     }
+    query := `select users.token from events_regs
+            INNER JOIN events on events_regs.event_id = events.id
+            INNER JOIN registrations on registrations.id = events_regs.reg_id
+            INNER JOIN faces on faces.id = registrations.face_id
+            INNER JOIN users on users.id = faces.user_id
+            where events.id = $1 and registrations.id = $2;`
+    res := db.Query(query, []interface{}{1, reg_id})
+    // if len(res) == 0 {
+    //     return
+    // }
+    token := res[0].(map[string]interface{})["token"].(string)
+    base.Handler().ConfirmUser(token)
 }
 
 func loadUsers() {
     base := new(controllers.BaseController)
     for i := 0; i < USER_COUNT; i++ {
         rand.Seed(int64(i))
-        result, reg_id := base.Handler().HandleRegister_("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "user")
+        result, reg_id := base.Handler().HandleRegister_("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "", "user")
         if result == "ok" {
             eventsRegs := controllers.GetModel("events_regs")
             eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
             db.QueryInsert_(eventsRegs, "")
         }
+        query := `select users.token from events_regs
+            INNER JOIN events on events_regs.event_id = events.id
+            INNER JOIN registrations on registrations.id = events_regs.reg_id
+            INNER JOIN faces on faces.id = registrations.face_id
+            INNER JOIN users on users.id = faces.user_id
+            where events.id = $1 and registrations.id = $2;`
+        res := db.Query(query, []interface{}{1, reg_id})
+        // if len(res) == 0 {
+        //     return
+        // }
+        token := res[0].(map[string]interface{})["token"].(string)
+        base.Handler().ConfirmUser(token)
     }
 }
 

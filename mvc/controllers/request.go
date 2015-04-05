@@ -168,13 +168,13 @@ func (this *Handler) SaveUserRequest() {
             db.QueryInsert_(eventsRegs, "")
         }
 
-        param_val_ids, _, _ = InsertUserParams(data["data"].([]interface{}))
+        param_val_ids, _, _, _ = InsertUserParams(data["data"].([]interface{}))
 
     } else if event_id == 1 {
-        var userLogin, userPass string
-        param_val_ids, userLogin, userPass = InsertUserParams(data["data"].([]interface{}))
+        var userLogin, userPass, email string
+        param_val_ids, userLogin, userPass, email = InsertUserParams(data["data"].([]interface{}))
 
-        result, reg_id = this.HandleRegister_(userLogin, userPass, "user")
+        result, reg_id = this.HandleRegister_(userLogin, userPass, email, "user")
         if result != "ok" {
             utils.SendJSReply(map[string]interface{}{"result": result}, this.Response)
             return
@@ -235,7 +235,7 @@ func MegoJoin(tableName, id string) RequestModel {
         []string{"events", "forms"},
         []string{"e", "f"},
         []string{"id", "id"},
-        "where e.id=$1")
+        "where e.id=$1 ORDER BY id")
     F = db.Query(query, []interface{}{id})
 
     for j := 0; j < len(F); j++ {
@@ -248,23 +248,25 @@ func MegoJoin(tableName, id string) RequestModel {
             []string{"forms", "param_types"},
             []string{"f", "p_t"},
             []string{"id", "id"},
-            "where f.id=$1")
+            "where f.id=$1 ORDER BY id")
         P = append(P, db.Query(query, []interface{}{f_id}))
     }
 
     return RequestModel{E: E, F: F, P: P}
 }
 
-func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
+func InsertUserParams(data []interface{}) ([]interface{}, string, string, string) {
     param_val_ids := make([]interface{}, 0)
     userLogin := ""
     userPass := ""
+    email := ""
 
     for _, element := range data {
         param_id, err := strconv.Atoi(element.(map[string]interface{})["id"].(string))
         if err != nil {
             continue
         }
+
         value := element.(map[string]interface{})["value"].(string)
 
         if param_id == 1 {
@@ -273,6 +275,8 @@ func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
         } else if param_id == 2 || param_id == 3 {
             userPass = value
             continue
+        } else if param_id == 4 {
+            email = value
         }
 
         var param_val_id int
@@ -282,5 +286,5 @@ func InsertUserParams(data []interface{}) ([]interface{}, string, string) {
         param_val_ids = append(param_val_ids, map[string]int{"param_val_id": param_val_id})
     }
 
-    return param_val_ids, userLogin, userPass
+    return param_val_ids, userLogin, userPass, email
 }
