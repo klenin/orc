@@ -17,8 +17,8 @@ func (c *ModelManager) Users() *UsersModel {
     model.TableName = "users"
     model.Caption = "Пользователи"
 
-    model.Columns = []string{"id", "login", "role"}
-    model.ColNames = []string{"ID", "Логин", "Роль"}
+    model.Columns = []string{"id", "login", "role", "enabled"}
+    model.ColNames = []string{"ID", "Логин", "Роль", "Состояние"}
 
     model.Fields = new(User)
     model.WherePart = make(map[string]interface{}, 0)
