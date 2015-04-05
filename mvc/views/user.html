@@ -33,18 +33,20 @@
     function(utils) {
         for (var i = 0; i < data.length; ++i) {
 
+            var p = $("<p/>");
+
             var lable = $("<label/>", {
                 for: data[i][0]["id"],
                 id: "label-" + data[i][0]["id"],
                 text: data[i][0]["val"]
-            });
+            }).appendTo(p);
 
-            var input = $("<input/>", {
+            var input = $("<div/>", {
                 id: data[i][1]["id"],
                 name: data[i][1]["id"],
-            }).val(data[i][1]["val"]);
+            }).text(data[i][1]["val"]).appendTo(p);
 
-            $("#cabinet form").append(lable).append(input);
+            $("#cabinet form").append(p);
 
             $("#" + data[i]["name"]).blur(function() {
                 if ($(this).val() != "") {
