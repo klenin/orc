@@ -80,6 +80,12 @@ function(grid) {
                 prompt = "Войдите на сайт";
                 errMsg = "Ошибка авторизации";
                 break;
+
+            case 403:
+                noErr = false;
+                prompt = "";
+                errMsg = "У Вас не хватает прав";
+                break;
             }
 
             var myInfo = '<div class="ui-state-highlight ui-corner-all">'
@@ -177,24 +183,6 @@ function(grid) {
             }
         );
 
-/*        $("#grid-table").jqGrid (
-            "navButtonAdd",
-            "#grid-table-pager",
-            {
-                caption: "", buttonicon: "ui-icon-calculator", title: "Выбор колонк",
-                onClickButton: function() {
-                    $("#grid-table").jqGrid("columnChooser", {
-                        done: function(perm) {
-                            $("#grid-table").trigger("resize");
-                            if (perm) {
-                                $("#grid-table").jqGrid("remapColumns", perm, true);
-                            }
-                        }
-                    });
-                }
-            }
-        );
-*/
         if ({{.TableName}} == "users") {
             $("#grid-table").jqGrid(
                 "navButtonAdd",
