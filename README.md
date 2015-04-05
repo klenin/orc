@@ -59,9 +59,9 @@ Run with downloading test data:
 
     $ go build && orc.exe -test-data=true
 
-### Configuring Apache
+### Configuring [Apache][6]
 
-Install modules `mod_proxy` and `mod_proxy_http`. Uncomment lines in `httpd.conf`:
+Install modules [mod_proxy][7] and [mod_proxy_http][8]. Uncomment lines in `httpd.conf`:
 
     LoadModule proxy_module modules/mod_proxy.so
     LoadModule proxy_http_module modules/mod_proxy_http.so
@@ -97,3 +97,6 @@ Generate routes:
 [3]: http://git-scm.com
 [4]: https://github.com/lib/pq
 [5]: http://www.gorillatoolkit.org/pkg/securecookie
+[6]: http://httpd.apache.org
+[7]: http://httpd.apache.org/docs/2.2/mod/mod_proxy.html
+[8]: http://httpd.apache.org/docs/2.2/mod/mod_proxy_http.html
