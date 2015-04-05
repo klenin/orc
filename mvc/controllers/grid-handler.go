@@ -8,6 +8,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "html/template"
+    // "log"
     "math"
     "net/http"
     "strconv"
@@ -244,6 +245,15 @@ func (this *GridHandler) isAdmin() bool {
 }
 
 func (this *GridHandler) GetEventTypesByEventId() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    if !this.isAdmin() {
+        return
+    }
+
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
@@ -269,6 +279,15 @@ func (this *GridHandler) GetEventTypesByEventId() {
 }
 
 func (this *GridHandler) ImportForms() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    if !this.isAdmin() {
+        return
+    }
+
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
@@ -318,6 +337,15 @@ func (this *GridHandler) ImportForms() {
 }
 
 func (this *GridHandler) GetPersonsByEventId() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    if !this.isAdmin() {
+        return
+    }
+
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
@@ -329,6 +357,11 @@ func (this *GridHandler) GetPersonsByEventId() {
 
         params := request["params_ids"].([]interface{})
 
+        if len(params) == 0 {
+            utils.SendJSReply(map[string]interface{}{"result": "Выберите параметры."}, this.Response)
+            return;
+        }
+
         query := `select reg_param_vals.reg_id as id, array_to_string(array_agg(params.name || ': ' ||  param_values.value), ' ') as name
             from reg_param_vals
             INNER JOIN registrations on registrations.id = reg_param_vals.reg_id
@@ -336,7 +369,7 @@ func (this *GridHandler) GetPersonsByEventId() {
             INNER JOIN param_values on param_values.id = reg_param_vals.param_val_id
             INNER JOIN params on params.id = param_values.param_id
             where params.id in (` + strings.Join(db.MakeParams(len(params)), ", ")
-            + `) and events.id = $` + strconv.Itoa(len(params)+1) + ` group by reg_param_vals.reg_id;`
+        query += ") and events.id = $" + strconv.Itoa(len(params)+1) + " group by reg_param_vals.reg_id;"
 
         result := db.Query(query, append(request["params_ids"].([]interface{}), event_id))
 
@@ -345,6 +378,15 @@ func (this *GridHandler) GetPersonsByEventId() {
 }
 
 func (this *GridHandler) GetParamsByEventId() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    if !this.isAdmin() {
+        return
+    }
+
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
