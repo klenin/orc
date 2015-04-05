@@ -54,9 +54,9 @@ func LoadAdmin() {
             INNER JOIN users on users.id = faces.user_id
             where events.id = $1 and registrations.id = $2;`
     res := db.Query(query, []interface{}{1, reg_id})
-    // if len(res) == 0 {
-    //     return
-    // }
+    if len(res) == 0 {
+        return
+    }
     token := res[0].(map[string]interface{})["token"].(string)
     base.Handler().ConfirmUser(token)
 }
