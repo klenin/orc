@@ -1,0 +1,14 @@
+{
+	"ImportPath": "github.com/orc",
+	"GoVersion": "go1.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Rev": "1b0c7f6e9ab3d7f500fd7d50c7ad835ff428139b"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Rev": "6577a6a8a8b66cc558ebe37f51ca07833bfa433b"
+		}
+	]
+}

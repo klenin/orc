@@ -2,7 +2,7 @@ package main
 
 import (
     "flag"
-    "github.com/orc/db"
+    // "github.com/orc/db"
     "github.com/orc/resources"
     "github.com/orc/router"
     "github.com/orc/mvc/controllers"
@@ -17,7 +17,7 @@ func main() {
     testData := flag.Bool("test-data", false, "to load test data")
     flag.Parse()
 
-    db.Init()
+    // db.Init()
     controllers.CreateRegistrationEvent()
     resources.LoadAdmin()
 
