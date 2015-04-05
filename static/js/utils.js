@@ -17,6 +17,9 @@ define(function() {
                 console.log(thrownError);
                 console.log(ajaxOptions);
                 console.log(ajaxRequest);
+                alert(thrownError);
+                alert(ajaxOptions);
+                alert(ajaxRequest);
             }
         });
     };

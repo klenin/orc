@@ -47,6 +47,7 @@ func HandleErr(message string, err error, w http.ResponseWriter) bool {
 
         http.Error(w, fmt.Sprintf(message+"%v\n", err.Error()), http.StatusMethodNotAllowed)
         // os.Exit(1)
+
         return true
     }
     return false
@@ -102,26 +103,34 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
             if HandleErr("[utils.ConvertTypeForModel] strconv.Atoi: ", err, nil) {
                 return nil
             }
+            println("ConvertTypeForModel-int: ", strconv.Itoa(v))
             return v
         case "text", "date", "time":
+            println("ConvertTypeForModel-text-date-time: ", value)
             return value
         case "boolean":
             v, err := strconv.ParseBool(value.(string))
-            if HandleErr("[utils.ConvertTypeForModel] strconv.Atoi: ", err, nil) {
+            if HandleErr("[utils.ConvertTypeForModel] strconv.ParseBool: ", err, nil) {
                 return nil
             }
+            println("ConvertTypeForModel-boolean: ", v)
             return v
         }
+        break
 
     case interface{}:
         switch type_ {
         case "int":
+            println("__ConvertTypeForModel-int: ", strconv.Itoa(value.(int)))
             return value.(int)
         case "text", "date", "time":
+            println("__ConvertTypeForModel-text-date-time: ", value.(string))
             return value.(string)
         case "boolean":
+            println("__ConvertTypeForModel-boolean: ", value.(bool))
             return value.(bool)
         }
+        break
     }
     panic("utils.ConvertTypeForModel: unknown type: " + type_)
 }
