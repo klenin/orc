@@ -362,16 +362,24 @@ func (this *GridHandler) GetPersonsByEventId() {
             return;
         }
 
-        query := `select reg_param_vals.reg_id as id, array_to_string(array_agg(params.name || ': ' ||  param_values.value), ' ') as name
+        query1 := `select reg_param_vals.reg_id as id, array_to_string(array_agg(params.name), ' ') as name from reg_param_vals
+            INNER JOIN registrations on registrations.id = reg_param_vals.reg_id
+            INNER JOIN events on events.id = reg_param_vals.event_id
+            INNER JOIN param_values on param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params on params.id = param_values.param_id
+            where params.id in (` + strings.Join(db.MakeParams(len(params)), ", ")
+        query1 += ") and events.id = $" + strconv.Itoa(len(params)+1) + " group by reg_param_vals.reg_id union all "
+
+        query2 := `select reg_param_vals.reg_id as id, array_to_string(array_agg(param_values.value), ' ') as name
             from reg_param_vals
             INNER JOIN registrations on registrations.id = reg_param_vals.reg_id
             INNER JOIN events on events.id = reg_param_vals.event_id
             INNER JOIN param_values on param_values.id = reg_param_vals.param_val_id
             INNER JOIN params on params.id = param_values.param_id
             where params.id in (` + strings.Join(db.MakeParams(len(params)), ", ")
-        query += ") and events.id = $" + strconv.Itoa(len(params)+1) + " group by reg_param_vals.reg_id;"
+        query2 += ") and events.id = $" + strconv.Itoa(len(params)+1) + " group by reg_param_vals.reg_id;"
 
-        result := db.Query(query, append(request["params_ids"].([]interface{}), event_id))
+        result := db.Query(query1+query2, append(request["params_ids"].([]interface{}), event_id))
 
         utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
     }
