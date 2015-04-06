@@ -31,7 +31,9 @@ define(function() {
             function(data) {
                 if (data["result"] === "ok") {
                     $("#logout-btn, #cabinet-btn").css("visibility", "visible");
+                    $("#wrap").css("visibility", "hidden");
                 } else {
+                    $("#wrap").css("visibility", "visible");
                     $("#logout-btn, #cabinet-btn").css("visibility", "hidden");
                 }
             },
