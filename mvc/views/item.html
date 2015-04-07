@@ -215,7 +215,9 @@ function(utils, datepicker) {
                 if (data["result"] === "ok") {
                     var msg = "Запрос успешно выполнен.";
                     if (event_id_ != 1) {
-                        msg += "Ваша заявка на участие будет рассмотрена.";
+                        msg += " Ваша заявка на участие будет рассмотрена.";
+                    } else {
+                        msg += " Проверьте, пожалуйста, свою почту.";
                     }
                     $("#now #server-answer").text(msg).css("color", "green");
 
