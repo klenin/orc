@@ -249,7 +249,7 @@ func (this *GridHandler) GetEventTypesByEventId() {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     } else {
         event_id, err := strconv.Atoi(request["event_id"].(string))
-        if utils.HandleErr("[GridHandler::GetEventTypesByEventId] id Atoi: ", err, this.Response) {
+        if utils.HandleErr("[GridHandler::GetEventTypesByEventId] event_id Atoi: ", err, this.Response) {
             return
         }
 
@@ -285,7 +285,7 @@ func (this *GridHandler) ImportForms() {
     }
 
     event_id, err := strconv.Atoi(request["event_id"].(string))
-    if utils.HandleErr("[GridHandler::GetEventTypesByEventId]  id Atoi: ", err, this.Response) {
+    if utils.HandleErr("[GridHandler::ImportForms] event_id Atoi: ", err, this.Response) {
         return
     }
 
@@ -296,18 +296,18 @@ func (this *GridHandler) ImportForms() {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
-        query := `SELECT events.id from events
-        INNER JOIN events_types on events_types.event_id = events.id
-        INNER JOIN event_types on event_types.id = events_types.type_id
-        WHERE event_types.id=$1 AND events.id <> $2
-        ORDER BY id DESC LIMIT 1`
+        query := `SELECT events.id FROM events
+            INNER JOIN events_types ON events_types.event_id = events.id
+            INNER JOIN event_types ON event_types.id = events_types.type_id
+            WHERE event_types.id=$1 AND events.id <> $2
+            ORDER BY id DESC LIMIT 1`
 
         eventResult := db.Query(query, []interface{}{type_id, event_id})
 
-        query = `SELECT forms.id from forms
-        INNER JOIN events_forms on events_forms.form_id = forms.id
-        INNER JOIN events on events.id = events_forms.event_id
-        WHERE events.id=$1`
+        query = `SELECT forms.id FROM forms
+            INNER JOIN events_forms ON events_forms.form_id = forms.id
+            INNER JOIN events ON events.id = events_forms.event_id
+            WHERE events.id=$1`
 
         formsResult := db.Query(query, []interface{}{int(eventResult[0].(map[string]interface{})["id"].(int64))})
 
@@ -341,7 +341,7 @@ func (this *GridHandler) GetPersonsByEventId() {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     } else {
         event_id, err := strconv.Atoi(request["event_id"].(string))
-        if utils.HandleErr("[GridHandler::GetEventTypesByEventId] id Atoi: ", err, this.Response) {
+        if utils.HandleErr("[GridHandler::GetPersonsByEventId] event_id Atoi: ", err, this.Response) {
             return
         }
 
@@ -349,7 +349,7 @@ func (this *GridHandler) GetPersonsByEventId() {
 
         if len(params) == 0 {
             utils.SendJSReply(map[string]interface{}{"result": "Выберите параметры."}, this.Response)
-            return;
+            return
         }
 
         query1 := `select reg_param_vals.reg_id as id, array_to_string(array_agg(params.name), ' ') as name from reg_param_vals
@@ -390,16 +390,16 @@ func (this *GridHandler) GetParamsByEventId() {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     } else {
         event_id, err := strconv.Atoi(request["event_id"].(string))
-        if utils.HandleErr("[GridHandler::GetEventTypesByEventId] id Atoi: ", err, this.Response) {
+        if utils.HandleErr("[GridHandler::GetParamsByEventId] event_id Atoi: ", err, this.Response) {
             return
         }
 
         query := `select DISTINCT params.id, params.name
-            from reg_param_vals
-            INNER JOIN events on events.id = reg_param_vals.event_id
-            INNER JOIN param_values on param_values.id = reg_param_vals.param_val_id
-            INNER JOIN params on params.id = param_values.param_id
-            INNER JOIN registrations on registrations.id = reg_param_vals.reg_id
+            FROM reg_param_vals
+            INNER JOIN events ON events.id = reg_param_vals.event_id
+            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params ON params.id = param_values.param_id
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
             where events.id = $1 ORDER BY params.id;`
 
         result := db.Query(query, []interface{}{event_id})

@@ -31,22 +31,22 @@ func (this *Handler) GetHistoryRequest() {
 
     event_id := data["event_id"]
 
-    query := `select param_id, params.name, param_types.name as type, param_values.value, forms.id as form_id from events
-            INNER JOIN events_forms on events_forms.event_id = events.id
-            INNER JOIN forms on events_forms.form_id = forms.id
+    query := `SELECT param_id, params.name, param_types.name as type, param_values.value, forms.id as form_id FROM events
+            INNER JOIN events_forms ON events_forms.event_id = events.id
+            INNER JOIN forms ON events_forms.form_id = forms.id
 
-            INNER JOIN events_regs on events_regs.event_id = events.id
-            INNER JOIN registrations on registrations.id = events_regs.reg_id
-            INNER JOIN reg_param_vals on reg_param_vals.reg_id = registrations.id
-                                     and reg_param_vals.event_id = events.id
+            INNER JOIN events_regs ON events_regs.event_id = events.id
+            INNER JOIN registrations ON registrations.id = events_regs.reg_id
+            INNER JOIN reg_param_vals ON reg_param_vals.reg_id = registrations.id
+                                     AND reg_param_vals.event_id = events.id
 
-            INNER JOIN faces on faces.id = registrations.face_id
-            INNER JOIN users on users.id = faces.user_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN users ON users.id = faces.user_id
 
-            INNER JOIN params on params.form_id = forms.id
-            INNER JOIN param_types on param_types.id = params.param_type_id
-            INNER JOIN param_values on param_values.param_id = params.id and reg_param_vals.param_val_id = param_values.id
-            where users.id = $1 and events.id = $2;`
+            INNER JOIN params ON params.form_id = forms.id
+            INNER JOIN param_types ON param_types.id = params.param_type_id
+            INNER JOIN param_values ON param_values.param_id = params.id AND reg_param_vals.param_val_id = param_values.id
+            WHERE users.id = $1 AND events.id = $2;`
 
     result["data"] = db.Query(query, []interface{}{user_id, event_id})
     utils.SendJSReply(result, this.Response)
@@ -86,12 +86,12 @@ func (this *Handler) GetListHistoryEvents() {
 
         if len(events) != 0 {
             query := `SELECT DISTINCT events.id, events.name FROM events
-                INNER JOIN events_forms on events_forms.event_id = events.id
-                INNER JOIN forms on events_forms.form_id = forms.id
-                INNER JOIN events_regs on events_regs.event_id = events.id
-                INNER JOIN registrations on registrations.id = events_regs.reg_id
-                INNER JOIN faces on faces.id = registrations.face_id
-                INNER JOIN users on users.id = faces.user_id
+                INNER JOIN events_forms ON events_forms.event_id = events.id
+                INNER JOIN forms ON events_forms.form_id = forms.id
+                INNER JOIN events_regs ON events_regs.event_id = events.id
+                INNER JOIN registrations ON registrations.id = events_regs.reg_id
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN users ON users.id = faces.user_id
                 WHERE users.id=$1 AND events.id IN (`
 
             var i int

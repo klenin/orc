@@ -47,12 +47,12 @@ func LoadAdmin() {
         db.QueryInsert_(eventsRegs, "")
     }
 
-    query := `select users.token from events_regs
-            INNER JOIN events on events_regs.event_id = events.id
-            INNER JOIN registrations on registrations.id = events_regs.reg_id
-            INNER JOIN faces on faces.id = registrations.face_id
-            INNER JOIN users on users.id = faces.user_id
-            where events.id = $1 and registrations.id = $2;`
+    query := `SELECT users.token FROM events_regs
+            INNER JOIN events ON events_regs.event_id = events.id
+            INNER JOIN registrations ON registrations.id = events_regs.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE events.id = $1 AND registrations.id = $2;`
     res := db.Query(query, []interface{}{1, reg_id})
     if len(res) == 0 {
         return
@@ -72,12 +72,12 @@ func loadUsers() {
             db.QueryInsert_(eventsRegs, "")
         }
 
-        query := `select users.token from events_regs
-            INNER JOIN events on events_regs.event_id = events.id
-            INNER JOIN registrations on registrations.id = events_regs.reg_id
-            INNER JOIN faces on faces.id = registrations.face_id
-            INNER JOIN users on users.id = faces.user_id
-            where events.id = $1 and registrations.id = $2;`
+        query := `SELECT users.token FROM events_regs
+            INNER JOIN events ON events_regs.event_id = events.id
+            INNER JOIN registrations ON registrations.id = events_regs.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE events.id = $1 AND registrations.id = $2;`
         res := db.Query(query, []interface{}{1, reg_id})
         // if len(res) == 0 {
         //     return

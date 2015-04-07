@@ -83,16 +83,9 @@ func CreateRegistrationEvent() {
     forms.LoadModelData(map[string]interface{}{"name": "Регистрационные данные"})
     db.QueryInsert_(forms, "RETURNING id").Scan(&form_id1)
 
-    // var form_id2 int
-    // forms.LoadModelData(map[string]interface{}{"name": "Личные данные"})
-    // db.QueryInsert_(forms, "RETURNING id").Scan(&form_id2)
-
     eventsForms := GetModel("events_forms")
     eventsForms.LoadModelData(map[string]interface{}{"form_id": form_id1, "event_id": event_id})
     db.QueryInsert_(eventsForms, "")
-
-    // eventsForms.LoadModelData(map[string]interface{}{"form_id": form_id2, "event_id": event_id})
-    // db.QueryInsert_(eventsForms, "")
 
     var param_text_type_id int
     paramTypes := GetModel("param_types")
@@ -104,12 +97,6 @@ func CreateRegistrationEvent() {
     db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_pass_type_id)
 
     params := GetModel("params")
-    // params.LoadModelData(map[string]interface{}{
-    //     "name":          "Имя",
-    //     "form_id":       form_id2,
-    //     "param_type_id": param_text_type_id,
-    //     "identifier":    1})
-    // db.QueryInsert_(params, "RETURNING id")
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Логин",
