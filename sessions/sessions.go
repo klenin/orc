@@ -7,7 +7,7 @@ import (
     "time"
 )
 
-var lifetime = 300 //5 min
+var lifetime = 1800
 
 var CookieHandler = securecookie.New(
     securecookie.GenerateRandomKey(64),
