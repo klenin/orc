@@ -479,9 +479,9 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
 
         data := db.Query(query, []interface{}{reg_id})
 
-        if len(data) == 0 {
+        if len(data) < 2 {
             utils.SendJSReply(map[string]interface{}{"result": "Нет данных."}, this.Response)
-            return;
+            return
         }
 
         to := data[0].(map[string]interface{})["value"].(string)
