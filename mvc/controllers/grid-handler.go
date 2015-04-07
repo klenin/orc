@@ -480,7 +480,7 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
         data := db.Query(query, []interface{}{reg_id})
 
         if len(data) < 2 {
-            utils.SendJSReply(map[string]interface{}{"result": "Нет данных."}, this.Response)
+            utils.SendJSReply(map[string]interface{}{"result": "Нет данных о логине или пароле пользователя."}, this.Response)
             return
         }
 
