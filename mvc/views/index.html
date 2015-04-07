@@ -16,7 +16,7 @@
             $(p).append($("<a/>", {
                 text: data["data"][i]["name"],
                 href: "/handler/getrequest/event/" + data["data"][i]["id"],
-                class: "form-row",
+                class: "events"
             }));
             $(p).appendTo("div#list-events");
         }
@@ -44,32 +44,16 @@
     });
 </script>
 
-<div id="container">
-
-    <div id="wrap">
-        <ul id="navigation">
-            <li><a href="#" class="active">О системе</a></li>
-            <li><a href="#">Вход</a></li>
-        </ul>
-
-        <div id="content">
-            <div id="tab1">
-                <p>
-                    <strong>Orc</strong> - web-сервис для учета участников мероприятий.
-                </p>
-            </div>
-
-            <div id="tab2">
-                {{template "login"}}
-            </div>
-        </div>
-
-        <div id="server-answer"></div>
+<div id="wrap">
+    <div id="content">
+        {{template "login"}}
     </div>
 
-    <p><i>Открытые мероприятия:</i></p>
-    <div id="list-events"></div>
+    <div id="server-answer"></div>
+</div>
 
+<div id="container">
+    <div id="list-events"></div>
 </div>
 
 {{template "footer"}}

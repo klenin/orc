@@ -33,8 +33,8 @@ function(utils) {
         js["action"] = action;
 
         if (action == "login") {
-            js["login"] = $("#tab2 #username").val();
-            js["password"] = $("#password").val();
+            js["login"] = $("#content #username").val();
+            js["password"] = $("#content #password").val();
 
             // js["login"] = "admin";
             // js["password"] = "password";
