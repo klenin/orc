@@ -16,7 +16,6 @@
             $(p).append($("<a/>", {
                 text: data["data"][i]["name"],
                 href: "/handler/getrequest/event/" + data["data"][i]["id"],
-                class: "events"
             }));
             $(p).appendTo("div#list-events");
         }
