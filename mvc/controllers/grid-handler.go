@@ -352,26 +352,26 @@ func (this *GridHandler) GetPersonsByEventId() {
             return
         }
 
-        query1 := `select reg_param_vals.reg_id as id, array_to_string(array_agg(params.name), ' ') as name from reg_param_vals
-            INNER JOIN registrations on registrations.id = reg_param_vals.reg_id
-            INNER JOIN events on events.id = reg_param_vals.event_id
-            INNER JOIN param_values on param_values.id = reg_param_vals.param_val_id
-            INNER JOIN params on params.id = param_values.param_id
-            where params.id in (` + strings.Join(db.MakeParams(len(params)), ", ")
-        query1 += ") and events.id = $" + strconv.Itoa(len(params)+1) + " group by reg_param_vals.reg_id union all "
+        q := "SELECT params.name FROM params WHERE params.id in ("+strings.Join(db.MakeParams(len(params)), ", ")+") ORDER BY id"
 
-        query2 := `select reg_param_vals.reg_id as id, array_to_string(array_agg(param_values.value), ' ') as name
-            from reg_param_vals
-            INNER JOIN registrations on registrations.id = reg_param_vals.reg_id
-            INNER JOIN events on events.id = reg_param_vals.event_id
-            INNER JOIN param_values on param_values.id = reg_param_vals.param_val_id
-            INNER JOIN params on params.id = param_values.param_id
-            where params.id in (` + strings.Join(db.MakeParams(len(params)), ", ")
-        query2 += ") and events.id = $" + strconv.Itoa(len(params)+1) + " group by reg_param_vals.reg_id;"
+        var caption []string
+        for _, v := range db.Query(q, params) {
+            caption = append(caption, v.(map[string]interface{})["name"].(string))
+        }
 
-        result := db.Query(query1+query2, append(request["params_ids"].([]interface{}), event_id))
+        result := []interface{}{0: map[string]interface{}{"id": -1, "name": strings.Join(caption, " ")}}
 
-        utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
+        query := `SELECT reg_param_vals.reg_id as id, array_to_string(array_agg(param_values.value), ' ') as name
+            FROM reg_param_vals
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN events ON events.id = reg_param_vals.event_id
+            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params ON params.id = param_values.param_id
+            WHERE params.id in (` + strings.Join(db.MakeParams(len(params)), ", ")
+        query += ") AND events.id = $" + strconv.Itoa(len(params)+1) + " group by reg_param_vals.reg_id;"
+
+        data := db.Query(query, append(params, event_id))
+        utils.SendJSReply(map[string]interface{}{"result": "ok", "data": append(result, data...)}, this.Response)
     }
 }
 
