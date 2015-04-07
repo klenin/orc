@@ -28,24 +28,24 @@ type SmtpTemplateData struct {
     To              string
     Subject         string
     ConfirmationUrl string
-    RejactionUrl    string
+    RejectionUrl    string
+    EventName       string
 }
 
-func SendConfirmEmail(to, address, token string) {
-    admin := &Admin{
-        Name:       "Secret Oasis",
-        EmailAdmin: "secret.oasis.3805@gmail.com",
-        Password:   "mysterious-reef-6215",
-        SMTPServer: "smtp.gmail.com",
-        Port:       587}
+var admin = &Admin{
+    Name:       "Secret Oasis",
+    EmailAdmin: "secret.oasis.3805@gmail.com",
+    Password:   "mysterious-reef-6215",
+    SMTPServer: "smtp.gmail.com",
+    Port:       587}
 
-    auth := smtp.PlainAuth(
-        "",
-        admin.EmailAdmin,
-        admin.Password,
-        admin.SMTPServer)
+var auth = smtp.PlainAuth(
+    "",
+    admin.EmailAdmin,
+    admin.Password,
+    admin.SMTPServer)
 
-    var emailTemplate = `From: {{.From}}
+var comfirmRegistrationEmailTmp = `From: {{.From}}
 To: {{.To}}
 Subject: {{.Subject}}
 
@@ -56,12 +56,71 @@ Subject: {{.Subject}}
 
 Если это письмо попало к Вам по ошибке, то, чтобы больше не получать писем от ` + admin.Name + `, перейдите по этой ссылке: {{ .RejactionUrl }}`
 
+var rejectRequestTmp = `From: {{.From}}
+To: {{.To}}
+Subject: {{.Subject}}
+
+Здравствуйте!
+
+Спасибо за использование нашего ресурса secret-oasis-3805.com!
+Вы отправили заявку на участие в мероприятии "{{ .EventName }}", но указанные Вами данные имеют некоторые неточности.
+Пожалуйста, заполните заявку еще раз.`
+
+var confirmRequestTmp = `From: {{.From}}
+To: {{.To}}
+Subject: {{.Subject}}
+
+Здравствуйте!
+
+Спасибо за использование нашего ресурса secret-oasis-3805.com!
+Ваша заявка на участие в мероприятии "{{ .EventName }}" принята.`
+
+func SendConfirmEmail(to, address, token string) {
+
     context := &SmtpTemplateData{
-        admin.Name,
-        to,
-        "Подтверждение регистрации",
-        Server+"/handler/confirmuser/"+token,
-        Server+"/handler/rejectuser/"+token}
+        From: admin.Name,
+        To: to,
+        Subject: "Подтверждение регистрации",
+        ConfirmationUrl: Server+"/handler/confirmuser/"+token,
+        RejectionUrl: Server+"/handler/rejectuser/"+token}
+
+    t, err := template.New("confirmationmail").Parse(comfirmRegistrationEmailTmp)
+    if utils.HandleErr("[SendEmail] Error trying to parse mail template: ", err, nil) {
+        return
+    }
+
+    var doc bytes.Buffer
+    err = t.Execute(&doc, context)
+    if utils.HandleErr("[SendEmail] Error trying to execute mail template: ", err, nil) {
+        return
+    }
+
+    err = smtp.SendMail(
+        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
+        auth,
+        admin.EmailAdmin,
+        []string{address},
+        doc.Bytes())
+
+    if utils.HandleErr("[SendEmail] Error attempting to send a mail: ", err, nil) {
+        return
+    }
+}
+
+func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bool) {
+
+    var emailTemplate string
+    if !confirm {
+        emailTemplate = rejectRequestTmp
+    } else {
+        emailTemplate = confirmRequestTmp
+    }
+
+    context := &SmtpTemplateData{
+        From: admin.Name,
+        To: to,
+        Subject: `Подтверждение заявки на участие в мероприятии "`+event+`"`,
+        EventName: event}
 
     t, err := template.New("confirmationmail").Parse(emailTemplate)
     if utils.HandleErr("[SendEmail] Error trying to parse mail template: ", err, nil) {

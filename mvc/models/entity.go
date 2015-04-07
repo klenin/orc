@@ -95,9 +95,11 @@ func (this *Entity) LoadModelData(data map[string]interface{}) {
             tag := rt.Elem().Field(i).Tag.Get("name")
             if tag == key {
                 println(tag)
-                rv.Elem().Field(i).Set(
-                    reflect.ValueOf(
-                        utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), val)))
+                value := utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), val)
+                if value == nil {
+                    continue
+                }
+                rv.Elem().Field(i).Set(reflect.ValueOf(value))
             }
         }
     }
@@ -119,6 +121,9 @@ func (this Entity) LoadWherePart(data map[string]interface{}) {
                 arr := make([]interface{}, 0)
                 for _, vv := range val.([]interface{}) {
                     v_ := utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), vv)
+                    if v_ == nil {
+                        continue
+                    }
                     arr = append(arr, v_)
                 }
                 rv.Interface().(map[string]interface{})[key] = arr

@@ -407,3 +407,93 @@ func (this *GridHandler) GetParamsByEventId() {
         utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
     }
 }
+
+func (this *GridHandler) GetPersonRequest() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    if !this.isAdmin() {
+        return
+    }
+
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+    } else {
+        event_id, err := strconv.Atoi(request["event_id"].(string))
+        if utils.HandleErr("[GridHandler::GetPersonRequest] event_id Atoi: ", err, this.Response) {
+            return
+        }
+        reg_id, err := strconv.Atoi(request["reg_id"].(string))
+        if utils.HandleErr("[GridHandler::GetPersonRequest] reg_id Atoi: ", err, this.Response) {
+            return
+        }
+
+        query := `SELECT params.name, param_values.value FROM param_values
+            INNER JOIN params ON params.id = param_values.param_id
+            INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN events ON events.id = reg_param_vals.event_id
+            INNER JOIN events_regs ON events_regs.event_id = events.id AND events_regs.reg_id = registrations.id
+            WHERE events.id=$1 AND registrations.id=$2`
+
+        data := db.Query(query, []interface{}{event_id, reg_id})
+        utils.SendJSReply(map[string]interface{}{"result": "ok", "data": data}, this.Response)
+    }
+}
+
+func (this *GridHandler) ConfirmOrRejectPersonRequest() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    if !this.isAdmin() {
+        return
+    }
+
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
+    } else {
+        event_id, err := strconv.Atoi(request["event_id"].(string))
+        if utils.HandleErr("[GridHandler::GetPersonRequest] event_id Atoi: ", err, this.Response) {
+            return
+        }
+        reg_id, err := strconv.Atoi(request["reg_id"].(string))
+        if utils.HandleErr("[GridHandler::GetPersonRequest] reg_id Atoi: ", err, this.Response) {
+            return
+        }
+
+        query := `SELECT param_values.value
+            FROM reg_param_vals
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN events ON events.id = reg_param_vals.event_id
+            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params ON params.id = param_values.param_id
+            INNER JOIN events_regs ON events.id = events_regs.event_id AND registrations.id = events_regs.reg_id
+            WHERE params.id in (1, 4) AND events.id = 1 AND registrations.id = $1;`
+
+        data := db.Query(query, []interface{}{reg_id})
+
+        if len(data) == 0 {
+            utils.SendJSReply(map[string]interface{}{"result": "Нет данных."}, this.Response)
+            return;
+        }
+
+        to := data[0].(map[string]interface{})["value"].(string)
+        email := data[1].(map[string]interface{})["value"].(string)
+        event := db.Query("SELECT name FROM events WHERE id=$1;", []interface{}{event_id})[0].(map[string]interface{})["name"].(string)
+
+        if request["confirm"].(bool) {
+            mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, true)
+            utils.SendJSReply(map[string]interface{}{"result": "Письмо с подтверждением заявки отправлено."}, this.Response)          
+        } else {
+            mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, false)
+            utils.SendJSReply(map[string]interface{}{"result": "Письмо с отклонением заявки отправлено."}, this.Response)           
+        }
+    }
+}

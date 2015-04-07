@@ -91,16 +91,16 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
     case string:
         // value from grid
         if value.(string) == "_empty" {
-            return -1
+            return nil
         }
 
         switch type_ {
         case "int":
             if value.(string) == "_empty" {
-                return -1
+                return nil
             }
             v, err := strconv.Atoi(value.(string))
-            if HandleErr("[utils.ConvertTypeForModel] strconv.Atoi: ", err, nil) {
+            if err != nil {
                 return nil
             }
             println("ConvertTypeForModel-int: ", strconv.Itoa(v))
@@ -110,7 +110,7 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
             return value
         case "boolean":
             v, err := strconv.ParseBool(value.(string))
-            if HandleErr("[utils.ConvertTypeForModel] strconv.ParseBool: ", err, nil) {
+            if err != nil {
                 return nil
             }
             println("ConvertTypeForModel-boolean: ", v)

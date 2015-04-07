@@ -271,7 +271,6 @@ func InsertUserParams(data []interface{}) ([]interface{}, string, string, string
 
         if param_id == 1 {
             userLogin = value
-            continue
         } else if param_id == 2 || param_id == 3 {
             userPass = value
             continue
