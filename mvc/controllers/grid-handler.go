@@ -5,10 +5,9 @@ import (
     "encoding/json"
     "fmt"
     "github.com/orc/db"
+    "github.com/orc/mailer"
     "github.com/orc/sessions"
     "github.com/orc/utils"
-    "html/template"
-    // "log"
     "math"
     "net/http"
     "strconv"
@@ -118,18 +117,10 @@ func (this *GridHandler) Select(tableName string) {
         return
     }
 
-    tmp, err := template.ParseFiles(
-        "mvc/views/table.html",
-        "mvc/views/header.html",
-        "mvc/views/footer.html")
-    if utils.HandleErr("[GridHandler::Select] ParseFiles: ", err, this.Response) {
-        return
-    }
-
     model := GetModel(tableName)
     refFields, refData := GetModelRefDate(model)
 
-    err = tmp.ExecuteTemplate(this.Response, "table", Model{
+    this.Render([]string{"mvc/views/table.html"}, "table", Model{
         RefData:   refData,
         RefFields: refFields,
         TableName: model.GetTableName(),
@@ -137,7 +128,6 @@ func (this *GridHandler) Select(tableName string) {
         Columns:   model.GetColumns(),
         Caption:   model.GetCaption(),
         Sub:       model.GetSub()})
-    utils.HandleErr("[GridHandler::Select] ExecuteTemplate: ", err, this.Response)
 }
 
 func (this *GridHandler) Edit(tableName string) {
