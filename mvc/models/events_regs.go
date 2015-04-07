@@ -4,6 +4,7 @@ type EventReg struct {
     Id      int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     EventId int `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
     RegId   int `name:"reg_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"registrations" refField:"id" refFieldShow:"id"`
+    Status  bool `name:"status" type:"boolean" null:"NULL" extra:""`
 }
 
 func (c *ModelManager) EventsRegs() *EventRegModel {
@@ -12,8 +13,8 @@ func (c *ModelManager) EventsRegs() *EventRegModel {
     model.TableName = "events_regs"
     model.Caption = "Мероприятия-Регистрации"
 
-    model.Columns = []string{"id", "event_id", "reg_id"/*, "reg_date"*/}
-    model.ColNames = []string{"ID", "Мероприятие", "Регистрация"/*, "Дата регистрации"*/}
+    model.Columns = []string{"id", "event_id", "reg_id", "status"/*, "reg_date"*/}
+    model.ColNames = []string{"ID", "Мероприятие", "Регистрация", "Статус"/*, "Дата регистрации"*/}
 
     model.Fields = new(EventReg)
     model.WherePart = make(map[string]interface{}, 0)
