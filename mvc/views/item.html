@@ -225,7 +225,7 @@ function(utils, datepicker) {
                     $("#now #server-answer").text("Такой логин уже существует.").css("color", "red");
 
                 } else if (data.result === "badLogin") {
-                    $("#now #server-answer").text("Логин может содержать буквы и/или "
+                    $("#now #server-answer").text("Логин может содержать латинские буквы и/или "
                         + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
 
                 } else if (data.result === "badPassword") {
