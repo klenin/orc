@@ -3,6 +3,7 @@ package mailer
 import (
     "bytes"
     "github.com/orc/utils"
+    "log"
     "net/smtp"
     "strconv"
     "text/template"
@@ -54,7 +55,7 @@ Subject: {{.Subject}}
 Спасибо за использование нашего ресурса secret-oasis-3805.com!
 Для подтверждения вашей учетной записи, пожалуйста, перейдите по ссылке: {{ .ConfirmationUrl }}
 
-Если это письмо попало к Вам по ошибке, то, чтобы больше не получать писем от ` + admin.Name + `, перейдите по этой ссылке: {{ .RejactionUrl }}`
+Если это письмо попало к Вам по ошибке, то, чтобы больше не получать писем от ` + admin.Name + `, перейдите по этой ссылке: {{ .RejectionUrl }}`
 
 var rejectRequestTmp = `From: {{.From}}
 To: {{.To}}
@@ -76,6 +77,9 @@ Subject: {{.Subject}}
 Ваша заявка на участие в мероприятии "{{ .EventName }}" принята.`
 
 func SendConfirmEmail(to, address, token string) {
+
+    log.Println("SendConfirmEmail: address: ", address)
+    log.Println("SendConfirmEmail: to: ", to)
 
     context := &SmtpTemplateData{
         From: admin.Name,
