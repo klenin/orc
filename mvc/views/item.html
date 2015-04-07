@@ -25,7 +25,7 @@
         <form>
             <h1 id="event" href="#events"></h1>
             <div id="events"></div>
-            <input type="button" value="сохранить" id="save-btn" name="submit"/>
+            <input type="button" value="отправить запрос" id="save-btn" name="submit"/>
         </form>
     </div>
 </div>
@@ -198,21 +198,26 @@ function(utils, datepicker) {
     });
 
     $("#save-btn").click(function() {
-        console.log("ID+3")
-        console.log($("[id=3]"))
-        if (!valid && E[0]["id"] == 1) {
+
+        var event_id_ = E[0]["id"];
+
+        if (!valid && event_id_ == 1) {
             return;
         }
 
         utils.postRequest(
             {
-                "event_id": parseInt(E[0]["id"]),
+                "event_id": parseInt(event_id_),
                 "data": getFormData("now")
             },
             function(data) {
                 $("#now form").css("visibility", "hidden");
                 if (data["result"] === "ok") {
-                    $("#now #server-answer").text("Запрос успешно выполнен.").css("color", "green");
+                    var msg = "Запрос успешно выполнен.";
+                    if (event_id_ != 1) {
+                        msg += "Ваша заявка на участие будет рассмотрена.";
+                    }
+                    $("#now #server-answer").text(msg).css("color", "green");
 
                 } else if (data.result === "loginExists") {
                     $("#now #server-answer").text("Такой логин уже существует.").css("color", "red");
