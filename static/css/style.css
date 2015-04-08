@@ -26,6 +26,10 @@ hr {
     padding: 5px 15px;
 }
 
+#container, #content-top div {
+    display: inline-block;
+}
+
 .tables, .events {
     text-decoration: none;
 }
