@@ -26,7 +26,7 @@ hr {
     padding: 5px 15px;
 }
 
-#container, #content-top div {
+#cabinet, #content-top div {
     display: inline-block;
 }
 
@@ -84,7 +84,7 @@ a:hover {
 
 #footer {
     position: fixed;
-    margin-top: -70px;
+    margin-top: -100px;
 }
 
 #content {
