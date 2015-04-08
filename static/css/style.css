@@ -21,13 +21,16 @@ hr {
 }
 
 .tables {
-    border: 1px solid #BBD9FA;
     display: block;
-    padding: 5px 15px;
+    padding-top: 5px;
 }
 
-#cabinet, #content-top div {
+#container, #content-top div {
     display: inline-block;
+}
+
+#cabinet {
+    margin-bottom: 10px;
 }
 
 .tables, .events {
@@ -60,7 +63,7 @@ textarea {
     color: red;
 }
 
-#container {
+#events, #container {
     min-height: 100%;
     color: #4c9ac3;
     width: 100%;
