@@ -201,11 +201,8 @@ func (this *Handler) SaveUserRequest() {
 }
 
 func (this *Handler) GetRequest(tableName, id string) {
-    tmp, err := template.ParseFiles(
-        "mvc/views/item.html",
-        "mvc/views/header.html",
-        "mvc/views/footer.html")
-    if utils.HandleErr("[Handler::GetRequest] ParseFiles: ", err, this.Response) {
+    if !sessions.CheackSession(this.Response, this.Request) && id != "1" {
+        this.Render([]string{"mvc/views/loginpage.html", "mvc/views/login.html"}, "loginpage", nil)
         return
     }
 
@@ -214,8 +211,7 @@ func (this *Handler) GetRequest(tableName, id string) {
         return
     }
 
-    err = tmp.ExecuteTemplate(this.Response, "item", template.JS(reaponse))
-    utils.HandleErr("[Handler::GetRequest] ExecuteTemplate: ", err, this.Response)
+    this.Render([]string{"mvc/views/item.html"}, "item", template.JS(reaponse))
 }
 
 func MegoJoin(tableName, id string) RequestModel {
