@@ -2,7 +2,8 @@ package main
 
 import (
     "flag"
-    // "github.com/orc/db"
+    "database/sql"
+    "github.com/orc/db"
     "github.com/orc/resources"
     "github.com/orc/router"
     "github.com/orc/mvc/controllers"
@@ -11,8 +12,19 @@ import (
     "os"
 )
 
+var err error
+
 func main() {
     log.Println("Server started.")
+
+    db.DB, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
+
+    if err != nil {
+        log.Println("Error db connection: ", err.Error())
+        os.Exit(1)
+    }
+
+    log.Println("DB CONNECTED")
 
     testData := flag.Bool("test-data", false, "to load test data")
     flag.Parse()

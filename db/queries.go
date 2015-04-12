@@ -7,22 +7,13 @@ import (
     "github.com/orc/mvc/models"
     "github.com/orc/utils"
     "log"
-    "os"
     "reflect"
     "strconv"
     "strings"
     "time"
 )
 
-// var DB, _ = sql.Open(
-//     "postgres",
-//     "host=localhost"+
-//         " user="+user+
-//         " dbname="+dbname+
-//         " password="+password+
-//         " sslmode=require")
-
-var DB, _ = sql.Open("postgres", os.Getenv("DATABASE_URL"))
+var DB *sql.DB
 
 func Exec(query string, params []interface{}) sql.Result {
     log.Println(query)
