@@ -18,6 +18,7 @@ func main() {
     log.Println("Server started.")
 
     db.DB, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
+    defer db.DB.Close()
 
     if err != nil {
         log.Println("Error db connection: ", err.Error())
