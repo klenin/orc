@@ -35,7 +35,7 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
         user.LoadModelData(map[string]interface{}{"hash": hash})
         user.GetFields().(*models.User).Enabled = true
         user.LoadWherePart(map[string]interface{}{"id": id})
-        db.QueryUpdate_(user)
+        db.QueryUpdate_(user).Scan()
 
         sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
     } else {
@@ -112,7 +112,7 @@ func (this *Handler) ConfirmUser(token string) {
     user = GetModel("users")
     user.LoadModelData(map[string]interface{}{"token": " ", "enabled": true})
     user.LoadWherePart(map[string]interface{}{"id": id})
-    db.QueryUpdate_(user)
+    db.QueryUpdate_(user).Scan()
 
     if this.Response != nil {
         this.Render([]string{"mvc/views/confirmation.html"}, "confirmation", nil)

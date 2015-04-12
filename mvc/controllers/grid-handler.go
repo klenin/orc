@@ -209,7 +209,7 @@ func (this *GridHandler) ResetPassword() {
     db.SelectRow(user, []string{"salt"}).Scan(&salt)
 
     user.LoadModelData(map[string]interface{}{"pass": utils.GetMD5Hash(pass + salt)})
-    db.QueryUpdate_(user)
+    db.QueryUpdate_(user).Scan()
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
@@ -321,7 +321,7 @@ func (this *GridHandler) ImportForms() {
                 continue
             }
             eventsForms.LoadModelData(map[string]interface{}{"event_id":  event_id, "form_id": form_id})
-            db.QueryInsert_(eventsForms, "")
+            db.QueryInsert_(eventsForms, "").Scan()
         }
     }
 }

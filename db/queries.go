@@ -13,7 +13,7 @@ import (
     "time"
 )
 
-var DB *sql.DB
+var DB *sql.DB = nil
 
 func Exec(query string, params []interface{}) sql.Result {
     log.Println(query)
@@ -110,7 +110,7 @@ func QueryInsert_(m interface{}, extra string) *sql.Row {
         }
         p[i-1] = v
     }
-    query = query[0:len(query)-2]
+    query = query[0 : len(query)-2]
     query += ") VALUES (%s) %s;"
 
     // if i < 2 {
@@ -244,7 +244,7 @@ func SelectCount(tableName string) int {
     if FindModel(tableName) == nil {
         panic("Table " + tableName + " not exists")
     }
-    return int(Query("SELECT COUNT(*) FROM " + tableName + ";", nil)[0].(map[string]interface{})["count"].(int64))
+    return int(Query("SELECT COUNT(*) FROM "+tableName+";", nil)[0].(map[string]interface{})["count"].(int64))
 }
 
 func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
@@ -288,6 +288,7 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
         }
         j++
     }
+    rows.Close()
     return answer
 }
 

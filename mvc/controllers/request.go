@@ -181,7 +181,7 @@ func (this *Handler) SaveUserRequest() {
         }
         eventsRegs := GetModel("events_regs")
         eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
-        db.QueryInsert_(eventsRegs, "")
+        db.QueryInsert_(eventsRegs, "").Scan()
 
     } else {
         utils.SendJSReply(map[string]interface{}{"result": "notAuthorized"}, this.Response)
@@ -194,7 +194,7 @@ func (this *Handler) SaveUserRequest() {
             "reg_id":        reg_id,
             "event_id":      event_id,
             "param_val_id":  v.(map[string]int)["param_val_id"]})
-        db.QueryInsert_(regParamValue, "")
+        db.QueryInsert_(regParamValue, "").Scan()
     }
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
