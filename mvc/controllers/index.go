@@ -147,7 +147,7 @@ func CreateRegistrationEvent() {
     db.QueryInsert_(eventsForms, "")
 
     params.LoadModelData(map[string]interface{}{
-        "name":          "Фамиля",
+        "name":          "Фамилия",
         "form_id":       form_id3,
         "param_type_id": param_text_type_id,
         "identifier":    6})
