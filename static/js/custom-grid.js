@@ -41,8 +41,8 @@ function(utils, datepicker) {
         data["editable"] = true;
         data["editrules"] = {required: true};
 
-        if ((field.indexOf("id") > -1)) {
-        // if (field == "id") {
+        // if ((field.indexOf("id") > -1)) {
+        if (field == "id") {
             data["editable"] = false;
 
         } else if (field.indexOf("date") > -1) {
