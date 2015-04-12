@@ -11,54 +11,24 @@
 
 <script type="text/javascript">
     $("#title").append("Личный кабинет");
-    var valid = false;
-    var data = []
+
+    console.log({{.Table}});
 
     {{with .Table}}
         {{range $index, $elmt := .}}
-            var paragraph = []
-            {{range $i, $v := $elmt}}
-                paragraph.push({"id": {{$i}}, "val": {{$v}} }),
-            {{end}}
-            data.push(paragraph)
-        {{end}}
-    {{end}}
-
-    function getFormData() {
-        var result = $("form").serializeArray();
-        return result;
-    }
-
-    require(["utils"],
-    function(utils) {
-        for (var i = 0; i < data.length; ++i) {
-
             var p = $("<p/>");
 
             var lable = $("<label/>", {
-                for: data[i][0]["id"],
-                id: "label-" + data[i][0]["id"],
-                text: data[i][0]["val"]
+                text: {{$elmt.name}}
             }).appendTo(p);
 
             var input = $("<div/>", {
-                id: data[i][1]["id"],
-                name: data[i][1]["id"],
-            }).text(data[i][1]["val"]).appendTo(p);
+            }).text({{$elmt.value}}).appendTo(p);
 
             $("#cabinet form").append(p);
+        {{end}}
+    {{end}}
 
-            $("#" + data[i]["name"]).blur(function() {
-                if ($(this).val() != "") {
-                    valid = true;
-                    $(this).css({"border": "2px solid green"});
-                } else {
-                    valid = false;
-                    $(this).css({"border": "2px solid red"});
-                }
-            });
-        }
-    });
 </script>
 
 {{template "footer"}}
