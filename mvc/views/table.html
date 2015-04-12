@@ -217,7 +217,6 @@ function(grid) {
         } else if ({{.TableName}} == "events_regs") {
             $.extend($.jgrid.edit, {
                 recreateForm: true,
-                modal: true,
                 beforeShowForm: function () {
                     $('<a href="#">Показать анкету участника<span class="ui-icon ui-icon-script"></span></a>')
                     .click(grid.ShowPersonsRequest)
