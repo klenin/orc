@@ -10,7 +10,7 @@ import (
 )
 
 const HASH_SIZE = 32
-const Server = "http://secret-oasis-3805.herokuapp.com"
+const Server = "secret-oasis-3805.herokuapp.com"
 
 var err error
 
@@ -106,9 +106,7 @@ func SendConfirmEmail(to, address, token string) {
         []string{address},
         doc.Bytes())
 
-    if utils.HandleErr("[SendEmail] Error attempting to send a mail: ", err, nil) {
-        return
-    }
+    utils.HandleErr("[SendEmail] Error attempting to send a mail: ", err, nil)
 }
 
 func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bool) {
