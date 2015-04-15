@@ -86,7 +86,7 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
         db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
 
         registration := GetModel("registrations")
-        registration.LoadModelData(map[string]interface{}{"face_id": face_id})
+        registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": 1})
         db.QueryInsert_(registration, "RETURNING id").Scan(&reg_id)
 
         mailer.SendConfirmEmail(login, email, token)
@@ -98,7 +98,6 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
 }
 
 func (this *Handler) ConfirmUser(token string) {
-
     user := GetModel("users")
     user.LoadWherePart(map[string]interface{}{"token": token})
 
@@ -120,7 +119,6 @@ func (this *Handler) ConfirmUser(token string) {
 }
 
 func (this *Handler) RejectUser(token string) {
-
     user := GetModel("users")
     user.LoadWherePart(map[string]interface{}{"token": token})
 

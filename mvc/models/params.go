@@ -2,7 +2,7 @@ package models
 
 type Param struct {
     Id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name        string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    Name        string `name:"name" type:"text" null:"NOT NULL" extra:""`
     FormId      int    `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
     ParamTypeId int    `name:"param_type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"param_types" refField:"id" refFieldShow:"name"`
     Identifier  int    `name:"identifier" type:"int" null:"NOT NULL" extra:"UNIQUE"`

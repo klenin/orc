@@ -18,7 +18,8 @@ var Tables = []string{
     "faces",
     "registrations",
     "reg_param_vals",
-    "events_regs",
+    "groups",
+    "group_registrations",
 }
 
 var TableNames = []string{
@@ -34,6 +35,7 @@ var TableNames = []string{
     "Значения параметров",
     "Лица",
     "Регистрации",
-    "Регистрация-Мероприятие-Значение параметра",
-    "Мероприятия-Регистрации",
+    "Регистрация-Значение параметра",
+    "Группы",
+    "Групповые регистрации",
 }

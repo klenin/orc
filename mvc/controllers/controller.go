@@ -62,8 +62,10 @@ func GetModel(tableName string) models.VirtEntity {
         return base.Faces()
     case "reg_param_vals":
         return base.RegParamVals()
-    case "events_regs":
-        return base.EventsRegs()
+    case "groups":
+        return base.Groups()
+    case "group_registrations":
+        return base.GroupRegistrations()
     }
     return nil
 }

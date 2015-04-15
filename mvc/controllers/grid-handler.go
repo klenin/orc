@@ -6,6 +6,7 @@ import (
     "fmt"
     "github.com/orc/db"
     "github.com/orc/mailer"
+    "github.com/orc/mvc/models"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "math"
@@ -165,9 +166,7 @@ func (this *GridHandler) Edit(tableName string) {
         break
     case "add":
         model.LoadModelData(params)
-        var id int
-        err := db.QueryInsert_(model, "RETURNING id").Scan(&id)
-        utils.HandleErr("", err, this.Response)
+        db.QueryInsert_(model, "").Scan()
         break
     case "del":
         db.QueryDeleteByIds(tableName, this.Request.PostFormValue("id"))
@@ -364,7 +363,7 @@ func (this *GridHandler) GetPersonsByEventId() {
         query := `SELECT reg_param_vals.reg_id as id, array_to_string(array_agg(param_values.value), ' ') as name
             FROM reg_param_vals
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-            INNER JOIN events ON events.id = reg_param_vals.event_id
+            INNER JOIN events ON events.id = registrations.event_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
             WHERE params.id in (` + strings.Join(db.MakeParams(len(params)), ", ")
@@ -394,13 +393,13 @@ func (this *GridHandler) GetParamsByEventId() {
             return
         }
 
-        query := `select DISTINCT params.id, params.name
+        query := `SELECT DISTINCT params.id, params.name
             FROM reg_param_vals
-            INNER JOIN events ON events.id = reg_param_vals.event_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-            where events.id = $1 ORDER BY params.id;`
+            INNER JOIN events ON events.id = registrations.event_id
+            WHERE events.id = $1 ORDER BY params.id;`
 
         result := db.Query(query, []interface{}{event_id})
 
@@ -435,8 +434,7 @@ func (this *GridHandler) GetPersonRequest() {
             INNER JOIN params ON params.id = param_values.param_id
             INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-            INNER JOIN events ON events.id = reg_param_vals.event_id
-            INNER JOIN events_regs ON events_regs.event_id = events.id AND events_regs.reg_id = registrations.id
+            INNER JOIN events ON registrations.event_id = events.id
             WHERE events.id=$1 AND registrations.id=$2`
 
         data := db.Query(query, []interface{}{event_id, reg_id})
@@ -468,19 +466,25 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
             return
         }
 
-        query := `SELECT param_values.value
+        query := `SELECT param_values.value, users.id as user_id
             FROM reg_param_vals
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-            INNER JOIN events ON events.id = reg_param_vals.event_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
-            INNER JOIN events_regs ON events.id = events_regs.event_id AND registrations.id = events_regs.reg_id
-            WHERE params.id in (1, 4) AND events.id = 1 AND registrations.id = $1;`
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE params.id in (1, 4) AND users.id in (
+                SELECT users.id FROM registrations INNER JOIN events ON events.id = registrations.event_id
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN users ON users.id = faces.user_id
+                WHERE registrations.id = $1
+            ) ORDER BY params.id;`
 
         data := db.Query(query, []interface{}{reg_id})
 
         if len(data) < 2 {
-            utils.SendJSReply(map[string]interface{}{"result": "Нет данных о логине или пароле пользователя."}, this.Response)
+            utils.SendJSReply(map[string]interface{}{"result": "Нет данных о логине или e-mail пользователя."}, this.Response)
             return
         }
 

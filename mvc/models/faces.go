@@ -3,7 +3,6 @@ package models
 type Face struct {
     Id       int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     UserId   int `name:"user_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
-    PersonId int `name:"person_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"persons" refField:"id" refFieldShow:"id"`
 }
 
 func (c *ModelManager) Faces() *FaceModel {

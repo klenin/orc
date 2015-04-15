@@ -1,7 +1,6 @@
 package controllers
 
 import (
-    "database/sql"
     "encoding/json"
     "github.com/orc/db"
     "github.com/orc/mvc/models"
@@ -35,10 +34,8 @@ func (this *Handler) GetHistoryRequest() {
             INNER JOIN events_forms ON events_forms.event_id = events.id
             INNER JOIN forms ON events_forms.form_id = forms.id
 
-            INNER JOIN events_regs ON events_regs.event_id = events.id
-            INNER JOIN registrations ON registrations.id = events_regs.reg_id
+            INNER JOIN registrations ON events.id = registrations.event_id
             INNER JOIN reg_param_vals ON reg_param_vals.reg_id = registrations.id
-                                     AND reg_param_vals.event_id = events.id
 
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN users ON users.id = faces.user_id
@@ -88,8 +85,7 @@ func (this *Handler) GetListHistoryEvents() {
             query := `SELECT DISTINCT events.id, events.name FROM events
                 INNER JOIN events_forms ON events_forms.event_id = events.id
                 INNER JOIN forms ON events_forms.form_id = forms.id
-                INNER JOIN events_regs ON events_regs.event_id = events.id
-                INNER JOIN registrations ON registrations.id = events_regs.reg_id
+                INNER JOIN registrations ON registrations.event_id = events.id
                 INNER JOIN faces ON faces.id = registrations.face_id
                 INNER JOIN users ON users.id = faces.user_id
                 WHERE users.id=$1 AND events.id IN (`
@@ -140,33 +136,12 @@ func (this *Handler) SaveUserRequest() {
 
         var face_id int
         face := GetModel("faces")
-        face.LoadWherePart(map[string]interface{}{"user_id": user_id})
-        err := db.SelectRow(face, []string{"id"}).Scan(&face_id)
-        if err != nil {
-            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
-            return
-        }
+        face.LoadModelData(map[string]interface{}{"user_id": user_id})
+        db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
 
-        reg := GetModel("registrations")
-        reg.LoadWherePart(map[string]interface{}{"face_id": face_id})
-        err = db.SelectRow(reg, []string{"id"}).Scan(&reg_id)
-        if err != nil {
-            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
-            return
-        }
-
-        var event_reg_id int
-        eventsRegs := GetModel("events_regs")
-        eventsRegs.LoadWherePart(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
-        err = db.SelectRow(eventsRegs, []string{"id"}).Scan(&event_reg_id)
-
-        if err != sql.ErrNoRows {
-            utils.SendJSReply(map[string]interface{}{"result": "alreadyFilled"}, this.Response)
-            return
-        } else {
-            eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
-            db.QueryInsert_(eventsRegs, "")
-        }
+        registration := GetModel("registrations")
+        registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": event_id})
+        db.QueryInsert_(registration, "RETURNING id").Scan(&reg_id)
 
         param_val_ids, _, _, _ = InsertUserParams(data["data"].([]interface{}))
 
@@ -179,9 +154,6 @@ func (this *Handler) SaveUserRequest() {
             utils.SendJSReply(map[string]interface{}{"result": result}, this.Response)
             return
         }
-        eventsRegs := GetModel("events_regs")
-        eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": event_id})
-        db.QueryInsert_(eventsRegs, "").Scan()
 
     } else {
         utils.SendJSReply(map[string]interface{}{"result": "notAuthorized"}, this.Response)
@@ -192,7 +164,6 @@ func (this *Handler) SaveUserRequest() {
         regParamValue := GetModel("reg_param_vals")
         regParamValue.LoadModelData(map[string]interface{}{
             "reg_id":        reg_id,
-            "event_id":      event_id,
             "param_val_id":  v.(map[string]int)["param_val_id"]})
         db.QueryInsert_(regParamValue, "").Scan()
     }
@@ -206,12 +177,14 @@ func (this *Handler) GetRequest(tableName, id string) {
         return
     }
 
-    reaponse, err := json.Marshal(MegoJoin(tableName, id))
+    // проверка id - число !!!
+
+    response, err := json.Marshal(MegoJoin(tableName, id))
     if utils.HandleErr("[Handler::GetRequest] Marshal: ", err, this.Response) {
         return
     }
 
-    this.Render([]string{"mvc/views/item.html"}, "item", template.JS(reaponse))
+    this.Render([]string{"mvc/views/item.html"}, "item", template.JS(response))
 }
 
 func MegoJoin(tableName, id string) RequestModel {

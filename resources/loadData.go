@@ -1,9 +1,11 @@
 package resources
 
 import (
+    "errors"
     "github.com/orc/db"
     "github.com/orc/mvc/controllers"
     "github.com/orc/mvc/models"
+    "github.com/orc/utils"
     "io/ioutil"
     "math/rand"
     "strconv"
@@ -41,22 +43,23 @@ func LoadAdmin() {
 
     result, reg_id := base.Handler().HandleRegister_("admin", "password", "", "admin")
 
-    if result == "ok" {
-        eventsRegs := controllers.GetModel("events_regs")
-        eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
-        db.QueryInsert_(eventsRegs, "").Scan()
-    }
-
-    query := `SELECT users.token FROM events_regs
-            INNER JOIN events ON events_regs.event_id = events.id
-            INNER JOIN registrations ON registrations.id = events_regs.reg_id
-            INNER JOIN faces ON faces.id = registrations.face_id
-            INNER JOIN users ON users.id = faces.user_id
-            WHERE events.id = $1 AND registrations.id = $2;`
-    res := db.Query(query, []interface{}{1, reg_id})
-    if len(res) == 0 {
+    if result != "ok" {
+        utils.HandleErr("[LoadAdmin]: "+result, nil, nil)
         return
     }
+
+    query := `SELECT users.token FROM registrations
+        INNER JOIN events ON registrations.event_id = events.id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE events.id = $1 AND registrations.id = $2;`
+    res := db.Query(query, []interface{}{1, reg_id})
+
+    if len(res) == 0 {
+        utils.HandleErr("[LoadAdmin]: ", errors.New("Data are not faund."), nil)
+        return
+    }
+
     token := res[0].(map[string]interface{})["token"].(string)
     base.Handler().ConfirmUser(token)
 }
@@ -66,22 +69,23 @@ func loadUsers() {
     for i := 0; i < USER_COUNT; i++ {
         rand.Seed(int64(i))
         result, reg_id := base.Handler().HandleRegister_("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "", "user")
-        if result == "ok" {
-            eventsRegs := controllers.GetModel("events_regs")
-            eventsRegs.LoadModelData(map[string]interface{}{"reg_id": reg_id, "event_id": 1})
-            db.QueryInsert_(eventsRegs, "")
+        if result != "ok" {
+            utils.HandleErr("[loadUsers]: "+result, nil, nil)
+            continue
         }
 
-        query := `SELECT users.token FROM events_regs
-            INNER JOIN events ON events_regs.event_id = events.id
-            INNER JOIN registrations ON registrations.id = events_regs.reg_id
+        query := `SELECT users.token FROM registrations
+            INNER JOIN events ON registrations.event_id = events.id
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN users ON users.id = faces.user_id
             WHERE events.id = $1 AND registrations.id = $2;`
         res := db.Query(query, []interface{}{1, reg_id})
-        // if len(res) == 0 {
-        //     return
-        // }
+
+        if len(res) == 0 {
+            utils.HandleErr("[loadUsers]: ", errors.New("Data are not faund."), nil)
+            continue
+        }
+
         token := res[0].(map[string]interface{})["token"].(string)
         base.Handler().ConfirmUser(token)
     }

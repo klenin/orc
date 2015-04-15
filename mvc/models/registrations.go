@@ -1,8 +1,10 @@
 package models
 
 type Registration struct {
-    Id     int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    FaceId int `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
+    Id      int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    FaceId  int `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
+    EventId int `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    Status  bool `name:"status" type:"boolean" null:"NULL" extra:""`
 }
 
 func (c *ModelManager) Registrations() *RegistrationModel {
@@ -11,8 +13,8 @@ func (c *ModelManager) Registrations() *RegistrationModel {
     model.TableName = "registrations"
     model.Caption = "Регистрации"
 
-    model.Columns = []string{"id", "face_id"}
-    model.ColNames = []string{"ID", "Лицо"}
+    model.Columns = []string{"id", "face_id", "event_id", "status"}
+    model.ColNames = []string{"ID", "Лицо", "Мероприятие", "Статус"}
 
     model.Fields = new(Registration)
     model.WherePart = make(map[string]interface{}, 0)
