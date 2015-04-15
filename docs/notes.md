@@ -80,6 +80,16 @@ _UPDATE DATABASE_
 
     ![update2-scheme-database][update2-scheme]
 
+- **Метки для мероприятий**
+
+    Тип, Предмет, Класс.
+
+- **Импорт в event все forms из последнего мероприятия того же типа, что и event.**
+
+    _UPDATE DATABASE_
+
+    ![update3-scheme-database][update3-scheme]
+
 # Глоссарий
 
 _Пользователь_ – человек, зарегистрированный в системе.
@@ -103,3 +113,4 @@ _Анкета_ - составная форма для заполнения за�
 [old-scheme]: ../docs/img/old-scheme-database.png  "database"
 [update1-scheme]: ../docs/img/update1-scheme-database.png  "database"
 [update2-scheme]: ../docs/img/update2-scheme-database.png  "database"
+[update3-scheme]: ../docs/img/update3-scheme-database.png  "database"
