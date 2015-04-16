@@ -493,28 +493,39 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
         event := db.Query("SELECT name FROM events WHERE id=$1;", []interface{}{event_id})[0].(map[string]interface{})["name"].(string)
 
         if request["confirm"].(bool) {
-            if event_id == 2 {
-                user_id := int(data[0].(map[string]interface{})["user_id"].(int64))
-                user := GetModel("users")
-                user.LoadModelData(map[string]interface{}{"role": "head"})
-                user.GetFields().(*models.User).Enabled = true
-                user.LoadWherePart(map[string]interface{}{"id": user_id})
-                db.QueryUpdate_(user).Scan()
+            if event_id == 1 {
+                utils.SendJSReply(map[string]interface{}{"result": "Эту заявку нельзя подтвердить письмом."}, this.Response)
+
+            } else {
+                if event_id == 2 {
+                    user_id := int(data[0].(map[string]interface{})["user_id"].(int64))
+                    user := GetModel("users")
+                    user.LoadModelData(map[string]interface{}{"role": "head"})
+                    user.GetFields().(*models.User).Enabled = true
+                    user.LoadWherePart(map[string]interface{}{"id": user_id})
+                    db.QueryUpdate_(user).Scan()
+                }
+
+                mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, true)
+                utils.SendJSReply(map[string]interface{}{"result": "Письмо с подтверждением заявки отправлено."}, this.Response)
             }
 
-            mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, true)
-            utils.SendJSReply(map[string]interface{}{"result": "Письмо с подтверждением заявки отправлено."}, this.Response)          
         } else {
-            query := `DELETE
-                FROM param_values USING reg_param_vals, registrations
-                WHERE param_values.id in (SELECT reg_param_vals.param_val_id WHERE registrations.id = $1);`
-            db.Query(query, []interface{}{reg_id})
+            if event_id == 1 {
+                utils.SendJSReply(map[string]interface{}{"result": "Эту заявку нельзя отклонить письмом."}, this.Response)
 
-            query = `DELETE FROM registrations WHERE id = $1;`
-            db.Query(query, []interface{}{reg_id})
+            } else {
+                query := `DELETE
+                    FROM param_values USING reg_param_vals
+                    WHERE param_values.id in (SELECT reg_param_vals.param_val_id WHERE reg_param_vals.reg_id = $1);`
+                db.Query(query, []interface{}{reg_id})
 
-            mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, false)
-            utils.SendJSReply(map[string]interface{}{"result": "Письмо с отклонением заявки отправлено."}, this.Response)           
+                query = `DELETE FROM registrations WHERE id = $1;`
+                db.Query(query, []interface{}{reg_id})
+
+                mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, false)
+                utils.SendJSReply(map[string]interface{}{"result": "Письмо с отклонением заявки отправлено."}, this.Response)                
+            }
         }
     }
 }

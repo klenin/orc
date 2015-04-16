@@ -215,14 +215,18 @@ function(grid) {
             );
 
         } else if ({{.TableName}} == "registrations") {
+            $("#grid-table").jqGrid(
+                "navButtonAdd",
+                "#grid-table-pager",
+                {
+                    caption: "", buttonicon: "ui-icon-script", title: "Анкета участника",
+                    onClickButton: grid.ShowPersonsRequest
+                }
+            );
+
             $.extend($.jgrid.edit, {
                 recreateForm: true,
                 beforeShowForm: function () {
-                    $('<a href="#">Показать анкету участника<span class="ui-icon ui-icon-script"></span></a>')
-                    .click(grid.ShowPersonsRequest)
-                    .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
-                    .prependTo("#Act_Buttons>td.EditButton");
-
                     $('<a href="#">Подтвердить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
                     .click(function(){grid.ConfirmOrRejectPersonRequest(true);})
                     .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")

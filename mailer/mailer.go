@@ -112,17 +112,19 @@ func SendConfirmEmail(to, address, token string) {
 func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bool) {
 
     var emailTemplate string
-    if !confirm {
-        emailTemplate = rejectRequestTmp
-    } else {
-        emailTemplate = confirmRequestTmp
-    }
 
     context := &SmtpTemplateData{
         From: admin.Name,
         To: to,
         Subject: `Подтверждение заявки на участие в мероприятии "`+event+`"`,
         EventName: event}
+
+    if !confirm {
+        emailTemplate = rejectRequestTmp
+        context.Subject = `Отклонение заявки на участие в мероприятии "`+event+`"`
+    } else {
+        emailTemplate = confirmRequestTmp
+    }
 
     t, err := template.New("confirmationmail").Parse(emailTemplate)
     if utils.HandleErr("[SendEmail] Error trying to parse mail template: ", err, nil) {
