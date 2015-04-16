@@ -1,9 +1,9 @@
 package models
 
 type Groups struct {
-    Id     int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name   string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
-    FaceId int    `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
+    Id    int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Name  string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    Owner int    `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
 }
 
 func (c *ModelManager) Groups() *GroupsModel {
