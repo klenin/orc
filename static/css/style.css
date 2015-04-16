@@ -40,20 +40,30 @@ hr {
 /* for grid table */
 td input {
     background: white;
+    width: auto;
+}
+
+#save-btn, #send-btn, #login-btn, #home-btn, #logout-btn, #cabinet-btn, #create-group, #close {
+    color: #4c9ac3;
+    background: white;
+    cursor: pointer;
+    width: auto;
 }
 
 input {
-    color: #4c9ac3;
-    background: white;
+    width: 100%;
+}
+
+input, label, button, textarea {
+    margin: 5px 2px 2px 2px;
+}
+
+input, button, textarea {
     border: 1px solid #4c9ac3;
-    margin: 5px 2px 5px 2px;
-    width: auto;
 }
 
 textarea {
     background: #BBD9FA;
-    border: 1px solid #4c9ac3;
-    margin: 5px 2px 5px 2px;
     height: 36px;
     width: 480px;
 }

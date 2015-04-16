@@ -1,33 +1,36 @@
 ﻿{{define "user"}}
 {{template "header"}}
-
 <div id="container">
+
     <div id="title" class="left"></div></br>
     <div id="server-answer" class="left"></div></br>
+
     <div id="cabinet" class="left">
         <form></form>
     </div>
+
 </div>
 
 <script type="text/javascript">
-    $("#title").append("Личный кабинет");
 
-    console.log({{.Table}});
+$("#title").append("Личный кабинет");
 
-    {{with .Table}}
-        {{range $index, $elmt := .}}
-            var p = $("<p/>");
+console.log({{.Table}});
 
-            var lable = $("<label/>", {
-                text: {{$elmt.name}}
-            }).appendTo(p);
+{{with .Table}}
+    {{range $index, $elmt := .}}
+        var p = $("<p/>");
 
-            var input = $("<div/>", {
-            }).text({{$elmt.value}}).appendTo(p);
+        var lable = $("<label/>", {
+            text: {{$elmt.name}}
+        }).appendTo(p);
 
-            $("#cabinet form").append(p);
-        {{end}}
+        var input = $("<div/>", {
+        }).text({{$elmt.value}}).appendTo(p);
+
+        $("#cabinet form").append(p);
     {{end}}
+{{end}}
 
 </script>
 

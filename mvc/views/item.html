@@ -12,7 +12,7 @@
         src="/js/kladr/kladr.js"></script>
 
 <div id="container">
-    <div id="history">
+    <div id="history" hidden="true">
         <h5>Ранее заполненные анкеты</h5>
         <form>
             <select id="h-events" name="h-events"></select>
@@ -155,7 +155,6 @@ function(utils, datepicker) {
             function(response) {
                 if (response["result"] !== "ok" && response["result"] !== "no") {
                     console.log("getListHistoryEvents: ", response["result"]);
-                    $("#history").css("visibility", "hidden");
                 }
 
                 if (response["data"]) {
@@ -166,6 +165,7 @@ function(utils, datepicker) {
                             .text(data[i]["name"])
                         );
                     }
+                    $("#history").show();
                 }
             },
             "/handler/getlisthistoryevents"
@@ -232,8 +232,8 @@ function(utils, datepicker) {
                     $("#now #server-answer").text("Пароль должен иметь длину от 6 "
                         + "до 36 символов.").css("color", "red");
 
-                } else if (data.result === "alreadyFilled") {
-                    $("#now #server-answer").text("Анкета уже была заполнена.").css("color", "red");
+                // } else if (data.result === "alreadyFilled") {
+                //     $("#now #server-answer").text("Анкета уже была заполнена.").css("color", "red");
 
                 } else if (data.result === "notAuthorized") {
                     $("#now #server-answer").text("Пользователь не авторизован.").css("color", "red");
