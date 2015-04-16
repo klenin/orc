@@ -496,6 +496,14 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
             mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, true)
             utils.SendJSReply(map[string]interface{}{"result": "Письмо с подтверждением заявки отправлено."}, this.Response)          
         } else {
+            query := `DELETE
+                FROM param_values USING reg_param_vals, registrations
+                WHERE param_values.id in (SELECT reg_param_vals.param_val_id WHERE registrations.id = $1);`
+            db.Query(query, []interface{}{reg_id})
+
+            query = `DELETE FROM registrations WHERE id = $1;`
+            db.Query(query, []interface{}{reg_id})
+
             mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, false)
             utils.SendJSReply(map[string]interface{}{"result": "Письмо с отклонением заявки отправлено."}, this.Response)           
         }
