@@ -493,6 +493,15 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
         event := db.Query("SELECT name FROM events WHERE id=$1;", []interface{}{event_id})[0].(map[string]interface{})["name"].(string)
 
         if request["confirm"].(bool) {
+            if event_id == 2 {
+                user_id := int(data[0].(map[string]interface{})["user_id"].(int64))
+                user := GetModel("users")
+                user.LoadModelData(map[string]interface{}{"role": "head"})
+                user.GetFields().(*models.User).Enabled = true
+                user.LoadWherePart(map[string]interface{}{"id": user_id})
+                db.QueryUpdate_(user).Scan()
+            }
+
             mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, true)
             utils.SendJSReply(map[string]interface{}{"result": "Письмо с подтверждением заявки отправлено."}, this.Response)          
         } else {
