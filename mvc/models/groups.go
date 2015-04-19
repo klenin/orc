@@ -12,8 +12,8 @@ func (c *ModelManager) Groups() *GroupsModel {
     model.TableName = "groups"
     model.Caption = "Группы"
 
-    model.Columns = []string{"id", "name", "face_id"}
-    model.ColNames = []string{"ID", "Название", "Лицо-Владелец"}
+    model.Columns = []string{"id", "name"}
+    model.ColNames = []string{"ID", "Название"}
 
     model.Fields = new(Groups)
     model.WherePart = make(map[string]interface{}, 0)
@@ -23,8 +23,8 @@ func (c *ModelManager) Groups() *GroupsModel {
     model.Offset = 0
 
     model.Sub = true
-    model.SubTable = nil
-    model.SubField = ""
+    model.SubTable = []string{"persons"}
+    model.SubField = "group_id"
 
     return model
 }
