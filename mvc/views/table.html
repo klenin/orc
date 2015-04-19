@@ -5,7 +5,7 @@
     <table id="grid-table"></table>
     <div id="grid-table-pager"></div>
 
-    <div style="display:none;" id="dialog-confirm" title="Смена пароля">
+    <div style="display:none;" id="dialog-reset-pass" title="Смена пароля">
         <form>
             <label for="password-1">Пароль</label><br/>
             <input type="password" id="password-1" name="password-1"/><br/>
@@ -14,11 +14,11 @@
         </form>
     </div>
 
-    <div style="display:none;" id="dialog-confirm-import" title="Импорт форм">
+    <div style="display:none;" id="dialog-import-forms" title="Импорт форм">
         <select multiple="multiple" size="5"></select>
     </div>
 
-    <div style="display:none;" id="dialog-persons" title="Параметры"></div>
+    <div style="display:none;" id="dialog-params" title="Параметры"></div>
 
     <div style="display:none;" id="dialog-persons-request" title="Анкета участника"></div>
 
@@ -26,10 +26,8 @@
 </div>
 
 <script type="text/javascript">
-require(["custom-grid"],
-function(grid) {
-
-    $("#logout-btn, #cabinet-btn").css("visibility", "visible");
+require(["custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "person-request"],
+function(grid, utils, resetPass, importForms, list, personRequest) {
 
     var sameDate  = ["date_start", "date_finish", "reg_date", "last_date"];
     var refFields = {{.RefFields}};
@@ -60,54 +58,6 @@ function(grid) {
     console.log(colModel_);
 
     $(document).ready(function() {
-
-        var errTextFormat = function(data) {
-            var prompt, errMsg, noErr;
-
-            switch (data.status) {
-            case 200:
-                noErr = true;
-                prompt = "Запрос успешно выполнен";
-                errMsg = "";
-                break;
-
-            case 304:
-                noErr = false;
-                prompt = "Используйте другое значение";
-                errMsg = "Нарушение ограничения уникальности";
-                break;
-
-            case 401:
-                noErr = false;
-                prompt = "Войдите на сайт";
-                errMsg = "Ошибка авторизации";
-                break;
-
-            case 403:
-                noErr = false;
-                prompt = "";
-                errMsg = "У Вас не хватает прав";
-                break;
-            }
-
-            var myInfo = '<div class="ui-state-highlight ui-corner-all">'
-                             + '<span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>'
-                             + '<strong>'+ prompt + '</strong><br/>' + '</div>';
-            var infoTR = $("table#TblGrid_"+$("#grid-table")[0].id+">tbody>tr.tinfo");
-            var infoTD = infoTR.children("td.topinfo");
-
-            infoTD.html(myInfo);
-            infoTR.show();
-
-            setTimeout(function() {
-                infoTD.children("div").fadeOut('slow',
-                    function() {
-                      infoTR.hide();
-                 });
-            }, 3000);
-
-            return [noErr, errMsg];
-        };
 
         $("#grid-table").jqGrid({
             url:           "/gridhandler/load/" + {{.TableName}},
@@ -147,9 +97,9 @@ function(grid) {
                                     "selectOnExpand": true
                                 },
             subGridRowExpanded: function(subgrid_id, row_id) {
-                                    grid.AddSubTable(subgrid_id, row_id, "0", subgrid_id + "_t", "p_" + subgrid_id + "_t", {{.TableName}});
+                                    grid.AddSubTable(subgrid_id, row_id, "0", subgrid_id + "_t", "p_" + subgrid_id + "_t", {{.TableName}}, "grid-table");
                                     if ({{.TableName}} == "event_types") {
-                                        grid.AddSubTable(subgrid_id, row_id, "1", subgrid_id + "_tt", "pp_" + subgrid_id + "_tt", {{.TableName}});
+                                        grid.AddSubTable(subgrid_id, row_id, "1", subgrid_id + "_tt", "pp_" + subgrid_id + "_tt", {{.TableName}}, "grid-table");
                                     }
                                 }
         });
@@ -167,18 +117,15 @@ function(grid) {
             {   //edit
                 width:           "100%",
                 recreateForm:    true,
-                closeAfterEdit:  true,
-                afterSubmit:     errTextFormat,
-                errorTextFormat: errTextFormat,
+                afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
+                errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
             },
             {   //add
                 width:           "100%",
                 recreateForm:    true,
-                // clearAfterAdd:   true,
-                // closeAfterAdd:   true,
                 addedrow:        "last",
-                afterSubmit:     errTextFormat,
-                errorTextFormat: errTextFormat,
+                afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
+                errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
             },
             {   //del
                 closeAfterAdd:  true,
@@ -191,7 +138,7 @@ function(grid) {
                 "#grid-table-pager",
                 {
                     caption: "", buttonicon: "ui-icon-key", title: "Сменить пароля",
-                    onClickButton: grid.ResetPassword
+                    onClickButton: function() { resetPass.ResetPassword("dialog-reset-pass", "grid-table", "password-1", "password-2"); }
                 }
             );
 
@@ -201,7 +148,7 @@ function(grid) {
                 "#grid-table-pager",
                 {
                     caption: "", buttonicon: "ui-icon-pin-s", title: "Прикрепить формы",
-                    onClickButton: grid.ImportForms
+                    onClickButton: function() { importForms.ImportForms("dialog-import-forms", "grid-table"); }
                 }
             );
 
@@ -210,7 +157,7 @@ function(grid) {
                 "#grid-table-pager",
                 {
                     caption: "", buttonicon: "ui-icon-person", title: "Список участников",
-                    onClickButton: grid.GetPersons
+                    onClickButton: function() { list.GetPersons("dialog-params", "grid-table"); }
                 }
             );
 
@@ -220,7 +167,7 @@ function(grid) {
                 "#grid-table-pager",
                 {
                     caption: "", buttonicon: "ui-icon-script", title: "Анкета участника",
-                    onClickButton: grid.ShowPersonsRequest
+                    onClickButton: function() { personRequest.ShowPersonsRequest("dialog-persons-request", "grid-table"); }
                 }
             );
 
@@ -228,12 +175,12 @@ function(grid) {
                 recreateForm: true,
                 beforeShowForm: function () {
                     $('<a href="#">Подтвердить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
-                    .click(function(){grid.ConfirmOrRejectPersonRequest(true);})
+                    .click(function() { utils.ConfirmOrRejectPersonRequest(true); })
                     .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
                     .prependTo("#Act_Buttons>td.EditButton");
 
                     $('<a href="#">Отклонить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
-                    .click(function(){grid.ConfirmOrRejectPersonRequest(false);})
+                    .click(function() { utils.ConfirmOrRejectPersonRequest(false); })
                     .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
                     .prependTo("#Act_Buttons>td.EditButton");
                 }

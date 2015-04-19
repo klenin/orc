@@ -109,7 +109,7 @@ func (this *Handler) GetListHistoryEvents() {
     utils.SendJSReply(result, this.Response)
 }
 
-func (this *Handler) SaveUserRequest() {
+func (this *Handler) SaveUserRequest(token string) {
     var param_val_ids []interface{}
     var result string
     var reg_id int
@@ -138,6 +138,19 @@ func (this *Handler) SaveUserRequest() {
         face := GetModel("faces")
         face.LoadModelData(map[string]interface{}{"user_id": user_id})
         db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
+
+        if token != "nil" {
+            if !db.IsExists_("persons", []string{"token"}, []interface{}{token}) {
+                utils.SendJSReply(map[string]interface{}{"result": "Неизвестный токен."}, this.Response)
+                return
+            } else {
+                person := GetModel("persons")
+                person.LoadModelData(map[string]interface{}{"face_id": face_id})
+                person.LoadWherePart(map[string]interface{}{"token": token})
+                db.QueryUpdate_(person).Scan()
+            }
+        }
+        log.Println("token:", token)
 
         registration := GetModel("registrations")
         registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": event_id})
@@ -171,7 +184,7 @@ func (this *Handler) SaveUserRequest() {
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
 
-func (this *Handler) GetRequest(tableName, id string) {
+func (this *Handler) GetRequest(tableName, id, token string) {
     if !sessions.CheackSession(this.Response, this.Request) && id != "1" {
         this.Render([]string{"mvc/views/loginpage.html", "mvc/views/login.html"}, "loginpage", nil)
         return
@@ -179,7 +192,7 @@ func (this *Handler) GetRequest(tableName, id string) {
 
     // проверка id - число !!!
 
-    response, err := json.Marshal(MegoJoin(tableName, id))
+    response, err := json.Marshal(map[string]interface{}{"data": MegoJoin(tableName, id), "token": token})
     if utils.HandleErr("[Handler::GetRequest] Marshal: ", err, this.Response) {
         return
     }

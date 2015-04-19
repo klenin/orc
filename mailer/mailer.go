@@ -31,6 +31,11 @@ type SmtpTemplateData struct {
     ConfirmationUrl string
     RejectionUrl    string
     EventName       string
+    EventUrl        string
+    HeadName        string
+    GroupName       string
+    Login           string
+    Password        string
 }
 
 var admin = &Admin{
@@ -46,9 +51,9 @@ var auth = smtp.PlainAuth(
     admin.Password,
     admin.SMTPServer)
 
-var comfirmRegistrationEmailTmp = `From: {{.From}}
-To: {{.To}}
-Subject: {{.Subject}}
+var comfirmRegistrationEmailTmp = `From: {{ .From }}
+To: {{ .To }}
+Subject: {{ .Subject }}
 
 Здравствуйте!
 
@@ -57,24 +62,37 @@ Subject: {{.Subject}}
 
 Если это письмо попало к Вам по ошибке, то, чтобы больше не получать писем от ` + admin.Name + `, перейдите по этой ссылке: {{ .RejectionUrl }}`
 
-var rejectRequestTmp = `From: {{.From}}
-To: {{.To}}
-Subject: {{.Subject}}
+var rejectRequestTmp = `From: {{ .From }}
+To: {{ .To }}
+Subject: {{ .Subject }}
 
 Здравствуйте!
 
-Спасибо за использование нашего ресурса secret-oasis-3805.com!
 Вы отправили заявку на участие в мероприятии "{{ .EventName }}", но указанные Вами данные имеют некоторые неточности.
 Пожалуйста, заполните заявку еще раз.`
 
-var confirmRequestTmp = `From: {{.From}}
-To: {{.To}}
-Subject: {{.Subject}}
+var confirmRequestTmp = `From: {{ .From }}
+To: {{ .To }}
+Subject: {{ .Subject }}
 
 Здравствуйте!
 
-Спасибо за использование нашего ресурса secret-oasis-3805.com!
 Ваша заявка на участие в мероприятии "{{ .EventName }}" принята.`
+
+var inviteToGroupEmailTmp = `From: {{.From}}
+To: {{ .To }}
+Subject: {{ .Subject }}
+
+Здравствуйте, {{ .To }}!
+
+{{ .HeadName }} хочет добавить Вас в группу "{{ .GroupName }}"" для принятия участия в мероприятии "{{ .EventName }}".
+
+Вы должны залогиниться в системе `+Server+` используя следующие данные:
+    Логин: {{ .Login }}
+    Пароль: {{ .Password }}
+и заполнить анкету на участие в мероприятии по ссылке {{ .EventUrl }}
+
+Если Вы уверены, что Вас хотят добавить по ошибке, пожалуйста, свяжитесь с руководителем.`
 
 func SendConfirmEmail(to, address, token string) {
 
@@ -89,13 +107,13 @@ func SendConfirmEmail(to, address, token string) {
         RejectionUrl: Server+"/handler/rejectuser/"+token}
 
     t, err := template.New("confirmationmail").Parse(comfirmRegistrationEmailTmp)
-    if utils.HandleErr("[SendEmail] Error trying to parse mail template: ", err, nil) {
+    if utils.HandleErr("[SendConfirmEmail] Error trying to parse mail template: ", err, nil) {
         return
     }
 
     var doc bytes.Buffer
     err = t.Execute(&doc, context)
-    if utils.HandleErr("[SendEmail] Error trying to execute mail template: ", err, nil) {
+    if utils.HandleErr("[SendConfirmEmail] Error trying to execute mail template: ", err, nil) {
         return
     }
 
@@ -106,7 +124,7 @@ func SendConfirmEmail(to, address, token string) {
         []string{address},
         doc.Bytes())
 
-    utils.HandleErr("[SendEmail] Error attempting to send a mail: ", err, nil)
+    utils.HandleErr("[SendConfirmEmail] Error attempting to send a mail: ", err, nil)
 }
 
 func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bool) {
@@ -127,13 +145,13 @@ func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bo
     }
 
     t, err := template.New("confirmationmail").Parse(emailTemplate)
-    if utils.HandleErr("[SendEmail] Error trying to parse mail template: ", err, nil) {
+    if utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error trying to parse mail template: ", err, nil) {
         return
     }
 
     var doc bytes.Buffer
     err = t.Execute(&doc, context)
-    if utils.HandleErr("[SendEmail] Error trying to execute mail template: ", err, nil) {
+    if utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error trying to execute mail template: ", err, nil) {
         return
     }
 
@@ -144,7 +162,40 @@ func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bo
         []string{address},
         doc.Bytes())
 
-    if utils.HandleErr("[SendEmail] Error attempting to send a mail: ", err, nil) {
+    utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error attempting to send a mail: ", err, nil)
+}
+
+func InviteToGroup(to, address, eventName, eventUrl, headName, groupName string) {
+
+    log.Println("SendConfirmEmail: address: ", address)
+    log.Println("SendConfirmEmail: to: ", to)
+
+    context := &SmtpTemplateData{
+        From: admin.Name,
+        To: to,
+        Subject: `Регистрация гуппы в мероприятии "`+eventName+`"`,
+        EventUrl: Server+eventUrl,
+        EventName: eventName,
+        HeadName: headName,
+        GroupName: groupName}
+
+    t, err := template.New("mail").Parse(inviteToGroupEmailTmp)
+    if utils.HandleErr("[InviteToGroup] Error trying to parse mail template: ", err, nil) {
         return
     }
+
+    var doc bytes.Buffer
+    err = t.Execute(&doc, context)
+    if utils.HandleErr("[InviteToGroup] Error trying to execute mail template: ", err, nil) {
+        return
+    }
+
+    err = smtp.SendMail(
+        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
+        auth,
+        admin.EmailAdmin,
+        []string{address},
+        doc.Bytes())
+
+    utils.HandleErr("[InviteToGroup] Error attempting to send a mail: ", err, nil)
 }

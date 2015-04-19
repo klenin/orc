@@ -10,7 +10,7 @@ func (c *ModelManager) RegParamVals() *RegParamValsModel {
     model := new(RegParamValsModel)
 
     model.TableName = "reg_param_vals"
-    model.Caption = "Регистрация-Значение параметра"
+    model.Caption = "Регистрация - Значение параметра"
 
     model.Columns = []string{"id", "reg_id", "param_val_id"}
     model.ColNames = []string{"ID", "Регистрация", "Значения параметра"}

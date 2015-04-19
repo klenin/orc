@@ -1,9 +1,9 @@
 package models
 
 type Registration struct {
-    Id      int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    FaceId  int `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
-    EventId int `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    Id      int  `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    FaceId  int  `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
+    EventId int  `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
     Status  bool `name:"status" type:"boolean" null:"NULL" extra:""`
 }
 

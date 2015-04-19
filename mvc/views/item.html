@@ -1,21 +1,17 @@
 ﻿{{define "item"}}
 {{template "header"}}
 
-<!-- Kladr api -->
 <link rel="stylesheet"
       href="/css/jquery.kladr.min.css">
 
 <script type="text/javascript"
         src="/js/kladr/jquery.kladr.min.js"></script>
 
-<script type="text/javascript"
-        src="/js/kladr/kladr.js"></script>
-
 <div id="container">
     <div id="history" hidden="true">
         <h5>Ранее заполненные анкеты</h5>
         <form>
-            <select id="h-events" name="h-events"></select>
+            <select></select>
             <input type="button" value="выбрать" id="send-btn" name="submit"/>
         </form>
     </div>
@@ -31,150 +27,19 @@
 </div>
 
 <script type="text/javascript">
-require(["utils", "datepicker/datepicker"],
-function(utils, datepicker) {
+require(["utils", "kladr/kladr", "blank"],
+function(utils, kladr, blank) {
     var valid = false;
 
-    var D = {{.}};
+    var D = {{.}}.data;
 
     var E = D.E;
     var F = D.F;
     var P = D.P;
 
-    var F_ids = {};
-
-    function drawParam(data, event_type_id, for_saving) {
-        var block;
-
-        if (data["type"] === "region"
-            || data["type"] === "district"
-            || data["type"] === "city"
-            || data["type"] === "street"
-            || data["type"] === "building"
-            || data["type"] === "text"
-            || data["type"] === "password"
-            || data["type"] === "phon") {
-            block = $("<input/>", {type: data["type"]});
-            block.attr("id", data["id"]);
-            block.attr("event_type_id", event_type_id);
-            block.val(data["value"]);
-            block.attr("for-saving", for_saving);
-
-        } else if (data["type"] === "textarea") {
-            block = $("<textarea/>", {});
-            block.attr("id", data["id"]);
-            block.attr("event_type_id", event_type_id);
-            block.val(data["value"]);
-            block.attr("for-saving", for_saving);
-
-        } else if (data["type"] === "date") {
-            block = $("<input/>", {type: "date"});
-            block.attr("id", data["id"]);
-            block.attr("event_type_id", event_type_id);
-            block.attr("for-saving", for_saving);
-            block.val(data["value"]);
-            datepicker.initDatePicker(block);
-        }
-
-        var lable = $("<label/>", {
-            text: data["name"]
-        });
-
-        return $("<p/>").append(lable).append(block);
-    }
-
-    function getFormData(name) {
-        var values = [];
-
-        var $obj = $("#now form #events [for-saving=true]");
-        $obj.each(function() {
-            values.push({
-                "value": $(this).val(),
-                "id": $(this).attr("id"),
-                "event_type_id": $(this).attr("event_type_id"),
-            });
-        });
-
-        return values;
-    }
-
-    function pushFormData(E, F, P, event_, events_) {
-        console.log("E")
-        console.log(E)
-        console.log("F")
-        console.log(F)
-        console.log("P")
-        console.log(P)
-
-        $("#" + event_).text(E[0]["name"]);
-
-        var div_forms = $("<div/>", {id: "event-" + E[0]["id"]});
-        var ul_forms = $("<ul/>", {});
-
-        $(div_forms).append(ul_forms);
-        $(div_forms).appendTo("#" + events_);
-
-        F_ids["form_id"] = []
-
-        for (var i = 0; i < F.length; ++i) {
-
-            var li_form = $("<li/>", {});
-            var a_form = $("<a/>", {href: "#" + "form-" + F[i]["id"]}).text(F[i]["name"]);
-
-            $(li_form).append(a_form);
-            $(ul_forms).append(li_form);
-
-            var div_tab_form = $("<div/>", {id: "form-" + F[i]["id"]});
-            $(div_forms).append(div_tab_form);
-
-            F_ids["form_id"].push(parseInt(F[i]["id"]));
-
-            var div_params = $("<div/>", {id: "params-" + F[i]["id"]});
-            $(div_tab_form).append(div_params);
-
-            var table = $("<table/>");
-            div_params.append(table);
-
-            for (var k = 0; k < P[i].length; k++) {
-                var tr = $("<tr/>").appendTo(table);
-                var td_1 = $("<td/>").appendTo(tr);
-                $(td_1).append(drawParam(P[i][k], F[i]["id"], true));
-                tr.append($("<td/>", {id: "export-param-"+P[i][k]["id"]}));
-                tr.append($("<td/>", {id: "export-val-"+P[i][k]["id"]}));
-            }
-        }
-
-        $("#" + "event-" + E[0]["id"]).tabs();
-    }
-
-    function getListHistoryEvents() {
-        utils.postRequest(
-            {
-                "form_ids": F_ids,
-            },
-            function(response) {
-                if (response["result"] !== "ok" && response["result"] !== "no") {
-                    console.log("getListHistoryEvents: ", response["result"]);
-                }
-
-                if (response["data"]) {
-                    var data = response["data"];
-                    for (var i = 0; i < data.length; ++i) {
-                        $("#h-events").append($("<option></option>")
-                            .attr("value", data[i]["id"])
-                            .text(data[i]["name"])
-                        );
-                    }
-                    $("#history").show();
-                }
-            },
-            "/handler/getlisthistoryevents"
-        );
-    }
-
-    pushFormData(E, F, P, "event", "events");
-    getListHistoryEvents();
-    kladr();
+    var F_ids = blank.pushFormData(E, F, P, "event", "events");
+    blank.getListHistoryEvents("history", F_ids);
+    kladr.kladr();
 
     $("input#2").blur(function() {
         var pattern = /^.{6,36}$/;
@@ -202,14 +67,16 @@ function(utils, datepicker) {
         var event_id_ = E[0]["id"];
 
         if (!valid && event_id_ == 1) {
+            $("#now #server-answer").text("Логин может содержать латинские буквы и/или "
+                + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
             return;
         }
 
+        var js = { "event_id": parseInt(event_id_), "data": blank.getFormData("now form #events") };
+        console.log(js);
+
         utils.postRequest(
-            {
-                "event_id": parseInt(event_id_),
-                "data": getFormData("now")
-            },
+            js,
             function(data) {
                 $("#now form").css("visibility", "hidden");
                 if (data["result"] === "ok") {
@@ -232,9 +99,6 @@ function(utils, datepicker) {
                     $("#now #server-answer").text("Пароль должен иметь длину от 6 "
                         + "до 36 символов.").css("color", "red");
 
-                // } else if (data.result === "alreadyFilled") {
-                //     $("#now #server-answer").text("Анкета уже была заполнена.").css("color", "red");
-
                 } else if (data.result === "notAuthorized") {
                     $("#now #server-answer").text("Пользователь не авторизован.").css("color", "red");
 
@@ -246,14 +110,14 @@ function(utils, datepicker) {
                 }
                 $("div #history").hide();
             },
-            "/handler/saveuserrequest"
+            "/handler/saveuserrequest/"+{{.}}.token
         );
     });
 
     $("#send-btn").click(function() {
         utils.postRequest(
             {
-                "event_id": $("#h-events").find(":selected").attr("value")
+                "event_id": $("#history select").find(":selected").attr("value")
             },
             function(response) {
                 if (response["result"] === "notAuthorized") {
@@ -272,7 +136,7 @@ function(utils, datepicker) {
                     $("#params-"+f_id +" table #export-param-"+p_id+" input").remove();
                     $("#params-"+f_id +" table #export-val-"+p_id+" p").remove();
                     if (data[i]["value"] != "") {
-                        $("#params-"+f_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
+                        $("#params-"+f_id +" table #export-val-"+p_id).append(blank.drawParam(data[i], 0, false));
 
                         $("<input/>", {
                             "id": "export-btn-"+f_id+"-"+p_id,

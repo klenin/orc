@@ -1,31 +1,6 @@
-define(["utils", "datepicker/datepicker"],
-function(utils, datepicker) {
+define(["utils", "datepicker/datepicker", "person-request"],
+function(utils, datepicker, personRequest) {
 
-//check: change password-------------------------------------------------------
-    var valid = false;
-
-    $("#password-1").blur(function() {
-        var pattern = /^.{6,36}$/;
-        if (pattern.test($(this).val())) {
-            $(this).css({"border": "2px solid green"});
-        } else {
-            valid = false;
-            $(this).css({"border": "2px solid red"});
-        }
-    });
-
-    $("#password-2").blur(function() {
-        var pattern = /^.{6,36}$/;
-        if (pattern.test($(this).val()) && $(this).val() === $("#password-1").val()) {
-            valid = true;
-            $(this).css({"border": "2px solid green"});
-        } else {
-            valid = false;
-            $(this).css({"border": "2px solid red"});
-        }
-    });
-
-//-----------------------------------------------------------------------------
     function GetColModelItem(refData, refFields, field) {
         function timePicker(e) {
             $(e).timepicker({"timeFormat": "HH:mm"});
@@ -56,7 +31,7 @@ function(utils, datepicker) {
             data["editrules"].time = true;
             data["editoptions"] = {dataInit: timePicker};
 
-        } else if (field == "topicality") {
+        } else if (field == "topicality" || field == "status" || field == "enabled") {
             data["formatter"] = "checkbox";
             data["edittype"] = "checkbox";
             data["editoptions"] = {value: "true:false"};
@@ -85,7 +60,7 @@ function(utils, datepicker) {
                     if (refFields[k] in refData[field][i]) {
                         f = refFields[k];
                         console.log("GetColModelItem-f: ", f)
-                        break;
+                        // break;
                     }
                 }
                 str += refData[field][i]["id"]+":"+refData[field][i][f]+";";
@@ -96,42 +71,9 @@ function(utils, datepicker) {
         return data;
     }
 
-    function ResetPassword() {
-        var id = getRowId();
-        if (id == -1) return false;
-
-        $("#password-1, #password-2").val("");
-
-        $("#dialog-confirm").dialog({
-            modal: true,
-            toTop: "150",
-            height: "auto",
-            width: "auto",
-            buttons: {
-                "Сохранить": function() {
-                    if (valid) {
-                        utils.postRequest(
-                            {
-                                "pass": $("#password-1").val(),
-                                "id": id
-                            },
-                            function() {},
-                            "/gridhandler/resetpassword"
-                        );
-                        $(this).dialog("close");
-                    } else {
-                        showErrorMsg("Неверные значения паролей.\n"
-                            + "Пароль должен иметь длину от 6 до 36 символов.");
-                    }
-                },
-                "Отмена": function() {
-                    $(this).dialog("close");
-                },
-            }
-        });
-    }
-
-    function AddSubTable(subgrid_id, row_id, index, subgrid_table_id, pager_id, tableName) {
+    function AddSubTable(subgrid_id, row_id, index, subgrid_table_id, pager_id, tableName, gridId) {
+        console.log("AddSubTable")
+        console.log(subgrid_id, row_id, index, subgrid_table_id, pager_id, tableName, gridId)
 
         var subTableCaption = "";
         var subTableName    = "";
@@ -147,6 +89,8 @@ function(utils, datepicker) {
         );
 
         function collbackSUB(data) {
+            console.log("collbackSUB")
+            console.log(data)
             subTableCaption = data["caption"]
             subTableName    = data["name"];
             subColNames     = data["colnames"];
@@ -177,8 +121,8 @@ function(utils, datepicker) {
             caption:     subTableCaption,
             sortname:    "num",
             sortorder:   "asc",
-            height:      '100%',
-            width:         $("#grid-table").width()-65,
+            height:      "100%",
+            width:       $("#grid-table").width()-65,
             multiselect: true,
             editurl:     "/gridhandler/edit/" + subTableName,
         });
@@ -186,9 +130,9 @@ function(utils, datepicker) {
         $("#" + subgrid_table_id).navGrid(
             "#" + pager_id,
             {
-                edit:    true,    //edittext:   "Редактировать",
-                add:     true,    //addtext:    "Создать",
-                del:     true,    //deltext:    "Удалить",
+                edit:    true,
+                add:     true,
+                del:     true,
                 refresh: false,
                 view:    false,
                 search:  false
@@ -198,7 +142,7 @@ function(utils, datepicker) {
                 recreateForm: true,
                 closeAfterEdit:     true,
                 afterSubmit:        function(response, postdata) {
-                                        $('#grid-table').jqGrid().trigger('reloadGrid');
+                                        $("#"+gridId).jqGrid().trigger('reloadGrid');
                                         return [true, "", response.responseText];
                                     }
             },
@@ -209,7 +153,7 @@ function(utils, datepicker) {
                 closeAfterAdd:      true,
                 addedrow:           "last",
                 afterSubmit:        function(response, postdata) {
-                                        $('#grid-table').jqGrid().trigger('reloadGrid');
+                                        $("#"+gridId).jqGrid().trigger('reloadGrid');
                                         return [true, "", response.responseText];
                                     }
             },
@@ -219,247 +163,21 @@ function(utils, datepicker) {
             }
         );
 
-    }
-
-    function listEventTypes(data) {
-        if (data["result"] !== "ok") {
-            showErrorMsg(data["result"]);
-            return;
-        }
-
-        for (i in data["data"]) {
-            $("#dialog-confirm-import select").append($("<option/>", {
-                value: data["data"][i]["id"],
-                text: data["data"][i]["name"],
-            }));
-        }
-    }
-
-    function ImportForms() {
-        var id = getRowId();
-        if (id == -1) return false;
-
-        $("#dialog-confirm-import select").empty();
-
-        utils.postRequest(
-            { "event_id": id },
-            listEventTypes,
-            "/gridhandler/geteventtypesbyeventid"
-        );
-
-        $("#dialog-confirm-import").dialog({
-            modal: true,
-            toTop: "150",
-            height: "auto",
-            width: "auto",
-            buttons: {
-                "Импорт": function() {
-                    var ids = [];
-                    $("#dialog-confirm-import select option:selected").each(function(i, selected) {
-                       ids[i] = $(selected).val();
-                    });
-                    utils.postRequest(
-                        { "event_id": id, "event_types_ids": ids },
-                        function() {},
-                        "/gridhandler/importforms"
-                    );
-                    $(this).dialog("close");
-
-                },
-                "Отмена": function() {
-                    $(this).dialog("close");
-                },
-            }
-        });
-    }
-
-    function listPersons(data) {
-        console.log("listPersons: ", data)
-
-        if (data["result"] !== "ok") {
-            showErrorMsg(data["result"]);
-            return;
-        }
-
-        var result = $("<div/>");
-
-        for (i in data["data"]) {
-            result.append($("<div/>", {
-                id: data["data"][i]["id"],
-                text: data["data"][i]["name"],
-            }));
-        }
-
-        w = window.open();
-        w.document.title = "Участники";
-        $(w.document.body).html(result);
-    }
-
-    function listParams(data) {
-        if (data["result"] !== "ok") {
-            showErrorMsg(data["result"]);
-            return;
-        }
-
-        var select = $("<select/>", { multiple: "multiple" });
-        for (i in data["data"]) {
-            select.append($("<option/>", {
-                value: data["data"][i]["id"],
-                text: data["data"][i]["name"],
-            }));
-        }
-        $("#dialog-persons").append(select);
-    }
-
-    function GetPersons() {
-        var id = getRowId();
-        if (id == -1) return false;
-
-        $("#dialog-persons").empty();
-
-        utils.postRequest(
-            { "event_id": id },
-            listParams,
-            "/gridhandler/getparamsbyeventid"
-        );
-
-        $("#dialog-persons").dialog({
-            modal: true,
-            toTop: "150",
-            height: "auto",
-            width: "auto",
-            buttons: {
-                "Получить список участников": function() {
-                    var ids = [];
-                    $("#dialog-persons select option:selected").each(function(i, selected) {
-                       ids[i] = $(selected).val();
-                    });
-                    utils.postRequest(
-                        { "event_id": id, "params_ids": ids },
-                        listPersons,
-                        "/gridhandler/getpersonsbyeventid"
-                    );
-                },
-                "Отмена": function() {
-                    $(this).dialog("close");
-                },
-            }
-        });
-    }
-
-    function showErrorMsg(msg) {
-        $("#error").empty();
-        $("#error").append(msg);
-        $("#error").dialog({
-            model: true,
-            height: "auto",
-            width: "auto",
-            buttons: {
-                "Закрыть": function() {
-                    $(this).dialog("close");
+        if (subTableName == "persons") {
+            $("#" + subgrid_table_id).jqGrid(
+                "navButtonAdd",
+                "#" + pager_id,
+                {
+                    caption: "", buttonicon: "ui-icon-script", title: "Анкета участника",
+                    onClickButton: function() { personRequest.ShowPersonsRequest("dialog-persons-request", subgrid_table_id); }
                 }
-            }
-        });
-    }
-
-    function showServerPromt(prompt) {
-        var myInfo = '<div class="ui-state-highlight ui-corner-all">'
-            + '<span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>'
-            + '<strong>'+ prompt + '</strong><br/>' + '</div>';
-        var infoTR = $("table#TblGrid_"+$("#grid-table")[0].id+">tbody>tr.tinfo");
-        var infoTD = infoTR.children("td.topinfo");
-
-        infoTD.html(myInfo);
-        infoTR.show();
-
-        setTimeout(function() {
-            infoTD.children("div").fadeOut('slow',
-                function() {
-                    infoTR.hide();
-            });
-        }, 3000);
-    }
-
-    function getRowId() {
-        var id = $("#grid-table").jqGrid("getGridParam", "selarrrow");
-
-        if (id.length > 1 || id.length == 0) {
-            showErrorMsg("<strong>Выберите одну запись.</strong>");
-            return -1;
+            );
         }
-
-        return id[0];
-    }
-
-    function DrowPersonRequest(data) {
-        if (data["result"] !== "ok") {
-            showErrorMsg(data["result"]);
-            return;
-        }
-
-        for (i in data["data"]) {
-            var row = $("<div/>");
-
-            row.append($("<div/>", {
-                text: data["data"][i]["name"]+": "+data["data"][i]["value"],
-            }));
-
-            $("#dialog-persons-request").append(row);
-        }
-    }
-
-    function ShowPersonsRequest() {
-        var id = getRowId();
-        if (id == -1) return false;
-
-        var reg_id = $("#grid-table").jqGrid("getCell", id, "reg_id");
-        var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
-
-        $("#dialog-persons-request").empty();
-
-        utils.postRequest(
-            { "reg_id": reg_id, "event_id": event_id },
-            DrowPersonRequest,
-            "/gridhandler/getpersonrequest"
-        );
-
-        $("#dialog-persons-request").dialog({
-            modal: true,
-            toTop: "150",
-            height: "auto",
-            width: "auto",
-        });
-    }
-
-    function ConfirmOrRejectPersonRequest(confirm) {
-        var id = getRowId();
-        if (id == -1) return false;
-
-        $("#grid-table").jqGrid("setCell", id, "status", false);
-
-        var reg_id = $("#grid-table").jqGrid("getCell", id, "reg_id");
-        var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
-
-        console.log("ConfirmOrRejectPersonRequest");
-        console.log({ "reg_id": reg_id, "event_id": event_id, "confirm": confirm});
-
-        utils.postRequest(
-            { "reg_id": reg_id, "event_id": event_id, "confirm": confirm},
-            function(data) {
-                showServerPromt(data["result"]);
-            },
-            "/gridhandler/confirmorrejectpersonrequest"
-        );
     }
 
     return {
         GetColModelItem: GetColModelItem,
-        ResetPassword: ResetPassword,
         AddSubTable: AddSubTable,
-        ImportForms: ImportForms,
-        GetPersons: GetPersons,
-        ShowPersonsRequest: ShowPersonsRequest,
-        ConfirmOrRejectPersonRequest: ConfirmOrRejectPersonRequest,
     };
 
 });
