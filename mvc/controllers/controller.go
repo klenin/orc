@@ -8,6 +8,8 @@ import (
     "html/template"
 )
 
+const HASH_SIZE = 32
+
 type BaseController struct{}
 
 type Controller struct {

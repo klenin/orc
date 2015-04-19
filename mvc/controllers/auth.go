@@ -10,8 +10,6 @@ import (
     "time"
 )
 
-const HASH_SIZE = 32
-
 func (this *Handler) HandleLogin(login, pass string) interface{} {
     var id int
     var enabled bool
