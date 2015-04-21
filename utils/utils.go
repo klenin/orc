@@ -87,6 +87,10 @@ func ConvertTypeModel(type_ string, value reflect.Value) (interface{}, bool) {
 }
 
 func ConvertTypeForModel(type_ string, value interface{}) interface{} {
+    if value == nil {
+        return nil
+    }
+
     switch value.(type) {
     case string:
         // value from grid
@@ -106,7 +110,7 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
             println("ConvertTypeForModel-int: ", strconv.Itoa(v))
             return v
         case "text", "date", "time":
-            println("ConvertTypeForModel-text-date-time: ", value)
+            println("ConvertTypeForModel-text-date-time: ", value.(string))
             return value
         case "boolean":
             v, err := strconv.ParseBool(value.(string))

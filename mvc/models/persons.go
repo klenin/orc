@@ -6,6 +6,8 @@ type Person struct {
     GroupId int    `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
     Name    string `name:"name" type:"text" null:"NOT NULL" extra:""`
     Token   string `name:"token" type:"text" null:"NOT NULL" extra:""`
+    Email   string `name:"email" type:"text" null:"NOT NULL" extra:""`
+    Status  bool   `name:"status" type:"boolean" null:"NULL" extra:""`
 }
 
 func (c *ModelManager) Persons() *PersonsModel {
@@ -14,8 +16,8 @@ func (c *ModelManager) Persons() *PersonsModel {
     model.TableName = "persons"
     model.Caption = "Персоны"
 
-    model.Columns = []string{"id", "name", "group_id", "face_id"}
-    model.ColNames = []string{"ID", "Персона", "Группа", "Лицо"}
+    model.Columns = []string{"id", "name", "email", "group_id", "status", "face_id"}
+    model.ColNames = []string{"ID", "ФИО", "Почта", "Группа", "Статус", "Лицо"}
 
     model.Fields = new(Person)
     model.WherePart = make(map[string]interface{}, 0)

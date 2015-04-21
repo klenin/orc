@@ -1,5 +1,5 @@
-define(["utils", "datepicker/datepicker", "person-request"],
-function(utils, datepicker, personRequest) {
+define(["utils", "datepicker/datepicker", "blank"],
+function(utils, datepicker, blank) {
 
     function GetColModelItem(refData, refFields, field) {
         function timePicker(e) {
@@ -19,6 +19,11 @@ function(utils, datepicker, personRequest) {
         // if ((field.indexOf("id") > -1)) {
         if (field == "id") {
             data["editable"] = false;
+
+        // } else if (field.indexOf("id") > -1) {
+        //     data["editrules"].edithidden = true;
+        //     data["hidden"] = true;
+        //     data["editable"] = false;
 
         } else if (field.indexOf("date") > -1) {
             data["formatter"] = "date";
@@ -71,9 +76,13 @@ function(utils, datepicker, personRequest) {
         return data;
     }
 
-    function AddSubTable(subgrid_id, row_id, index, subgrid_table_id, pager_id, tableName, gridId) {
-        console.log("AddSubTable")
-        console.log(subgrid_id, row_id, index, subgrid_table_id, pager_id, tableName, gridId)
+    function AddSubTable(subgrid_id, row_id, index, tableName, gridId) {
+        console.log("AddSubTable: ", {"subgrid_id": subgrid_id, "row_id": row_id, "index": index, "tableName": tableName, "gridId": gridId});
+
+        var subTId = subgrid_id + "_t";
+        var subPId = subgrid_id + "_p";
+
+        $("#" + subgrid_id).append("<table id='" + subTId + "' class='scroll'></table><div id='" + subPId + "' class='scroll'></div></br>");
 
         var subTableCaption = "";
         var subTableName    = "";
@@ -83,21 +92,15 @@ function(utils, datepicker, personRequest) {
         var subColumns      = [];
         var subRefData      = [];
 
-        $("#" + subgrid_id).append(
-            "<table id='" + subgrid_table_id + "' class='scroll'></table>"
-            + "<div id='" + pager_id + "' class='scroll'></div></br>"
-        );
-
         function collbackSUB(data) {
-            console.log("collbackSUB")
-            console.log(data)
-            subTableCaption = data["caption"]
+            console.log("collbackSUB: ", data);
+
+            subTableCaption = data["caption"];
             subTableName    = data["name"];
             subColNames     = data["colnames"];
             subColumns      = data["columns"];
-            subData         = data["data"];
             subRefData      = data["refdata"];
-            subRefFields    = data["reffields"]
+            subRefFields    = data["reffields"];
         }
 
         utils.postRequest(
@@ -110,25 +113,36 @@ function(utils, datepicker, personRequest) {
             subColModel.push(GetColModelItem(subRefData, subRefFields, subColumns[i]));
         }
 
-        $("#" + subgrid_table_id).jqGrid({
-            datatype:   "local",
-            data:        subData,
+        var url = "/handler/"+subTableName.replace(/_/g, '')+"load";
+        if (tableName == "group_registrations") {
+            var group_id = $("#"+gridId).jqGrid("getCell", row_id, "group_id");
+            url += "/"+group_id;
+
+        } else if (tableName == "groups") {
+            url += "/"+row_id;
+        }
+
+
+        $("#" + subTId).jqGrid({
+            url:         url,
+            datatype:    "json",
+            mtype:       "POST",
             colNames:    subColNames,
             colModel:    subColModel,
             rowNum:      5,
             rowList:     [5, 10, 20, 50],
-            pager:       pager_id,
+            pager:       subPId,
             caption:     subTableCaption,
             sortname:    "num",
             sortorder:   "asc",
             height:      "100%",
-            width:       $("#grid-table").width()-65,
+            width:       $("#"+gridId).width()-65,
             multiselect: true,
             editurl:     "/gridhandler/edit/" + subTableName,
         });
 
-        $("#" + subgrid_table_id).navGrid(
-            "#" + pager_id,
+        $("#" + subTId).navGrid(
+            "#" + subPId,
             {
                 edit:    true,
                 add:     true,
@@ -137,39 +151,34 @@ function(utils, datepicker, personRequest) {
                 view:    false,
                 search:  false
             },
-            {   //edit
+            {
                 width: "100%",
                 recreateForm: true,
-                closeAfterEdit:     true,
-                afterSubmit:        function(response, postdata) {
-                                        $("#"+gridId).jqGrid().trigger('reloadGrid');
-                                        return [true, "", response.responseText];
-                                    }
+                closeAfterEdit: true,
             },
-            {   //add
+            {
                 width: "100%",
                 recreateForm: true,
-                clearAfterAdd:      true,
-                closeAfterAdd:      true,
-                addedrow:           "last",
-                afterSubmit:        function(response, postdata) {
-                                        $("#"+gridId).jqGrid().trigger('reloadGrid');
-                                        return [true, "", response.responseText];
-                                    }
+                clearAfterAdd: true,
+                closeAfterAdd: true,
+                addedrow: "last",
             },
-            {   //del
-                closeAfterAdd:      true,
-                viewPagerButtons:   false
+            {
+                closeAfterAdd: true,
+                viewPagerButtons: false
             }
         );
 
-        if (subTableName == "persons") {
-            $("#" + subgrid_table_id).jqGrid(
+        if (tableName == "group_registrations" && subTableName == "persons") {
+            var event_id = $("#"+gridId).jqGrid("getCell", row_id, "event_id");
+            $("#" + subTId).jqGrid(
                 "navButtonAdd",
-                "#" + pager_id,
+                "#" + subPId,
                 {
-                    caption: "", buttonicon: "ui-icon-script", title: "Анкета участника",
-                    onClickButton: function() { personRequest.ShowPersonsRequest("dialog-persons-request", subgrid_table_id); }
+                    caption: "", buttonicon: "ui-icon-pencil", title: "Редактировать анкету участника группы",
+                    onClickButton: function() {
+                        blank.ShowPersonBlankFromGroup(row_id, event_id, "dialog-group-person-request", subTId);
+                    }
                 }
             );
         }

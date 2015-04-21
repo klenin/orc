@@ -1,9 +1,10 @@
 package models
 
 type GroupRegistration struct {
-    Id      int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    EventId int `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
-    GroupId int `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
+    Id      int  `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    EventId int  `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    GroupId int  `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
+    Status  bool `name:"status" type:"boolean" null:"NULL" extra:""`
 }
 
 func (c *ModelManager) GroupRegistrations() *GroupRegistrationModel {
@@ -12,8 +13,8 @@ func (c *ModelManager) GroupRegistrations() *GroupRegistrationModel {
     model.TableName = "group_registrations"
     model.Caption = "Регистрации групп"
 
-    model.Columns = []string{"id", "event_id", "group_id"}
-    model.ColNames = []string{"ID", "Мероприятие", "Группа"}
+    model.Columns = []string{"id", "event_id", "group_id", "status"}
+    model.ColNames = []string{"ID", "Мероприятие", "Группа", "Статус"}
 
     model.Fields = new(GroupRegistration)
     model.WherePart = make(map[string]interface{}, 0)
@@ -22,9 +23,10 @@ func (c *ModelManager) GroupRegistrations() *GroupRegistrationModel {
     model.Limit = "ALL"
     model.Offset = 0
 
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.Sub = true
+    model.SubTable = []string{"persons"}
+    model.SubField = "group_id"
+
 
     return model
 }

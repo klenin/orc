@@ -76,6 +76,7 @@ define(["utils"], function(utils) {
 
     function getCurrRowId(gridId) {
         var id = $("#"+gridId).jqGrid("getGridParam", "selarrrow");
+        console.log("ids: ", id);
 
         if (id.length > 1 || id.length == 0) {
             showErrorMsg("<strong>Выберите одну запись.</strong>");

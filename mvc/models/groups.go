@@ -12,8 +12,8 @@ func (c *ModelManager) Groups() *GroupsModel {
     model.TableName = "groups"
     model.Caption = "Группы"
 
-    model.Columns = []string{"id", "name"}
-    model.ColNames = []string{"ID", "Название"}
+    model.Columns = []string{"id", "name", "face_id"}
+    model.ColNames = []string{"ID", "Название", "Владелец"}
 
     model.Fields = new(Groups)
     model.WherePart = make(map[string]interface{}, 0)

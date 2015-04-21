@@ -9,10 +9,10 @@ import (
     "github.com/orc/mvc/models"
     "github.com/orc/sessions"
     "github.com/orc/utils"
-    "math"
     "net/http"
     "strconv"
     "strings"
+    "errors"
 )
 
 func (c *BaseController) GridHandler() *GridHandler {
@@ -29,10 +29,6 @@ func (this *GridHandler) GetSubTable() {
         return
     }
 
-    if !this.isAdmin() {
-        return
-    }
-
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(err.Error(), this.Response)
@@ -43,11 +39,9 @@ func (this *GridHandler) GetSubTable() {
     index, _ := strconv.Atoi(request["index"].(string))
     subModel := GetModel(model.GetSubTable(index))
     subModel.LoadWherePart(map[string]interface{}{model.GetSubField(): request["id"]})
-    result := db.Select(subModel, subModel.GetColumns() )
     refFields, refData := GetModelRefDate(subModel)
 
     response, err := json.Marshal(map[string]interface{}{
-        "data":      result,
         "name":      subModel.GetTableName(),
         "caption":   subModel.GetCaption(),
         "colnames":  subModel.GetColNames(),
@@ -61,53 +55,6 @@ func (this *GridHandler) GetSubTable() {
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
-func (this *GridHandler) Load(tableName string) {
-    if !sessions.CheackSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
-        return
-    }
-
-    if !this.isAdmin() {
-        return
-    }
-
-    limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
-    if utils.HandleErr("[GridHandler::Load]  limit Atoi: ", err, this.Response) {
-        return
-    }
-
-    page, err := strconv.Atoi(this.Request.PostFormValue("page"))
-    if utils.HandleErr("[GridHandler::Load] page Atoi: ", err, this.Response) {
-        return
-    }
-
-    sidx := this.Request.FormValue("sidx")
-    start := limit*page - limit
-
-    model := GetModel(tableName)
-    model.SetOrder(sidx)
-    model.SetLimit(limit)
-    model.SetOffset(start)
-
-    rows := db.Select(model, model.GetColumns())
-    count := db.SelectCount(tableName)
-
-    var totalPages int
-    if count > 0 {
-        totalPages = int(math.Ceil(float64(count) / float64(limit)))
-    } else {
-        totalPages = 0
-    }
-
-    result := make(map[string]interface{}, 4)
-    result["rows"] = rows
-    result["page"] = page
-    result["total"] = totalPages
-    result["records"] = count
-
-    utils.SendJSReply(result, this.Response)
-}
-
 func (this *GridHandler) Select(tableName string) {
     if !sessions.CheackSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
@@ -115,6 +62,7 @@ func (this *GridHandler) Select(tableName string) {
     }
 
     if !this.isAdmin() {
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
@@ -132,18 +80,16 @@ func (this *GridHandler) Select(tableName string) {
 }
 
 func (this *GridHandler) Edit(tableName string) {
-    if !sessions.CheackSession(this.Response, this.Request) {
-        http.Error(this.Response, "", http.StatusUnauthorized)
-        return
-    }
+    user_id := sessions.GetValue("id", this.Request)
 
-    if !this.isAdmin() {
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+        http.Redirect(this.Response, this.Request, "", http.StatusUnauthorized)
         return
     }
 
     model := GetModel(tableName)
     if model == nil {
-        utils.HandleErr("[Grid-Handler::Edit] GetModel: invalid model", nil, this.Response)
+        utils.HandleErr("[GridHandler::Edit] GetModel: invalid model", nil, this.Response)
         return
     }
 
@@ -153,18 +99,77 @@ func (this *GridHandler) Edit(tableName string) {
     }
 
     oper := this.Request.PostFormValue("oper")
+
     switch oper {
     case "edit":
         id, err := strconv.Atoi(this.Request.PostFormValue("id"))
-        if utils.HandleErr("[Grid-Handler::Edit] strconv.Atoi: ", err, this.Response) {
+        if utils.HandleErr("[GridHandler::Edit] strconv.Atoi id: ", err, this.Response) {
             return
+        }
+
+        if tableName == "groups" && !this.isAdmin() {
+            query := `SELECT groups.face_id FROM groups
+                INNER JOIN faces ON faces.id = groups.face_id
+                INNER JOIN users ON users.id = faces.user_id
+                WHERE users.id = $1 AND groups.id = $2;`
+
+            face_id := -1
+            err := db.QueryRow(query, []interface{}{user_id, id}).Scan(&face_id)
+
+            if err != nil {
+                utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+                return
+            } else if face_id == -1 {
+                utils.SendJSReply(map[string]interface{}{"result": "Нет прав редактировать эту группу."}, this.Response)
+                return
+            }
+            params["face_id"] = face_id
         }
         model.LoadModelData(params)
         model.LoadWherePart(map[string]interface{}{"id": id})
-        err = db.QueryUpdate_(model).Scan()
-        utils.HandleErr("", err, this.Response)
+        db.QueryUpdate_(model).Scan()
         break
     case "add":
+        if tableName == "groups" {
+            var face_id int
+            face := GetModel("faces")
+            face.LoadModelData(map[string]interface{}{"user_id": user_id})
+            db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
+            params["face_id"] = face_id
+
+        } else if tableName == "persons" {
+            to := params["name"].(string)
+            address := params["email"].(string)
+            token := utils.GetRandSeq(HASH_SIZE)
+            params["token"] = token
+
+            query := `SELECT param_values.value
+                FROM reg_param_vals
+                INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+                INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+                INNER JOIN params ON params.id = param_values.param_id
+                INNER JOIN events ON events.id = registrations.event_id
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN users ON users.id = faces.user_id
+                WHERE params.id in (5, 6, 7) AND users.id = $1 AND events.id = 1 ORDER BY params.id;`
+
+            data := db.Query(query, []interface{}{user_id})
+            headName := data[0].(map[string]interface{})["value"].(string)
+            headName += " " + data[1].(map[string]interface{})["value"].(string)
+            headName += " " + data[2].(map[string]interface{})["value"].(string)
+
+            group_id, err := strconv.Atoi(params["group_id"].(string))
+            if utils.HandleErr("[GridHandler::Edit] group_id Atoi: ", err, this.Response) {
+                return
+            }
+
+            var groupName string
+            db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{group_id}).Scan(&groupName)
+
+            if !mailer.InviteToGroup(to, address, token, headName, groupName) {
+                utils.HandleErr("Mailer: ", errors.New("Письмо с приглашением в группу не отправлено."), this.Response)
+            }
+        }
         model.LoadModelData(params)
         db.QueryInsert_(model, "").Scan()
         break
@@ -181,6 +186,7 @@ func (this *GridHandler) ResetPassword() {
     }
 
     if !this.isAdmin() {
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
@@ -225,26 +231,6 @@ func (this *GridHandler) ResetPassword() {
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
 
-func (this *GridHandler) isAdmin() bool {
-    var role string
-
-    user_id := sessions.GetValue("id", this.Request)
-    if user_id == nil {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
-        return false
-    }
-
-    user := GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": user_id})
-    err := db.SelectRow(user, []string{"role"}).Scan(&role)
-    if err != nil || role == "user" {
-        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
-        return false
-    }
-
-    return role == "admin"
-}
-
 func (this *GridHandler) GetEventTypesByEventId() {
     if !sessions.CheackSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
@@ -252,6 +238,7 @@ func (this *GridHandler) GetEventTypesByEventId() {
     }
 
     if !this.isAdmin() {
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
@@ -267,7 +254,7 @@ func (this *GridHandler) GetEventTypesByEventId() {
         query := `SELECT event_types.id, event_types.name FROM events_types
             INNER JOIN events ON events.id = events_types.event_id
             INNER JOIN event_types ON event_types.id = events_types.type_id
-            WHERE events.id = $1;`
+            WHERE events.id = $1 ORDER BY event_types.id;`
         result := db.Query(query, []interface{}{event_id})
 
         utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
@@ -281,6 +268,7 @@ func (this *GridHandler) ImportForms() {
     }
 
     if !this.isAdmin() {
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
@@ -296,7 +284,6 @@ func (this *GridHandler) ImportForms() {
     }
 
     for _, v := range request["event_types_ids"].([]interface{}) {
-        println("event_types_ids: ", v)
         type_id, err := strconv.Atoi(v.(string))
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
@@ -305,7 +292,7 @@ func (this *GridHandler) ImportForms() {
         query := `SELECT events.id FROM events
             INNER JOIN events_types ON events_types.event_id = events.id
             INNER JOIN event_types ON event_types.id = events_types.type_id
-            WHERE event_types.id=$1 AND events.id <> $2
+            WHERE event_types.id = $1 AND events.id <> $2
             ORDER BY id DESC LIMIT 1;`
 
         eventResult := db.Query(query, []interface{}{type_id, event_id})
@@ -313,7 +300,7 @@ func (this *GridHandler) ImportForms() {
         query = `SELECT forms.id FROM forms
             INNER JOIN events_forms ON events_forms.form_id = forms.id
             INNER JOIN events ON events.id = events_forms.event_id
-            WHERE events.id=$1;`
+            WHERE events.id = $1 ORDER BY forms.id;`
 
         formsResult := db.Query(query, []interface{}{int(eventResult[0].(map[string]interface{})["id"].(int64))})
 
@@ -341,6 +328,7 @@ func (this *GridHandler) GetPersonsByEventId() {
     }
 
     if !this.isAdmin() {
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
@@ -360,7 +348,7 @@ func (this *GridHandler) GetPersonsByEventId() {
             return
         }
 
-        q := "SELECT params.name FROM params WHERE params.id in ("+strings.Join(db.MakeParams(len(params)), ", ")+") ORDER BY id"
+        q := "SELECT params.name FROM params WHERE params.id in ("+strings.Join(db.MakeParams(len(params)), ", ")+") ORDER BY id;"
 
         var caption []string
         for _, v := range db.Query(q, params) {
@@ -390,6 +378,7 @@ func (this *GridHandler) GetParamsByEventId() {
     }
 
     if !this.isAdmin() {
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
@@ -416,34 +405,85 @@ func (this *GridHandler) GetParamsByEventId() {
     }
 }
 
+func (this *GridHandler) GetRequest() {
+    if !sessions.CheackSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+    } else {
+        event_id, err := strconv.Atoi(request["event_id"].(string))
+        if utils.HandleErr("[GridHandler::GetRequest] event_id Atoi: ", err, this.Response) {
+            return
+        }
+
+        person_id, err := strconv.Atoi(request["person_id"].(string))
+        if utils.HandleErr("[GridHandler::GetRequest] person_id Atoi: ", err, this.Response) {
+            return
+        }
+
+        group_reg_id, err := strconv.Atoi(request["group_reg_id"].(string))
+        if utils.HandleErr("[GridHandler::GetRequest] group_reg_id Atoi: ", err, this.Response) {
+            return
+        }
+
+        query := `SELECT forms.id as form_id, forms.name as form_name, params.id as param_id, events.name as event_name,
+                params.name as param_name, param_types.name as type, param_values.id as param_val_id, param_values.value
+            FROM events_forms
+            INNER JOIN events ON events.id = events_forms.event_id
+            INNER JOIN forms ON forms.id = events_forms.form_id
+            INNER JOIN params ON forms.id = params.form_id
+            INNER JOIN param_types ON param_types.id = params.param_type_id
+
+            INNER JOIN param_values ON params.id = param_values.param_id
+            INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN persons ON persons.face_id = faces.id
+            INNER JOIN groups ON groups.id = persons.group_id
+            INNER JOIN group_registrations ON group_registrations.group_id = groups.id
+
+            WHERE group_registrations.id = $1 AND persons.id = $2 AND events.id = $3 ORDER BY forms.id;`
+
+        res := db.Query(query, []interface{}{group_reg_id, person_id, event_id})
+
+        utils.SendJSReply(map[string]interface{}{"data": res}, this.Response)
+    }
+}
+
 func (this *GridHandler) GetPersonRequest() {
     if !sessions.CheackSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
-    // if !this.isAdmin() {
-    //     return
-    // }
-
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     } else {
-        face_id, err := strconv.Atoi(request["face_id"].(string))
+        reg_id, err := strconv.Atoi(request["reg_id"].(string))
         if utils.HandleErr("[GridHandler::GetPersonRequest] reg_id Atoi: ", err, this.Response) {
             return
         }
 
-        query := `SELECT param_values.id, params.name, param_values.value, param_types.name as type FROM param_values
-            INNER JOIN params ON params.id = param_values.param_id
+        query := `SELECT DISTINCT forms.id as form_id, forms.name as form_name, params.id as param_id,
+                params.name as param_name, param_types.name as type, param_values.id as param_val_id, param_values.value
+            FROM events_forms
+            INNER JOIN events ON events.id = events_forms.event_id
+            INNER JOIN forms ON forms.id = events_forms.form_id
+            INNER JOIN params ON forms.id = params.form_id
             INNER JOIN param_types ON param_types.id = params.param_type_id
+            INNER JOIN param_values ON params.id = param_values.param_id
+
             INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-            INNER JOIN faces ON registrations.face_id = faces.id
-            WHERE faces.id=$1`
+            WHERE registrations.id=$1 ORDER BY forms.id;`
 
-        data := db.Query(query, []interface{}{face_id})
+        data := db.Query(query, []interface{}{reg_id})
+
         utils.SendJSReply(map[string]interface{}{"result": "ok", "data": data}, this.Response)
     }
 }
@@ -455,6 +495,7 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
     }
 
     if !this.isAdmin() {
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
@@ -464,11 +505,11 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
 
     } else {
         event_id, err := strconv.Atoi(request["event_id"].(string))
-        if utils.HandleErr("[GridHandler::GetPersonRequest] event_id Atoi: ", err, this.Response) {
+        if utils.HandleErr("[GridHandler::ConfirmOrRejectPersonRequest] event_id Atoi: ", err, this.Response) {
             return
         }
         reg_id, err := strconv.Atoi(request["reg_id"].(string))
-        if utils.HandleErr("[GridHandler::GetPersonRequest] reg_id Atoi: ", err, this.Response) {
+        if utils.HandleErr("[GridHandler::ConfirmOrRejectPersonRequest] reg_id Atoi: ", err, this.Response) {
             return
         }
 
@@ -503,17 +544,11 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
                 utils.SendJSReply(map[string]interface{}{"result": "Эту заявку нельзя подтвердить письмом."}, this.Response)
 
             } else {
-                if event_id == 2 {
-                    user_id := int(data[0].(map[string]interface{})["user_id"].(int64))
-                    user := GetModel("users")
-                    user.LoadModelData(map[string]interface{}{"role": "head"})
-                    user.GetFields().(*models.User).Enabled = true
-                    user.LoadWherePart(map[string]interface{}{"id": user_id})
-                    db.QueryUpdate_(user).Scan()
+                if mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, true) {
+                    utils.SendJSReply(map[string]interface{}{"result": "Письмо с подтверждением заявки отправлено."}, this.Response)
+                } else {
+                    utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с подтверждением заявки не отправлено."}, this.Response)
                 }
-
-                mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, true)
-                utils.SendJSReply(map[string]interface{}{"result": "Письмо с подтверждением заявки отправлено."}, this.Response)
             }
 
         } else {
@@ -529,8 +564,11 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
                 query = `DELETE FROM registrations WHERE id = $1;`
                 db.Query(query, []interface{}{reg_id})
 
-                mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, false)
-                utils.SendJSReply(map[string]interface{}{"result": "Письмо с отклонением заявки отправлено."}, this.Response)
+                if mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, false) {
+                    utils.SendJSReply(map[string]interface{}{"result": "Письмо с отклонением заявки отправлено."}, this.Response)
+                } else {
+                    utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с отклонением заявки не отправлено."}, this.Response)
+                }
             }
         }
     }
@@ -542,10 +580,6 @@ func (this *GridHandler) EditParams() {
         return
     }
 
-    // if !this.isAdmin() {
-    //     return
-    // }
-
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
@@ -554,7 +588,7 @@ func (this *GridHandler) EditParams() {
 
     for _, v := range request["data"].([]interface{}) {
 
-        param_val_id, err := strconv.Atoi(v.(map[string]interface{})["id"].(string))
+        param_val_id, err := strconv.Atoi(v.(map[string]interface{})["param_val_id"].(string))
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
@@ -574,4 +608,107 @@ func (this *GridHandler) EditParams() {
     }
 
     utils.SendJSReply(map[string]interface{}{"result": "Изменения сохранены."}, this.Response)
+}
+
+func (this *GridHandler) RegGroup() {
+    user_id := sessions.GetValue("id", this.Request)
+
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+    } else {
+        group_id, err := strconv.Atoi(request["group_id"].(string))
+        if utils.HandleErr("[GridHandler::RegGroup] group_id Atoi: ", err, this.Response) {
+            return
+        }
+
+        event_id, err := strconv.Atoi(request["event_id"].(string))
+        if utils.HandleErr("[GridHandler::RegGroup] event_id Atoi: ", err, this.Response) {
+            return
+        }
+
+        event := GetModel("events")
+        event.LoadWherePart(map[string]interface{}{"id": event_id})
+
+        var eventName string
+        err = db.SelectRow(event, []string{"name"}).Scan(&eventName)
+        if err != nil {
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            return
+        }
+
+        query := `SELECT groups.face_id, groups.name FROM groups
+            INNER JOIN faces ON faces.id = groups.face_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE users.id = $1 AND groups.id = $2;`
+
+        var face_id int
+        var groupName string
+        err = db.QueryRow(query, []interface{}{user_id, group_id}).Scan(&face_id, &groupName)
+
+        if err != nil {
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            return
+        }
+
+        group_reg := GetModel("group_registrations")
+        group_reg.LoadModelData(map[string]interface{}{"event_id": event_id, "group_id": group_id})
+        db.QueryInsert_(group_reg, "").Scan()
+
+        query = `SELECT persons.name, persons.email, persons.face_id, persons.status FROM persons
+            INNER JOIN groups ON groups.id = persons.group_id
+            INNER JOIN faces ON faces.id = persons.face_id
+            WHERE groups.id = $1;`
+        data := db.Query(query, []interface{}{group_id})
+
+        query = `SELECT params.id FROM events_forms
+            INNER JOIN events ON events.id = events_forms.event_id
+            INNER JOIN forms ON forms.id = events_forms.form_id
+            INNER JOIN params ON forms.id = params.form_id
+            WHERE events.id = $1 ORDER BY forms.id;`
+        params := db.Query(query, []interface{}{event_id})
+
+        for _, v := range data {
+            face_id := int(v.(map[string]interface{})["face_id"].(int64))
+            status := v.(map[string]interface{})["status"].(bool)
+
+            if !status {
+                continue
+            }
+
+            var reg_id int
+            regs := GetModel("registrations")
+            regs.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": event_id})
+            db.QueryInsert_(regs, "RETURNING id").Scan(&reg_id)
+
+            to := v.(map[string]interface{})["name"].(string)
+            address := v.(map[string]interface{})["email"].(string)
+            if !mailer.AttendAnEvent(to, address, eventName, groupName) {
+                utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с уведомлением не отправлено."}, this.Response)
+            }
+
+            for _, p := range params {
+                param_id := int(p.(map[string]interface{})["id"].(int64))
+
+                var param_val_id int
+                paramValues := GetModel("param_values")
+                paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": "  "})
+                db.QueryInsert_(paramValues, "RETURNING id").Scan(&param_val_id)
+
+                regParamValue := GetModel("reg_param_vals")
+                regParamValue.LoadModelData(map[string]interface{}{
+                    "reg_id":        reg_id,
+                    "param_val_id":  param_val_id})
+                db.QueryInsert_(regParamValue, "").Scan()
+            }
+
+        }
+
+        utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
+    }
 }

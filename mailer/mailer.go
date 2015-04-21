@@ -79,22 +79,30 @@ Subject: {{ .Subject }}
 
 Ваша заявка на участие в мероприятии "{{ .EventName }}" принята.`
 
-var inviteToGroupEmailTmp = `From: {{.From}}
+var inviteToGroupEmailTmp = `From: {{ .From }}
 To: {{ .To }}
 Subject: {{ .Subject }}
 
 Здравствуйте, {{ .To }}!
 
-{{ .HeadName }} хочет добавить Вас в группу "{{ .GroupName }}"" для принятия участия в мероприятии "{{ .EventName }}".
+{{ .HeadName }} хочет добавить Вас в группу "{{ .GroupName }}".
 
-Вы должны залогиниться в системе `+Server+` используя следующие данные:
-    Логин: {{ .Login }}
-    Пароль: {{ .Password }}
-и заполнить анкету на участие в мероприятии по ссылке {{ .EventUrl }}
+Вы ДОЛЖНЫ залогиниться (зарегистироваться) в системе `+Server+`.
 
-Если Вы уверены, что Вас хотят добавить по ошибке, пожалуйста, свяжитесь с руководителем.`
+Затем для того, чтобы присоединиться к группе "{{ .GroupName }}", пройдите по ссылке: {{ .ConfirmationUrl }}
 
-func SendConfirmEmail(to, address, token string) {
+Чтобы отклонить приглашение, пройдите по ссылке: {{ .RejectionUrl }}`
+
+var attendAnEventEmailTmp = `From: {{ .From }}
+To: {{ .To }}
+Subject: {{ .Subject }}
+
+Здравствуйте, {{ .To }}!
+
+Вы участвуете в мероприятии "{{ .EventName }}".
+Пожалуйста, заполните анкету в личном кабинете `+Server
+
+func SendConfirmEmail(to, address, token string) bool {
 
     log.Println("SendConfirmEmail: address: ", address)
     log.Println("SendConfirmEmail: to: ", to)
@@ -108,13 +116,13 @@ func SendConfirmEmail(to, address, token string) {
 
     t, err := template.New("confirmationmail").Parse(comfirmRegistrationEmailTmp)
     if utils.HandleErr("[SendConfirmEmail] Error trying to parse mail template: ", err, nil) {
-        return
+        return false
     }
 
     var doc bytes.Buffer
     err = t.Execute(&doc, context)
     if utils.HandleErr("[SendConfirmEmail] Error trying to execute mail template: ", err, nil) {
-        return
+        return false
     }
 
     err = smtp.SendMail(
@@ -124,10 +132,10 @@ func SendConfirmEmail(to, address, token string) {
         []string{address},
         doc.Bytes())
 
-    utils.HandleErr("[SendConfirmEmail] Error attempting to send a mail: ", err, nil)
+    return !utils.HandleErr("[SendConfirmEmail] Error attempting to send a mail: ", err, nil)
 }
 
-func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bool) {
+func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bool) bool {
 
     var emailTemplate string
 
@@ -146,13 +154,13 @@ func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bo
 
     t, err := template.New("confirmationmail").Parse(emailTemplate)
     if utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error trying to parse mail template: ", err, nil) {
-        return
+        return false
     }
 
     var doc bytes.Buffer
     err = t.Execute(&doc, context)
     if utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error trying to execute mail template: ", err, nil) {
-        return
+        return false
     }
 
     err = smtp.SendMail(
@@ -162,10 +170,10 @@ func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bo
         []string{address},
         doc.Bytes())
 
-    utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error attempting to send a mail: ", err, nil)
+    return !utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error attempting to send a mail: ", err, nil)
 }
 
-func InviteToGroup(to, address, eventName, eventUrl, headName, groupName string) {
+func InviteToGroup(to, address, token, headName, groupName string) bool {
 
     log.Println("SendConfirmEmail: address: ", address)
     log.Println("SendConfirmEmail: to: ", to)
@@ -173,21 +181,21 @@ func InviteToGroup(to, address, eventName, eventUrl, headName, groupName string)
     context := &SmtpTemplateData{
         From: admin.Name,
         To: to,
-        Subject: `Регистрация гуппы в мероприятии "`+eventName+`"`,
-        EventUrl: Server+eventUrl,
-        EventName: eventName,
+        Subject: `Приглашение в группу "`+groupName+`"`,
+        ConfirmationUrl: Server+"/handler/confirminvitationtogroup/"+token,
+        RejectionUrl: Server+"/handler/rejectinvitationtogroup/"+token,
         HeadName: headName,
         GroupName: groupName}
 
     t, err := template.New("mail").Parse(inviteToGroupEmailTmp)
     if utils.HandleErr("[InviteToGroup] Error trying to parse mail template: ", err, nil) {
-        return
+        return false
     }
 
     var doc bytes.Buffer
     err = t.Execute(&doc, context)
     if utils.HandleErr("[InviteToGroup] Error trying to execute mail template: ", err, nil) {
-        return
+        return false
     }
 
     err = smtp.SendMail(
@@ -197,5 +205,38 @@ func InviteToGroup(to, address, eventName, eventUrl, headName, groupName string)
         []string{address},
         doc.Bytes())
 
-    utils.HandleErr("[InviteToGroup] Error attempting to send a mail: ", err, nil)
+    return !utils.HandleErr("[InviteToGroup] Error attempting to send a mail: ", err, nil)
+}
+
+func AttendAnEvent(to, address, eventName, groupName string) bool {
+
+    log.Println("SendConfirmEmail: address: ", address)
+    log.Println("SendConfirmEmail: to: ", to)
+
+    context := &SmtpTemplateData{
+        From: admin.Name,
+        To: to,
+        Subject: `Уведомление об участии в мероприятии "`+eventName+`"`,
+        GroupName: groupName,
+        EventName: eventName}
+
+    t, err := template.New("mail").Parse(attendAnEventEmailTmp)
+    if utils.HandleErr("[InviteToGroup] Error trying to parse mail template: ", err, nil) {
+        return false
+    }
+
+    var doc bytes.Buffer
+    err = t.Execute(&doc, context)
+    if utils.HandleErr("[InviteToGroup] Error trying to execute mail template: ", err, nil) {
+        return false
+    }
+
+    err = smtp.SendMail(
+        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
+        auth,
+        admin.EmailAdmin,
+        []string{address},
+        doc.Bytes())
+
+    return !utils.HandleErr("[InviteToGroup] Error attempting to send a mail: ", err, nil)
 }

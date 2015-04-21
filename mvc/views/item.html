@@ -18,9 +18,9 @@
 
     <div id="now">
         <div id="server-answer"></div>
-        <form>
-            <h1 id="event" href="#events"></h1>
-            <div id="events"></div>
+        <form id="form-event">
+            <h1></h1>
+            <div></div>
             <input type="button" value="отправить запрос" id="save-btn" name="submit"/>
         </form>
     </div>
@@ -31,13 +31,7 @@ require(["utils", "kladr/kladr", "blank"],
 function(utils, kladr, blank) {
     var valid = false;
 
-    var D = {{.}}.data;
-
-    var E = D.E;
-    var F = D.F;
-    var P = D.P;
-
-    var F_ids = blank.pushFormData(E, F, P, "event", "events");
+    var F_ids = blank.ShowBlank({{.}}.data, "form-event");
     blank.getListHistoryEvents("history", F_ids);
     kladr.kladr();
 
@@ -64,51 +58,29 @@ function(utils, kladr, blank) {
 
     $("#save-btn").click(function() {
 
-        var event_id_ = E[0]["id"];
+        var event_id = {{.}}.data[0]["event_id"];
 
-        if (!valid && event_id_ == 1) {
+        if (!valid && event_id == 1) {
             $("#now #server-answer").text("Логин может содержать латинские буквы и/или "
                 + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
             return;
         }
 
-        var js = { "event_id": parseInt(event_id_), "data": blank.getFormData("now form #events") };
+        var data = blank.getFormData("now form div");
+        if (data == false) {
+            alert("Не все поля заполнены.");
+            return;
+        }
+
+        var js = { "event_id": parseInt(event_id), "data": data};
         console.log(js);
 
         utils.postRequest(
             js,
             function(data) {
-                $("#now form").css("visibility", "hidden");
-                if (data["result"] === "ok") {
-                    var msg = "Запрос успешно выполнен.";
-                    if (event_id_ != 1) {
-                        msg += " Ваша заявка на участие будет рассмотрена.";
-                    } else {
-                        msg += " Проверьте, пожалуйста, свою почту.";
-                    }
-                    $("#now #server-answer").text(msg).css("color", "green");
-
-                } else if (data.result === "loginExists") {
-                    $("#now #server-answer").text("Такой логин уже существует.").css("color", "red");
-
-                } else if (data.result === "badLogin") {
-                    $("#now #server-answer").text("Логин может содержать латинские буквы и/или "
-                        + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
-
-                } else if (data.result === "badPassword") {
-                    $("#now #server-answer").text("Пароль должен иметь длину от 6 "
-                        + "до 36 символов.").css("color", "red");
-
-                } else if (data.result === "notAuthorized") {
-                    $("#now #server-answer").text("Пользователь не авторизован.").css("color", "red");
-
-                } else if (data.result === "authorized") {
-                    $("#now #server-answer").text("Пользователь уже авторизован.").css("color", "red");
-
-                } else {
-                    $("#now #server-answer").text(data["result"]).css("color", "red");
-                }
+                $("#now form").hide();
                 $("div #history").hide();
+                blank.ShowServerAns(event_id_, data, "now #server-answer");
             },
             "/handler/saveuserrequest/"+{{.}}.token
         );

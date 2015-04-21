@@ -21,15 +21,15 @@
     <div style="display:none;" id="dialog-params" title="Параметры"></div>
 
     <div style="display:none;" id="dialog-persons-request" title="Анкета участника"></div>
+    <div style="display:none;" id="dialog-group-person-request" title="Анкета участника"></div>
 
     <div id="error"></div>
 </div>
 
 <script type="text/javascript">
-require(["custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "person-request"],
-function(grid, utils, resetPass, importForms, list, personRequest) {
+require(["custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "blank"],
+function(grid, utils, resetPass, importForms, list, blank) {
 
-    var sameDate  = ["date_start", "date_finish", "reg_date", "last_date"];
     var refFields = {{.RefFields}};
     var refData   = {};
     var colModel_ = [];
@@ -97,10 +97,7 @@ function(grid, utils, resetPass, importForms, list, personRequest) {
                                     "selectOnExpand": true
                                 },
             subGridRowExpanded: function(subgrid_id, row_id) {
-                                    grid.AddSubTable(subgrid_id, row_id, "0", subgrid_id + "_t", "p_" + subgrid_id + "_t", {{.TableName}}, "grid-table");
-                                    if ({{.TableName}} == "event_types") {
-                                        grid.AddSubTable(subgrid_id, row_id, "1", subgrid_id + "_tt", "pp_" + subgrid_id + "_tt", {{.TableName}}, "grid-table");
-                                    }
+                                    grid.AddSubTable(subgrid_id, row_id, "0", {{.TableName}}, "grid-table");
                                 }
         });
 
@@ -167,7 +164,7 @@ function(grid, utils, resetPass, importForms, list, personRequest) {
                 "#grid-table-pager",
                 {
                     caption: "", buttonicon: "ui-icon-script", title: "Анкета участника",
-                    onClickButton: function() { personRequest.ShowPersonsRequest("dialog-persons-request", "grid-table"); }
+                    onClickButton: function() { blank.ShowPersonBlank("dialog-persons-request", "grid-table"); }
                 }
             );
 

@@ -3,6 +3,7 @@ package controllers
 import (
     "github.com/orc/db"
     "github.com/orc/mvc/models"
+    "github.com/orc/sessions"
     "net/http"
     "reflect"
     "html/template"
@@ -27,6 +28,12 @@ type Model struct {
     Columns   []string
     ColNames  []string
     Sub       bool
+    SubTableName string
+    SubCaption   string
+    SubRefData   map[string]interface{}
+    SubRefFields []string
+    SubColumns   []string
+    SubColNames  []string
 }
 
 type RequestModel struct {
@@ -104,4 +111,23 @@ func (this *Controller) Render(filenames []string, tmpname string, data interfac
 
 type VirtController interface {
     Render(filename string, data interface{})
+}
+
+func (this *Controller) isAdmin() bool {
+    var role string
+
+    user_id := sessions.GetValue("id", this.Request)
+    if user_id == nil {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return false
+    }
+
+    user := GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"id": user_id})
+    err := db.SelectRow(user, []string{"role"}).Scan(&role)
+    if err != nil || role == "user" {
+        return false
+    }
+
+    return role == "admin"
 }

@@ -1,12 +1,39 @@
-﻿{{define "user"}}
+{{define "user"}}
 {{template "header"}}
+
+<link rel="stylesheet"
+      href="/css/jquery.kladr.min.css">
+
+<script type="text/javascript"
+        src="/js/kladr/jquery.kladr.min.js"></script>
+
 <div id="container">
 
     <div id="title" class="left"></div></br>
-    <div id="server-answer" class="left"></div></br>
 
     <div id="cabinet" class="left">
-        <form></form>
+        <div>
+            <div style="display:none;" id="dialog-reg-group" title="Регистрация группы"></div>
+            <div style="display:none;" id="dialog-person-request" title="Анкета"></div>
+            <div style="display:none;" id="dialog-group-person-request" title="Анкета"></div>
+            <p>
+                <table id="group-table"></table>
+                <div id="group-table-pager"></div>
+            </p>
+
+            <p>
+                <table id="reg-table"></table>
+                <div id="reg-table-pager"></div>
+            </p>
+
+            <p>
+                <table id="groupreg-table"></table>
+                <div id="groupreg-table-pager"></div>
+            </p>
+
+            <div id="error"></div>
+        </div>
+
     </div>
 
 </div>
@@ -15,22 +42,454 @@
 
 $("#title").append("Личный кабинет");
 
-console.log({{.Table}});
+require(["grid-utils", "custom-grid", "reg-group", "blank", "utils"],
+function(utils, grid, regGroup, blank, req) {
 
-{{with .Table}}
-    {{range $index, $elmt := .}}
-        var p = $("<p/>");
+    var groupRefFields = {{.}}.group.RefFields;
+    var groupRefData   = {};
+    var groupColModel_ = [];
 
-        var lable = $("<label/>", {
-            text: {{$elmt.name}}
-        }).appendTo(p);
+    var regRefFields = {{.}}.reg.RefFields;
+    var regRefData   = {};
+    var regColModel_ = [];
 
-        var input = $("<div/>", {
-        }).text({{$elmt.value}}).appendTo(p);
+    var groupRegRefFields = {{.}}.groupreg.RefFields;
+    var groupRegRefData   = {};
+    var groupRegColModel_ = [];
 
-        $("#cabinet form").append(p);
+    {{with .group.RefData}}
+        {{range $index, $elmt := .}}
+            groupRefData[{{$index}}] = [];
+            {{range $i, $v := $elmt}}
+                groupRefData[{{$index}}][{{$i}}] = {};
+                {{range $j, $k := $v}}
+                    groupRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
+                {{end}}
+            {{end}}
+        {{end}}
     {{end}}
-{{end}}
+
+    {{with .group.Columns}}
+        {{range $i, $v := .}}
+            groupColModel_.push(grid.GetColModelItem(groupRefData, groupRefFields, {{$v}}))
+        {{end}}
+    {{end}}
+
+    console.log("groupRefData: ", groupRefData);
+    console.log("groupColModel_: ", groupColModel_);
+
+    {{with .reg.RefData}}
+        {{range $index, $elmt := .}}
+            regRefData[{{$index}}] = [];
+            {{range $i, $v := $elmt}}
+                regRefData[{{$index}}][{{$i}}] = {};
+                {{range $j, $k := $v}}
+                    regRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
+                {{end}}
+            {{end}}
+        {{end}}
+    {{end}}
+
+    {{with .reg.Columns}}
+        {{range $i, $v := .}}
+            regColModel_.push(grid.GetColModelItem(regRefData, regRefFields, {{$v}}))
+        {{end}}
+    {{end}}
+
+    console.log("regRefData: ", regRefData);
+    console.log("regColModel_: ", regColModel_);
+
+    {{with .groupreg.RefData}}
+        {{range $index, $elmt := .}}
+            groupRegRefData[{{$index}}] = [];
+            {{range $i, $v := $elmt}}
+                groupRegRefData[{{$index}}][{{$i}}] = {};
+                {{range $j, $k := $v}}
+                    groupRegRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
+                {{end}}
+            {{end}}
+        {{end}}
+    {{end}}
+
+    {{with .groupreg.Columns}}
+        {{range $i, $v := .}}
+            groupRegColModel_.push(grid.GetColModelItem(groupRegRefData, groupRegRefFields, {{$v}}))
+        {{end}}
+    {{end}}
+
+    console.log("groupRegRefData: ", groupRegRefData);
+    console.log("groupRegColModel_: ", groupRegColModel_);
+
+    $("#group-table").jqGrid({
+        url:           "/handler/"+{{.group.TableName}}.replace(/_/g, "")+"load",
+        datatype:      "json",
+        mtype:         "POST",
+        treeGrid:      false,
+        colNames:      {{.group.ColNames}},
+        colModel:      groupColModel_,
+        pager:         "#group-table-pager",
+        gridview:      true,
+        sortname:      "id",
+        viewrecords:   true,
+        height:        "100%",
+        width:         "auto",
+        rowNum:        5,
+        rownumbers:    true,
+        rownumWidth:   20,
+        rowList:       [5, 10, 20, 50],
+        caption:       {{.group.Caption}},
+        sortname:      "id",
+        sortorder:     "asc",
+        editurl:       "/gridhandler/edit/" + {{.group.TableName}},
+        multiselect:   true,
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: ' + jqXHR.status + '\n'
+                + 'textStatus: ' + textStatus + '\n'
+                + 'errorThrown: ' + errorThrown);
+            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+        },
+
+        subGrid:            {{.group.Sub}},
+        subGridOptions:     {
+                                "plusicon": "ui-icon-triangle-1-e",
+                                "minusicon": "ui-icon-triangle-1-s",
+                                "openicon": "ui-icon-arrowreturn-1-e",
+                                "reloadOnExpand": true,
+                                "selectOnExpand": true
+                            },
+        subGridRowExpanded: function(subgrid_id, group_id) {
+            $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
+                + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
+
+            var RefData = {};
+
+            {{with .group.SubRefData}}
+                {{range $index, $elmt := .}}
+                    RefData[{{$index}}] = [];
+                    {{range $i, $v := $elmt}}
+                        RefData[{{$index}}][{{$i}}] = {};
+                        {{range $j, $k := $v}}
+                            RefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
+                        {{end}}
+                    {{end}}
+                {{end}}
+            {{end}}
+
+            var ColModel_ = [];
+            var refFields = {{.}}.group.SubRefFields;
+
+            {{with .group.SubColumns}}
+                {{range $i, $v := .}}
+                    ColModel_.push(grid.GetColModelItem(RefData, refFields, {{$v}}))
+                {{end}}
+            {{end}}
+
+            $("#" + subgrid_id + "_t").jqGrid({
+                url:        "/handler/"+{{.group.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
+                datatype:   "json",
+                mtype:      "POST",
+                colNames:    {{.group.SubColNames}},
+                colModel:    ColModel_,
+                rowNum:      5,
+                rowList:     [5, 10, 20, 50],
+                pager:       "#" + subgrid_id + "_p",
+                caption:     {{.group.SubCaption}},
+                sortname:    "num",
+                sortorder:   "asc",
+                height:      "100%",
+                editurl:     "/gridhandler/edit/"+{{.group.SubTableName}},
+                loadError: function (jqXHR, textStatus, errorThrown) {
+                    alert('HTTP status code: ' + jqXHR.status + '\n'
+                        + 'textStatus: ' + textStatus + '\n'
+                        + 'errorThrown: ' + errorThrown);
+                    alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+                },
+                jsonReader: {
+                    page: function (obj) {
+                        console.log("RENDER");
+                        for (i = 0; i < $("#" + subgrid_id + "_t")[0].p.colModel.length; ++i) {
+                            if ($("#" + subgrid_id + "_t")[0].p.colModel[i].name === "group_id") {
+                                req.postRequest(
+                                    null,
+                                    function(data) { $("#" + subgrid_id + "_t")[0].p.colModel[i].searchoptions.value=data["data"]; },
+                                    "/handler/groupsearchoptions"
+                                );
+                            } else if ($("#" + subgrid_id + "_t")[0].p.colModel[i].name === "status") {
+                                $("#" + subgrid_id + "_t")[0].p.colModel[i].editable = false;
+                            }
+                        }
+                    }
+                },
+            });
+
+            $("#"+subgrid_id + "_t").navGrid(
+                "#"+subgrid_id + "_p",
+                {   //buttons
+                    edit:    true,
+                    add:     true,
+                    del:     true,
+                    refresh: false,
+                    view:    false,
+                    search:  false
+                },
+                {   //edit
+                    width:           "100%",
+                    recreateForm:    true,
+                    afterSubmit:     function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
+                    errorTextFormat: function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
+                },
+                {   //add
+                    width:           "100%",
+                    recreateForm:    true,
+                    addedrow:        "last",
+                    afterSubmit:     function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
+                    errorTextFormat: function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
+                },
+                {   //del
+                    closeAfterAdd:  true,
+                }
+            );
+
+            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["face_id"]);
+        }
+    });
+
+    $("#group-table").jqGrid("hideCol", ["face_id"]);
+
+    $("#group-table").navGrid(
+        "#group-table-pager",
+        {
+            edit:    true,
+            add:     true,
+            del:     true,
+            refresh: false,
+            view:    false,
+            search:  false
+        },
+        {
+            width:           "100%",
+            recreateForm:    true,
+            afterSubmit:     function(data) { return utils.errTextFormat(data, "group-table"); },
+            errorTextFormat: function(data) { return utils.errTextFormat(data, "group-table"); },
+        },
+        {
+            width:           "100%",
+            recreateForm:    true,
+            addedrow:        "last",
+            afterSubmit:     function(data) { return utils.errTextFormat(data, "group-table"); },
+            errorTextFormat: function(data) { return utils.errTextFormat(data, "group-table"); },
+        },
+        {
+            closeAfterAdd:  true,
+        }
+    );
+
+    $("#group-table").jqGrid(
+        "navButtonAdd",
+        "#group-table-pager",
+        {
+            caption: "", buttonicon: "ui-icon-script", title: "Регистрация группы",
+            onClickButton: function() { regGroup.Registration("dialog-reg-group", "group-table"); }
+        }
+    );
+
+    $(window).bind("resize", function() {
+        $("#group-table").setGridWidth($(window).width()-50, true);
+    }).trigger("resize");
+
+    $("#reg-table").jqGrid({
+        url:           "/handler/"+{{.reg.TableName}}.replace(/_/g, "")+"load",
+        datatype:      "json",
+        mtype:         "POST",
+        treeGrid:      false,
+        colNames:      {{.reg.ColNames}},
+        colModel:      regColModel_,
+        pager:         "#reg-table-pager",
+        gridview:      true,
+        sortname:      "id",
+        viewrecords:   true,
+        height:        "100%",
+        width:         "auto",
+        rowNum:        5,
+        rownumbers:    true,
+        rownumWidth:   20,
+        rowList:       [5, 10, 20, 50],
+        caption:       {{.reg.Caption}},
+        sortname:      "id",
+        sortorder:     "asc",
+        multiselect:   true,
+        editurl:       "/gridhandler/edit/" + {{.reg.TableName}},
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: ' + jqXHR.status + '\n'
+                + 'textStatus: ' + textStatus + '\n'
+                + 'errorThrown: ' + errorThrown);
+            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+        },
+    });
+
+    $("#reg-table").jqGrid("hideCol", ["face_id"]);
+
+    $("#reg-table").navGrid(
+        "#reg-table-pager",
+        {
+            edit:    false,
+            add:     false,
+            del:     false,
+            refresh: false,
+            view:    false,
+            search:  false
+        }
+    );
+
+    $("#reg-table").jqGrid(
+        "navButtonAdd",
+        "#reg-table-pager",
+        {
+            caption: "", buttonicon: "ui-icon-script", title: "Анкета",
+            onClickButton: function() { blank.ShowPersonBlank("dialog-person-request", "reg-table"); }
+        }
+    );
+
+    $(window).bind("resize", function() {
+        $("#reg-table").setGridWidth($(window).width()-50, true);
+    }).trigger("resize");
+
+    $("#groupreg-table").jqGrid({
+        url:           "/handler/"+{{.groupreg.TableName}}.replace(/_/g, "")+"load",
+        datatype:      "json",
+        mtype:         "POST",
+        treeGrid:      false,
+        colNames:      {{.groupreg.ColNames}},
+        colModel:      groupRegColModel_,
+        pager:         "#groupreg-table-pager",
+        gridview:      true,
+        sortname:      "id",
+        viewrecords:   true,
+        height:        "100%",
+        width:         "auto",
+        rowNum:        5,
+        rownumbers:    true,
+        rownumWidth:   20,
+        rowList:       [5, 10, 20, 50],
+        caption:       {{.groupreg.Caption}},
+        sortname:      "id",
+        sortorder:     "asc",
+        editurl:       "/gridhandler/edit/" + {{.groupreg.TableName}},
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: ' + jqXHR.status + '\n'
+                + 'textStatus: ' + textStatus + '\n'
+                + 'errorThrown: ' + errorThrown);
+            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+        },
+
+        subGrid:            {{.groupreg.Sub}},
+        subGridOptions:     {
+                                "plusicon": "ui-icon-triangle-1-e",
+                                "minusicon": "ui-icon-triangle-1-s",
+                                "openicon": "ui-icon-arrowreturn-1-e",
+                                "reloadOnExpand": true,
+                                "selectOnExpand": true
+                            },
+        subGridRowExpanded: function(subgrid_id, row_id) {
+            $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
+                + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
+
+            var group_id = $("#groupreg-table").jqGrid("getCell", row_id, "group_id");
+            var event_id = $("#groupreg-table").jqGrid("getCell", row_id, "event_id");
+
+            var RefData = {};
+
+            {{with .groupreg.SubRefData}}
+                {{range $index, $elmt := .}}
+                    RefData[{{$index}}] = [];
+                    {{range $i, $v := $elmt}}
+                        RefData[{{$index}}][{{$i}}] = {};
+                        {{range $j, $k := $v}}
+                            RefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
+                        {{end}}
+                    {{end}}
+                {{end}}
+            {{end}}
+
+            var ColModel_ = [];
+            var refFields = {{.}}.groupreg.SubRefFields;
+
+            {{with .groupreg.SubColumns}}
+                {{range $i, $v := .}}
+                    ColModel_.push(grid.GetColModelItem(RefData, refFields, {{$v}}))
+                {{end}}
+            {{end}}
+
+            $("#" + subgrid_id + "_t").jqGrid({
+                url:        "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
+                datatype:   "json",
+                mtype:      "POST",
+                colNames:    {{.groupreg.SubColNames}},
+                colModel:    ColModel_,
+                rowNum:      5,
+                rowList:     [5, 10, 20, 50],
+                pager:       "#" + subgrid_id + "_p",
+                caption:     {{.groupreg.SubCaption}},
+                sortname:    "num",
+                sortorder:   "asc",
+                height:      "100%",
+                editurl:     "/gridhandler/edit/"+{{.groupreg.SubTableName}},
+                multiselect: true,
+                loadError: function (jqXHR, textStatus, errorThrown) {
+                    alert('HTTP status code: ' + jqXHR.status + '\n'
+                        + 'textStatus: ' + textStatus + '\n'
+                        + 'errorThrown: ' + errorThrown);
+                    alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+                },
+            });
+
+            $("#"+subgrid_id + "_t").navGrid(
+                "#"+subgrid_id + "_p",
+                {
+                    edit:    false,
+                    add:     false,
+                    del:     false,
+                    refresh: false,
+                    view:    false,
+                    search:  false
+                }
+            );
+
+            $("#"+subgrid_id + "_t").jqGrid(
+                "navButtonAdd",
+                "#"+subgrid_id + "_p",
+                {
+                    caption: "", buttonicon: "ui-icon-pencil", title: "Редактировать анкету участника группы",
+                    onClickButton: function() {
+                        blank.ShowPersonBlankFromGroup(row_id, event_id, "dialog-group-person-request", subgrid_id + "_t");
+                    }
+                }
+            );
+
+            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["face_id"]);
+            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["status"]);
+        }
+    });
+
+    $("#groupreg-table").jqGrid("hideCol", ["face_id"]);
+
+    $("#groupreg-table").navGrid(
+        "#groupreg-table-pager",
+        {
+            edit:    false,
+            add:     false,
+            del:     false,
+            refresh: false,
+            view:    false,
+            search:  false
+        }
+    );
+
+    $(window).bind("resize", function() {
+        $("#groupreg-table").setGridWidth($(window).width()-50, true);
+    }).trigger("resize");
+
+});
 
 </script>
 

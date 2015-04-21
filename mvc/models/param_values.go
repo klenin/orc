@@ -3,7 +3,7 @@ package models
 type ParamValues struct {
     Id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     ParamId     int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
-    Value       string `name:"value" type:"text" null:"NOT NULL" extra:""`
+    Value       string `name:"value" type:"text" null:"NULL" extra:""`
 }
 
 func (c *ModelManager) ParamValues() *ParamValuesModel {

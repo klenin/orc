@@ -1,12 +1,10 @@
 package controllers
 
 import (
-    "encoding/json"
     "github.com/orc/db"
     "github.com/orc/mvc/models"
     "github.com/orc/sessions"
     "github.com/orc/utils"
-    "html/template"
     "log"
     "strconv"
 )
@@ -190,51 +188,24 @@ func (this *Handler) GetRequest(tableName, id, token string) {
         return
     }
 
-    // проверка id - число !!!
+        event_id, err := strconv.Atoi(id)
+        if utils.HandleErr("[GridHandler::GetParamsByEventId] event_id Atoi: ", err, this.Response) {
+            return
+        }
 
-    response, err := json.Marshal(map[string]interface{}{"data": MegoJoin(tableName, id), "token": token})
-    if utils.HandleErr("[Handler::GetRequest] Marshal: ", err, this.Response) {
-        return
-    }
+        query1 := `SELECT forms.id as form_id, forms.name as form_name, params.id as param_id,
+                params.name as param_name, param_types.name as type, events.name as event_name,
+                events.id as event_id
+            FROM events_forms
+            INNER JOIN events ON events.id = events_forms.event_id
+            INNER JOIN forms ON forms.id = events_forms.form_id
+            INNER JOIN params ON forms.id = params.form_id
+            INNER JOIN param_types ON param_types.id = params.param_type_id
+            WHERE events.id = $1 ORDER BY forms.id;`
 
-    this.Render([]string{"mvc/views/item.html"}, "item", template.JS(response))
-}
+        res1 := db.Query(query1, []interface{}{event_id})
 
-func MegoJoin(tableName, id string) RequestModel {
-    var E []interface{}
-    var F []interface{}
-    var P []interface{}
-
-    event := GetModel("events")
-    event.LoadWherePart(map[string]interface{}{"id": id})
-    E = db.Select(event, []string{"id", "name"})
-
-    query := db.InnerJoin(
-        []string{"f.id", "f.name"},
-        "events_forms",
-        "e_f",
-        []string{"event_id", "form_id"},
-        []string{"events", "forms"},
-        []string{"e", "f"},
-        []string{"id", "id"},
-        "where e.id=$1 ORDER BY id")
-    F = db.Query(query, []interface{}{id})
-
-    for j := 0; j < len(F); j++ {
-        f_id := F[j].(map[string]interface{})["id"]
-        query := db.InnerJoin(
-            []string{"p.id", "p.name", "p_t.name as type"},
-            "params",
-            "p",
-            []string{"form_id", "param_type_id"},
-            []string{"forms", "param_types"},
-            []string{"f", "p_t"},
-            []string{"id", "id"},
-            "where f.id=$1 ORDER BY id")
-        P = append(P, db.Query(query, []interface{}{f_id}))
-    }
-
-    return RequestModel{E: E, F: F, P: P}
+    this.Render([]string{"mvc/views/item.html"}, "item", map[string]interface{}{"data": res1, "token": token})
 }
 
 func InsertUserParams(data []interface{}) ([]interface{}, string, string, string) {
@@ -253,6 +224,7 @@ func InsertUserParams(data []interface{}) ([]interface{}, string, string, string
 
         if param_id == 1 {
             userLogin = value
+            continue
         } else if param_id == 2 || param_id == 3 {
             userPass = value
             continue
