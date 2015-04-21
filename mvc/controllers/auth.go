@@ -112,7 +112,7 @@ func (this *Handler) ConfirmUser(token string) {
     db.QueryUpdate_(user).Scan()
 
     if this.Response != nil {
-        this.Render([]string{"mvc/views/confirmation.html"}, "confirmation", nil)
+        this.Render([]string{"mvc/views/msg.html"}, "msg", "Регестрация подтверждена.")
     }
 }
 
@@ -130,6 +130,6 @@ func (this *Handler) RejectUser(token string) {
     db.QueryDeleteByIds("users", id)
 
     if this.Response != nil {
-        this.Render([]string{"mvc/views/rejection.html"}, "rejection", nil)
+        this.Render([]string{"mvc/views/msg.html"}, "msg", "Вы успешно отписаны от рассылок Secret Oasis.")
     }
 }
