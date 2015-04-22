@@ -95,7 +95,14 @@ func (this *Handler) ShowCabinet(tableName string) {
         groups := GetModel("groups")
         groupsRefFields, groupsRefData := GetModelRefDate(groups)
         persons := GetModel("persons")
-        personsRefFields, personsRefData := GetModelRefDate(persons)
+
+        query := `SELECT groups.id, groups.name FROM groups
+            INNER JOIN faces ON faces.id = groups.face_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE users.id = $1 ORDER BY groups.id;`
+        personsRefData := map[string]interface{}{"group_id": db.Query(query, []interface{}{user_id})}
+
+        personsRefFields := []string{"name"}
 
         groupsModel := Model{
             RefData:      groupsRefData,
@@ -109,8 +116,8 @@ func (this *Handler) ShowCabinet(tableName string) {
             SubCaption:   persons.GetCaption(),
             SubRefData:   personsRefData,
             SubRefFields: personsRefFields,
-            SubColumns:   persons.GetColumns(),
-            SubColNames:  persons.GetColNames()}
+            SubColumns:   persons.GetColumns()[:len(persons.GetColumns())-1],
+            SubColNames:  persons.GetColNames()[:len(persons.GetColNames())-1]}
 
         regs := GetModel("registrations")
         regsRefFields, regsRefData := GetModelRefDate(regs)
@@ -139,8 +146,8 @@ func (this *Handler) ShowCabinet(tableName string) {
             SubCaption:   persons.GetCaption(),
             SubRefData:   personsRefData,
             SubRefFields: personsRefFields,
-            SubColumns:   persons.GetColumns(),
-            SubColNames:  persons.GetColNames()}
+            SubColumns:   persons.GetColumns()[:len(persons.GetColumns())-1],
+            SubColNames:  persons.GetColNames()[:len(persons.GetColNames())-1]}
 
         this.Render(
             []string{"mvc/views/"+role+".html"},
