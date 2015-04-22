@@ -73,6 +73,10 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
     } else {
         token := utils.GetRandSeq(HASH_SIZE)
 
+        if !mailer.SendConfirmEmail(login, email, token) {
+            return "badEmail", -1
+        }
+
         var user_id int
         user := GetModel("users")
         user.LoadModelData(map[string]interface{}{"login": login, "pass": pass, "salt": salt, "role": role, "token": token, "enabled": false})
@@ -86,10 +90,6 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
         registration := GetModel("registrations")
         registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": 1})
         db.QueryInsert_(registration, "RETURNING id").Scan(&reg_id)
-
-        if !mailer.SendConfirmEmail(login, email, token) {
-            return "badEmail", -1
-        }
 
         return result, reg_id
     }

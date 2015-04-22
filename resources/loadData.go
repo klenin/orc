@@ -41,7 +41,7 @@ func Load() {
 func LoadAdmin() {
     base := new(controllers.BaseController)
 
-    result, reg_id := base.Handler().HandleRegister_("admin", "password", "", "admin")
+    result, reg_id := base.Handler().HandleRegister_("admin", "password", "secret.oasis.3805@gmail.com", "admin")
 
     if result != "ok" {
         utils.HandleErr("[LoadAdmin]: "+result, nil, nil)
