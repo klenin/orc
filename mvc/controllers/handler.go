@@ -6,7 +6,6 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "net/http"
-    "strconv"
 )
 
 func (c *BaseController) Handler() *Handler {
@@ -202,10 +201,5 @@ func (this *Handler) GroupSearchoptions() {
 
     rows := db.Query(query, []interface{}{user_id})
 
-    response := ":Все;"
-    for _, v := range rows {
-        response += strconv.Itoa(int(v.(map[string]interface{})["id"].(int64)))
-        response += ":"+v.(map[string]interface{})["name"].(string)+";"
-    }
-    utils.SendJSReply(map[string]interface{}{"data": response}, this.Response)
+    utils.SendJSReply(map[string]interface{}{"data": rows}, this.Response)
 }

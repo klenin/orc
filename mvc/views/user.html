@@ -13,9 +13,9 @@
 
     <div id="cabinet" class="left">
         <div>
-            <div style="display:none;" id="dialog-reg-group" title="Регистрация группы"></div>
-            <div style="display:none;" id="dialog-person-request" title="Анкета"></div>
-            <div style="display:none;" id="dialog-group-person-request" title="Анкета"></div>
+            <div hidden="true" id="dialog-reg-group" title="Регистрация группы"></div>
+            <div hidden="true" id="dialog-person-request" title="Анкета"></div>
+            <div hidden="true" id="dialog-group-person-request" title="Анкета"></div>
             <p>
                 <table id="group-table"></table>
                 <div id="group-table-pager"></div>
@@ -204,22 +204,6 @@ function(utils, grid, regGroup, blank, req) {
                         + 'errorThrown: ' + errorThrown);
                     alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
                 },
-                jsonReader: {
-                    page: function (obj) {
-                        console.log("RENDER");
-                        for (i = 0; i < $("#" + subgrid_id + "_t")[0].p.colModel.length; ++i) {
-                            if ($("#" + subgrid_id + "_t")[0].p.colModel[i].name === "group_id") {
-                                req.postRequest(
-                                    null,
-                                    function(data) { $("#" + subgrid_id + "_t")[0].p.colModel[i].searchoptions.value=data["data"]; },
-                                    "/handler/groupsearchoptions"
-                                );
-                            } else if ($("#" + subgrid_id + "_t")[0].p.colModel[i].name === "status") {
-                                $("#" + subgrid_id + "_t")[0].p.colModel[i].editable = false;
-                            }
-                        }
-                    }
-                },
             });
 
             $("#"+subgrid_id + "_t").navGrid(
@@ -249,6 +233,25 @@ function(utils, grid, regGroup, blank, req) {
                     closeAfterAdd:  true,
                 }
             );
+
+            $.extend($.jgrid.edit, {
+                recreateForm: true,
+                beforeShowForm: function(form) {
+                    req.postRequest(
+                        null,
+                        function(data) {
+                            $("#" + subgrid_id + "_t select[name=\"group_id\"]").empty();
+                            for (i = 0; i < data["data"].length; ++i) {
+                                $("#" + subgrid_id + "_t select[name=\"group_id\"]")
+                                .append($("<option value=\"" + data["data"][i].id + "\">" + data["data"][i].name + "</option>"));
+                            }
+                        },
+                        "/handler/groupsearchoptions"
+                    );
+                    $("#tr_status", form).hide();
+                    $("#" + subgrid_id + "_t").jqGrid("getColProp", "status").editable = false;
+                }
+            });
 
             $("#"+subgrid_id + "_t").jqGrid("hideCol", ["face_id"]);
         }
