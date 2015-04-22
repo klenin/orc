@@ -11,8 +11,8 @@ func (c *ModelManager) Faces() *FaceModel {
     model.TableName = "faces"
     model.Caption = "Лица"
 
-    model.Columns = []string{"id", "user_id", "person_id"}
-    model.ColNames = []string{"ID", "Пользователь", "Персона"}
+    model.Columns = []string{"id", "user_id"}
+    model.ColNames = []string{"ID", "Пользователь"}
 
     model.Fields = new(Face)
     model.WherePart = make(map[string]interface{}, 0)
