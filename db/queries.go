@@ -190,9 +190,6 @@ func MakePairs(fields []string) []string {
     return result
 }
 
-/**
- * condition: AND condition and OR condition
- */
 func Select(m interface{}, fields []string) []interface{} {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
