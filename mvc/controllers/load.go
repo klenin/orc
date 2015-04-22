@@ -85,7 +85,12 @@ func (this *Handler) GroupsLoad() {
 
     rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
 
-    count := len(rows)
+    query = `SELECT COUNT(*) FROM groups
+        INNER JOIN faces ON faces.id = groups.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1;`
+
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int64))
 
     var totalPages int
     if count > 0 {
@@ -132,7 +137,13 @@ func (this *Handler) RegistrationsLoad() {
 
     rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
 
-    count := len(rows)
+    query = `SELECT COUNT(*) FROM registrations
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1;`
+
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int64))
 
     var totalPages int
     if count > 0 {
@@ -180,7 +191,14 @@ func (this *Handler) GroupRegistrationsLoad() {
 
     rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
 
-    count := len(rows)
+    query = `SELECT COUNT(*) FROM group_registrations
+        INNER JOIN events ON events.id = group_registrations.event_id
+        INNER JOIN groups ON groups.id = group_registrations.group_id
+        INNER JOIN faces ON faces.id = groups.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1;`
+
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int64))
 
     var totalPages int
     if count > 0 {
@@ -244,7 +262,12 @@ func (this *Handler) PersonsLoad(group_id string) {
         rows = db.Query(query, []interface{}{user_id, id, sidx, limit, start})
     }
 
-    count := len(rows)
+    query := `SELECT COUNT(*) FROM persons
+        INNER JOIN groups ON groups.id = persons.group_id
+        INNER JOIN faces ON faces.id = groups.face_id
+        WHERE groups.id = $1;`
+
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int64))
 
     var totalPages int
     if count > 0 {
