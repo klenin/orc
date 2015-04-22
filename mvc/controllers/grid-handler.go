@@ -444,7 +444,7 @@ func (this *GridHandler) GetRequest() {
             INNER JOIN group_registrations ON group_registrations.group_id = groups.id
                 AND group_registrations.event_id = events.id
 
-            WHERE group_registrations.id = $1 AND persons.id = $2 ORDER BY forms.id;`
+            WHERE group_registrations.id = $1 AND persons.id = $2 ORDER BY forms.id, params.id;`
 
         res := db.Query(query, []interface{}{group_reg_id, person_id})
 
@@ -481,7 +481,7 @@ func (this *GridHandler) GetPersonRequest() {
             INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
                 AND events.id = registrations.event_id
-            WHERE registrations.id=$1 ORDER BY forms.id;`
+            WHERE registrations.id=$1 ORDER BY forms.id, params.id;`
 
         data := db.Query(query, []interface{}{reg_id})
 

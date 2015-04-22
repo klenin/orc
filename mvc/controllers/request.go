@@ -200,7 +200,7 @@ func (this *Handler) GetRequest(tableName, id, token string) {
             INNER JOIN forms ON forms.id = events_forms.form_id
             INNER JOIN params ON forms.id = params.form_id
             INNER JOIN param_types ON param_types.id = params.param_type_id
-            WHERE events.id = $1 ORDER BY forms.id;`
+            WHERE events.id = $1 ORDER BY forms.id, params.id;`
 
         res1 := db.Query(query1, []interface{}{event_id})
 
