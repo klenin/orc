@@ -221,6 +221,10 @@ function(utils, grid, regGroup, blank, req) {
                     recreateForm:    true,
                     afterSubmit:     function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
                     errorTextFormat: function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
+                    beforeShowForm: function(form) {
+                        $("#tr_status", form).hide();
+                        $("#" + subgrid_id + "_t").jqGrid("getColProp", "status").editable = false;
+                    },
                 },
                 {   //add
                     width:           "100%",
@@ -228,31 +232,15 @@ function(utils, grid, regGroup, blank, req) {
                     addedrow:        "last",
                     afterSubmit:     function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
                     errorTextFormat: function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
+                    beforeShowForm:  function(form) {
+                        $("#tr_status", form).hide();
+                        $("#" + subgrid_id + "_t").jqGrid("getColProp", "status").editable = false;
+                    },
                 },
                 {   //del
                     closeAfterAdd:  true,
                 }
             );
-
-            $.extend($.jgrid.edit, {
-                recreateForm: true,
-                beforeShowForm: function(form) {
-                    req.postRequest(
-                        null,
-                        function(data) {
-                            $("#" + subgrid_id + "_t select[name=\"group_id\"]").empty();
-                            for (i = 0; i < data["data"].length; ++i) {
-                                $("#" + subgrid_id + "_t select[name=\"group_id\"]")
-                                .append($("<option value=\"" + data["data"][i].id + "\">" + data["data"][i].name + "</option>"));
-                            }
-                        },
-                        "/handler/groupsearchoptions"
-                    );
-                    $("#tr_status", form).hide();
-                    $("#" + subgrid_id + "_t").jqGrid("getColProp", "status").editable = false;
-                }
-            });
-
             $("#"+subgrid_id + "_t").jqGrid("hideCol", ["face_id"]);
         }
     });
@@ -265,8 +253,8 @@ function(utils, grid, regGroup, blank, req) {
             edit:    true,
             add:     true,
             del:     true,
-            refresh: false,
-            view:    false,
+            refresh: true,
+            view:    true,
             search:  false
         },
         {
