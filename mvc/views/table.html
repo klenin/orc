@@ -20,6 +20,8 @@
 
     <div style="display:none;" id="dialog-params" title="Параметры"></div>
 
+    <div style="display:none;" id="dialog-reg-group" title="Регистрация группы"></div>
+
     <div style="display:none;" id="dialog-persons-request" title="Анкета участника"></div>
     <div style="display:none;" id="dialog-group-person-request" title="Анкета участника"></div>
 
@@ -27,8 +29,8 @@
 </div>
 
 <script type="text/javascript">
-require(["custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "blank"],
-function(grid, utils, resetPass, importForms, list, blank) {
+require(["custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "blank", "reg-group"],
+function(grid, utils, resetPass, importForms, list, blank, regGroup) {
 
     var refFields = {{.RefFields}};
     var refData   = {};
@@ -116,6 +118,24 @@ function(grid, utils, resetPass, importForms, list, blank) {
                 recreateForm:    true,
                 afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
                 errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
+                beforeShowForm:  function() {
+                    if ({{.TableName}} == "registrations") {
+                        var id = utils.getCurrRowId("grid-table");
+                        var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
+                        if (event_id == 1) {
+                            return;
+                        }
+                        $('<a href="#">Подтвердить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
+                        .click(function() { utils.ConfirmOrRejectPersonRequest("grid-table", true); })
+                        .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
+                        .prependTo("#Act_Buttons>td.EditButton");
+
+                        $('<a href="#">Отклонить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
+                        .click(function() { utils.ConfirmOrRejectPersonRequest("grid-table", false); })
+                        .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
+                        .prependTo("#Act_Buttons>td.EditButton");
+                    }
+                }
             },
             {   //add
                 width:           "100%",
@@ -168,20 +188,15 @@ function(grid, utils, resetPass, importForms, list, blank) {
                 }
             );
 
-            $.extend($.jgrid.edit, {
-                recreateForm: true,
-                beforeShowForm: function() {
-                    $('<a href="#">Подтвердить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
-                    .click(function() { utils.ConfirmOrRejectPersonRequest(true); })
-                    .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
-                    .prependTo("#Act_Buttons>td.EditButton");
-
-                    $('<a href="#">Отклонить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
-                    .click(function() { utils.ConfirmOrRejectPersonRequest(false); })
-                    .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
-                    .prependTo("#Act_Buttons>td.EditButton");
+        } else if ({{.TableName}} == "groups") {
+            $("#grid-table").jqGrid(
+                "navButtonAdd",
+                "#grid-table-pager",
+                {
+                    caption: "", buttonicon: "ui-icon-script", title: "Регистрация группы",
+                    onClickButton: function() { regGroup.Registration("dialog-reg-group", "grid-table"); }
                 }
-            });
+            );
         }
 
         $("#grid-table").jqGrid(
