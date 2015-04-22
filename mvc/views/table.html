@@ -170,7 +170,7 @@ function(grid, utils, resetPass, importForms, list, blank) {
 
             $.extend($.jgrid.edit, {
                 recreateForm: true,
-                beforeShowForm: function () {
+                beforeShowForm: function() {
                     $('<a href="#">Подтвердить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
                     .click(function() { utils.ConfirmOrRejectPersonRequest(true); })
                     .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")

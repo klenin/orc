@@ -80,7 +80,7 @@ function(utils, kladr, blank) {
             function(data) {
                 $("#now form").hide();
                 $("div #history").hide();
-                blank.ShowServerAns(event_id_, data, "now #server-answer");
+                blank.ShowServerAns(event_id, data, "now #server-answer");
             },
             "/handler/saveuserrequest/"+{{.}}.token
         );
