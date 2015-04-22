@@ -415,11 +415,6 @@ func (this *GridHandler) GetRequest() {
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     } else {
-        event_id, err := strconv.Atoi(request["event_id"].(string))
-        if utils.HandleErr("[GridHandler::GetRequest] event_id Atoi: ", err, this.Response) {
-            return
-        }
-
         person_id, err := strconv.Atoi(request["person_id"].(string))
         if utils.HandleErr("[GridHandler::GetRequest] person_id Atoi: ", err, this.Response) {
             return
@@ -430,8 +425,10 @@ func (this *GridHandler) GetRequest() {
             return
         }
 
-        query := `SELECT forms.id as form_id, forms.name as form_name, params.id as param_id, events.name as event_name,
-                params.name as param_name, param_types.name as type, param_values.id as param_val_id, param_values.value
+        query := `SELECT forms.id as form_id, forms.name as form_name, params.id as param_id,
+            events.name as event_name, events.id as event_id, params.name as param_name,
+            param_types.name as type, param_values.id as param_val_id, param_values.value
+
             FROM events_forms
             INNER JOIN events ON events.id = events_forms.event_id
             INNER JOIN forms ON forms.id = events_forms.form_id
@@ -445,10 +442,11 @@ func (this *GridHandler) GetRequest() {
             INNER JOIN persons ON persons.face_id = faces.id
             INNER JOIN groups ON groups.id = persons.group_id
             INNER JOIN group_registrations ON group_registrations.group_id = groups.id
+                AND group_registrations.event_id = events.id
 
-            WHERE group_registrations.id = $1 AND persons.id = $2 AND events.id = $3 ORDER BY forms.id;`
+            WHERE group_registrations.id = $1 AND persons.id = $2 ORDER BY forms.id;`
 
-        res := db.Query(query, []interface{}{group_reg_id, person_id, event_id})
+        res := db.Query(query, []interface{}{group_reg_id, person_id})
 
         utils.SendJSReply(map[string]interface{}{"data": res}, this.Response)
     }
@@ -469,8 +467,10 @@ func (this *GridHandler) GetPersonRequest() {
             return
         }
 
-        query := `SELECT DISTINCT forms.id as form_id, forms.name as form_name, params.id as param_id,
-                params.name as param_name, param_types.name as type, param_values.id as param_val_id, param_values.value
+        query := `SELECT forms.id as form_id, forms.name as form_name, params.id as param_id,
+            events.name as event_name, events.id as event_id, params.name as param_name,
+            param_types.name as type, param_values.id as param_val_id, param_values.value
+
             FROM events_forms
             INNER JOIN events ON events.id = events_forms.event_id
             INNER JOIN forms ON forms.id = events_forms.form_id
@@ -480,6 +480,7 @@ func (this *GridHandler) GetPersonRequest() {
 
             INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+                AND events.id = registrations.event_id
             WHERE registrations.id=$1 ORDER BY forms.id;`
 
         data := db.Query(query, []interface{}{reg_id})

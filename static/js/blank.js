@@ -80,11 +80,11 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
         );
     }
 
-    function ShowPersonBlankFromGroup(group_reg_id, event_id, dialogId, gridId) {
+    function ShowPersonBlankFromGroup(group_reg_id, dialogId, gridId) {
         var person_id = gridUtils.getCurrRowId(gridId);
         if (person_id == -1) return false;
 
-        var data = { "group_reg_id": group_reg_id, "event_id": event_id, "person_id": person_id };
+        var data = { "group_reg_id": group_reg_id, "person_id": person_id };
         console.log("ShowPersonBlankFromGroup: ", data);
 
         $("#"+dialogId).empty();
@@ -118,6 +118,7 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
                     );
                 },
                 "Отмена": function() {
+                    $(this).empty();
                     $(this).dialog("close");
                 },
             }
@@ -173,7 +174,7 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
             tr.append($("<td/>", {id: "export-val-"+d[i]["param_id"]}));
         }
 
-        $("#" + "event-" + d[0]["event_id"]).tabs();
+        $("#" + dialogId + " #" + "event-" + d[0]["event_id"]).tabs();
 
         console.log("F_ids: ", F_ids);
 
@@ -250,6 +251,7 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
 
                 },
                 "Отмена": function() {
+                    $(this).empty();
                     $(this).dialog("close");
                 },
             }
