@@ -7,7 +7,7 @@ type Person struct {
     Name    string `name:"name" type:"text" null:"NOT NULL" extra:""`
     Token   string `name:"token" type:"text" null:"NOT NULL" extra:""`
     Email   string `name:"email" type:"text" null:"NOT NULL" extra:""`
-    Status  bool   `name:"status" type:"boolean" null:"NULL" extra:""`
+    Status  bool   `name:"status" type:"boolean" null:"NOT NULL" extra:""`
 }
 
 func (c *ModelManager) Persons() *PersonsModel {

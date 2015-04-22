@@ -4,7 +4,7 @@ type GroupRegistration struct {
     Id      int  `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     EventId int  `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
     GroupId int  `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
-    Status  bool `name:"status" type:"boolean" null:"NULL" extra:""`
+    Status  bool `name:"status" type:"boolean" null:"NOT NULL" extra:""`
 }
 
 func (c *ModelManager) GroupRegistrations() *GroupRegistrationModel {

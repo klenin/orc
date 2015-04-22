@@ -80,6 +80,7 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
         var user_id int
         user := GetModel("users")
         user.LoadModelData(map[string]interface{}{"login": login, "pass": pass, "salt": salt, "role": role, "token": token, "enabled": false})
+        user.GetFields().(*models.User).Enabled = false
         db.QueryInsert_(user, "RETURNING id").Scan(&user_id)
 
         var face_id int
@@ -110,6 +111,7 @@ func (this *Handler) ConfirmUser(token string) {
 
     user = GetModel("users")
     user.LoadModelData(map[string]interface{}{"token": " ", "enabled": true})
+    user.GetFields().(*models.User).Enabled = true
     user.LoadWherePart(map[string]interface{}{"id": id})
     db.QueryUpdate_(user).Scan()
 
