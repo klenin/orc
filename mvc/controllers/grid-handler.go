@@ -167,7 +167,8 @@ func (this *GridHandler) Edit(tableName string) {
             db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{group_id}).Scan(&groupName)
 
             if !mailer.InviteToGroup(to, address, token, headName, groupName) {
-                utils.HandleErr("Mailer: ", errors.New("Письмо с приглашением в группу не отправлено."), this.Response)
+                utils.HandleErr("Mailer: ", errors.New("Проверьте правильность введенного Вами email."), this.Response)
+                return
             }
         }
         model.LoadModelData(params)
@@ -522,7 +523,7 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
             INNER JOIN events ON events.id = registrations.event_id
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN users ON users.id = faces.user_id
-            WHERE params.id in (1, 4) AND users.id in (
+            WHERE params.id in (5, 4) AND users.id in (
                 SELECT users.id FROM registrations INNER JOIN events ON events.id = registrations.event_id
                 INNER JOIN faces ON faces.id = registrations.face_id
                 INNER JOIN users ON users.id = faces.user_id
@@ -532,12 +533,12 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
         data := db.Query(query, []interface{}{reg_id})
 
         if len(data) < 2 {
-            utils.SendJSReply(map[string]interface{}{"result": "Нет данных о логине или e-mail пользователя."}, this.Response)
+            utils.SendJSReply(map[string]interface{}{"result": "Нет регистрационных данных пользователя."}, this.Response)
             return
         }
 
-        to := data[0].(map[string]interface{})["value"].(string)
-        email := data[1].(map[string]interface{})["value"].(string)
+        to := data[1].(map[string]interface{})["value"].(string)
+        email := data[0].(map[string]interface{})["value"].(string)
         event := db.Query("SELECT name FROM events WHERE id=$1;", []interface{}{event_id})[0].(map[string]interface{})["name"].(string)
 
         if request["confirm"].(bool) {
