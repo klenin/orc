@@ -129,7 +129,7 @@ func (this *Handler) RegistrationsLoad() {
     sidx := this.Request.FormValue("sidx")
     start := limit*page - limit
 
-    query := `SELECT registrations.id, registrations.event_id FROM registrations
+    query := `SELECT registrations.id, registrations.event_id, registrations.status FROM registrations
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
