@@ -1,6 +1,8 @@
 define(["utils"], function(utils) {
 
     function showServerPromtInGrid(gridId, prompt) {
+        console.log("showServerPromtInGrid");
+
         var myInfo = '<div class="ui-state-highlight ui-corner-all">'
             + '<span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>'
             + '<strong>'+ prompt + '</strong><br/>' + '</div>';
@@ -24,6 +26,8 @@ define(["utils"], function(utils) {
     }
 
     function showServerPromtInDialog(dialogId, prompt) {
+        console.log("showServerPromtInDialog");
+
         var serverAns = $("<div/>", {
                 class: "ui-state-highlight ui-corner-all"
             })
@@ -41,6 +45,8 @@ define(["utils"], function(utils) {
     }
 
     function errTextFormat(data, gridId) {
+        console.log("errTextFormat: ", data);
+
         var prompt, errMsg, noErr;
 
         switch (data.status) {
@@ -66,6 +72,12 @@ define(["utils"], function(utils) {
             noErr = false;
             prompt = "";
             errMsg = "У Вас не хватает прав";
+            break;
+
+        case 405:
+            noErr = false;
+            prompt = "";
+            errMsg = data.responseText;
             break;
         }
 
@@ -102,6 +114,8 @@ define(["utils"], function(utils) {
     }
 
     function ConfirmOrRejectPersonRequest(gridId, confirm) {
+        console.log("ConfirmOrRejectPersonRequest");
+
         var id = getCurrRowId(gridId);
         if (id == -1) return false;
 

@@ -1,6 +1,8 @@
 define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUtils, datepicker) {
 
     function drawParam(data, for_saving) {
+        console.log("drawParam");
+
         var block;
 
         if (data["type"] === "region"
@@ -38,6 +40,8 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
     }
 
     function getFormData(name) {
+        console.log("getFormData");
+
         var values = [];
         var empty = false;
 
@@ -58,7 +62,7 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
     }
 
     function getListHistoryEvents(historyDiv, F_ids) {
-        console.log("F_ids: ", F_ids);
+        console.log("getListHistoryEvents: F_ids: ", F_ids);
 
         utils.postRequest(
             { "form_ids": F_ids, },
@@ -81,6 +85,8 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
     }
 
     function ShowPersonBlankFromGroup(group_reg_id, dialogId, gridId) {
+        console.log("ShowPersonBlankFromGroup");
+
         var person_id = gridUtils.getCurrRowId(gridId);
         if (person_id == -1) return false;
 
@@ -146,8 +152,7 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
         F_ids["form_id"] = [];
 
         for (i = 0; i < d.length; ++i) {
-            if ($("#" + dialogId +" div#form-" + d[i]["form_id"]).attr("id")==undefined) {
-                console.log("создать")
+            if ($("#" + dialogId +" div#form-" + d[i]["form_id"]).attr("id") == undefined) {
                 var li_form = $("<li/>", {});
                 var a_form = $("<a/>", {href: "#" + "form-" + d[i]["form_id"]}).text(d[i]["form_name"]);
 
@@ -182,6 +187,8 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
     }
 
     function ShowServerAns(event_id, data, responseId) {
+        console.log("ShowServerAns");
+
         if (data.result === "ok") {
             var msg = "Запрос успешно выполнен.";
             if (event_id != 1) {
@@ -217,6 +224,8 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
     }
 
     function ShowPersonBlank(dialogId, gridId) {
+        console.log("ShowPersonBlank");
+
         var id = gridUtils.getCurrRowId(gridId);
         if (id == -1) return false;
 

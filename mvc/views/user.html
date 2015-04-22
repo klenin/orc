@@ -184,6 +184,9 @@ function(utils, grid, regGroup, blank, req) {
                 {{end}}
             {{end}}
 
+            console.log("personRegRefData: ", RefData);
+            console.log("personRegColModel_: ", ColModel_);
+
             $("#" + subgrid_id + "_t").jqGrid({
                 url:        "/handler/"+{{.group.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype:   "json",

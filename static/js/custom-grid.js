@@ -2,6 +2,8 @@ define(["utils", "datepicker/datepicker", "blank"],
 function(utils, datepicker, blank) {
 
     function GetColModelItem(refData, refFields, field) {
+        console.log("GetColModelItem");
+
         function timePicker(e) {
             $(e).timepicker({"timeFormat": "HH:mm"});
         }
@@ -77,7 +79,7 @@ function(utils, datepicker, blank) {
     }
 
     function AddSubTable(subgrid_id, row_id, index, tableName, gridId) {
-        console.log("AddSubTable: ", {"subgrid_id": subgrid_id, "row_id": row_id, "index": index, "tableName": tableName, "gridId": gridId});
+        console.log("AddSubTable");
 
         var subTId = subgrid_id + "_t";
         var subPId = subgrid_id + "_p";

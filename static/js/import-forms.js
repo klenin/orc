@@ -17,6 +17,8 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
     }
 
     function ImportForms(dialogId, gridId) {
+        console.log("ImportForms");
+
         var id = gridUtils.getCurrRowId(gridId);
         if (id == -1) return false;
 

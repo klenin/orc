@@ -1,6 +1,8 @@
 define(["utils", "grid-utils"], function(utils, gridUtils) {
 
     function GetServerMsg(msg) {
+        console.log("GetServerMsg");
+
         if (msg === "ok") {
             return "Пароль изменен";
         } else if (msg === "badPassword") {
@@ -11,6 +13,8 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
     }
 
     function CheckPass(passId1, passId2) {
+        console.log("CheckPass");
+
         var pattern = /^.{6,36}$/;
 
         if (pattern.test($("#"+passId1).val())
@@ -27,6 +31,8 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
     }
 
     function ResetPassword(dialogId, gridId, passId1, passId2) {
+        console.log("ResetPassword");
+
         var id = gridUtils.getCurrRowId(gridId);
         if (id == -1) return false;
 
