@@ -102,6 +102,28 @@ Subject: {{ .Subject }}
 Вы участвуете в мероприятии "{{ .EventName }}".
 Пожалуйста, заполните анкету в личном кабинете `+Server
 
+func SendEmail(address, tmp string, context *SmtpTemplateData) bool {
+    t, err := template.New("email").Parse(tmp)
+    if utils.HandleErr("[SendEmail] Error trying to parse mail template: ", err, nil) {
+        return false
+    }
+
+    var doc bytes.Buffer
+    err = t.Execute(&doc, context)
+    if utils.HandleErr("[SendEmail] Error trying to execute mail template: ", err, nil) {
+        return false
+    }
+
+    err = smtp.SendMail(
+        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
+        auth,
+        admin.EmailAdmin,
+        []string{address},
+        doc.Bytes())
+
+    return !utils.HandleErr("[SendEmail] Error attempting to send a mail: ", err, nil)
+}
+
 func SendConfirmEmail(to, address, token string) bool {
 
     log.Println("SendConfirmEmail: address: ", address)
@@ -114,28 +136,13 @@ func SendConfirmEmail(to, address, token string) bool {
         ConfirmationUrl: Server+"/handler/confirmuser/"+token,
         RejectionUrl: Server+"/handler/rejectuser/"+token}
 
-    t, err := template.New("confirmationmail").Parse(comfirmRegistrationEmailTmp)
-    if utils.HandleErr("[SendConfirmEmail] Error trying to parse mail template: ", err, nil) {
-        return false
-    }
-
-    var doc bytes.Buffer
-    err = t.Execute(&doc, context)
-    if utils.HandleErr("[SendConfirmEmail] Error trying to execute mail template: ", err, nil) {
-        return false
-    }
-
-    err = smtp.SendMail(
-        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
-        auth,
-        admin.EmailAdmin,
-        []string{address},
-        doc.Bytes())
-
-    return !utils.HandleErr("[SendConfirmEmail] Error attempting to send a mail: ", err, nil)
+    return SendEmail(address, comfirmRegistrationEmailTmp, context)
 }
 
 func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bool) bool {
+
+    log.Println("SendEmailToConfirmRejectPersonRequest: address: ", address)
+    log.Println("SendEmailToConfirmRejectPersonRequest: to: ", to)
 
     var emailTemplate string
 
@@ -152,31 +159,13 @@ func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bo
         emailTemplate = confirmRequestTmp
     }
 
-    t, err := template.New("confirmationmail").Parse(emailTemplate)
-    if utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error trying to parse mail template: ", err, nil) {
-        return false
-    }
-
-    var doc bytes.Buffer
-    err = t.Execute(&doc, context)
-    if utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error trying to execute mail template: ", err, nil) {
-        return false
-    }
-
-    err = smtp.SendMail(
-        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
-        auth,
-        admin.EmailAdmin,
-        []string{address},
-        doc.Bytes())
-
-    return !utils.HandleErr("[SendEmailToConfirmRejectPersonRequest] Error attempting to send a mail: ", err, nil)
+    return SendEmail(address, emailTemplate, context)
 }
 
 func InviteToGroup(to, address, token, headName, groupName string) bool {
 
-    log.Println("SendConfirmEmail: address: ", address)
-    log.Println("SendConfirmEmail: to: ", to)
+    log.Println("InviteToGroup: address: ", address)
+    log.Println("InviteToGroup: to: ", to)
 
     context := &SmtpTemplateData{
         From: admin.Name,
@@ -187,31 +176,13 @@ func InviteToGroup(to, address, token, headName, groupName string) bool {
         HeadName: headName,
         GroupName: groupName}
 
-    t, err := template.New("mail").Parse(inviteToGroupEmailTmp)
-    if utils.HandleErr("[InviteToGroup] Error trying to parse mail template: ", err, nil) {
-        return false
-    }
-
-    var doc bytes.Buffer
-    err = t.Execute(&doc, context)
-    if utils.HandleErr("[InviteToGroup] Error trying to execute mail template: ", err, nil) {
-        return false
-    }
-
-    err = smtp.SendMail(
-        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
-        auth,
-        admin.EmailAdmin,
-        []string{address},
-        doc.Bytes())
-
-    return !utils.HandleErr("[InviteToGroup] Error attempting to send a mail: ", err, nil)
+    return SendEmail(address, inviteToGroupEmailTmp, context)
 }
 
 func AttendAnEvent(to, address, eventName, groupName string) bool {
 
-    log.Println("SendConfirmEmail: address: ", address)
-    log.Println("SendConfirmEmail: to: ", to)
+    log.Println("AttendAnEvent: address: ", address)
+    log.Println("AttendAnEvent: to: ", to)
 
     context := &SmtpTemplateData{
         From: admin.Name,
@@ -220,23 +191,5 @@ func AttendAnEvent(to, address, eventName, groupName string) bool {
         GroupName: groupName,
         EventName: eventName}
 
-    t, err := template.New("mail").Parse(attendAnEventEmailTmp)
-    if utils.HandleErr("[InviteToGroup] Error trying to parse mail template: ", err, nil) {
-        return false
-    }
-
-    var doc bytes.Buffer
-    err = t.Execute(&doc, context)
-    if utils.HandleErr("[InviteToGroup] Error trying to execute mail template: ", err, nil) {
-        return false
-    }
-
-    err = smtp.SendMail(
-        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
-        auth,
-        admin.EmailAdmin,
-        []string{address},
-        doc.Bytes())
-
-    return !utils.HandleErr("[InviteToGroup] Error attempting to send a mail: ", err, nil)
+    return SendEmail(address, attendAnEventEmailTmp, context)
 }

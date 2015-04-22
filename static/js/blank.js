@@ -208,6 +208,9 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
         } else if (data.result === "authorized") {
             $("#"+responseId).text("Пользователь уже авторизован.").css("color", "red");
 
+        } else if (data.result === "badEmail") {
+            $("#"+responseId).text("Проверьте правильность введенного Вами email.").css("color", "red");
+
         } else {
             $("#"+responseId).text(data.result).css("color", "red");
         }

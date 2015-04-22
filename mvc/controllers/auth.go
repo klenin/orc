@@ -87,7 +87,9 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
         registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": 1})
         db.QueryInsert_(registration, "RETURNING id").Scan(&reg_id)
 
-        mailer.SendConfirmEmail(login, email, token)
+        if !mailer.SendConfirmEmail(login, email, token) {
+            return "badEmail", -1
+        }
 
         return result, reg_id
     }

@@ -73,13 +73,15 @@ function(utils, kladr, blank) {
         }
 
         var js = { "event_id": parseInt(event_id), "data": data};
-        console.log(js);
+        console.log("save-btn: ", js);
 
         utils.postRequest(
             js,
             function(data) {
-                $("#now form").hide();
-                $("div #history").hide();
+                if (data["result"] == "ok") {
+                    $("#now form").hide();
+                    $("div #history").hide();
+                }
                 blank.ShowServerAns(event_id, data, "now #server-answer");
             },
             "/handler/saveuserrequest/"+{{.}}.token

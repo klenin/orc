@@ -71,7 +71,6 @@ func (this *Handler) GetListHistoryEvents() {
     } else {
         for _, v := range data["form_ids"].(map[string]interface{})["form_id"].([]interface{}) {
             ids["form_id"] = append(ids["form_id"].([]interface{}), int(v.(float64)))
-            log.Println("FORM_ID: ", strconv.Itoa(int(v.(float64))))
         }
 
         eventsForms := GetModel("events_forms")
@@ -161,7 +160,7 @@ func (this *Handler) SaveUserRequest(token string) {
         param_val_ids, userLogin, userPass, email = InsertUserParams(data["data"].([]interface{}))
 
         result, reg_id = this.HandleRegister_(userLogin, userPass, email, "user")
-        if result != "ok" {
+        if result != "ok" && reg_id == -1 {
             utils.SendJSReply(map[string]interface{}{"result": result}, this.Response)
             return
         }
