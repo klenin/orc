@@ -1,4 +1,4 @@
-define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUtils, datepicker) {
+define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function(utils, gridUtils, datepicker, kladr) {
 
     function drawParam(data, for_saving) {
         console.log("drawParam");
@@ -205,6 +205,8 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
                 "/handler/gethistoryrequest"
             );
         });
+
+        kladr.kladr();
 
         return F_ids;
     }
