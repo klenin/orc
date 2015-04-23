@@ -8,21 +8,9 @@
         src="/js/kladr/jquery.kladr.min.js"></script>
 
 <div id="container">
-    <div id="history" hidden="true">
-        <h5>Ранее заполненные анкеты</h5>
-        <form>
-            <select></select>
-            <input type="button" value="выбрать" id="send-btn" name="submit"/>
-        </form>
-    </div>
-
     <div id="now">
         <div id="server-answer"></div>
-        <form id="form-event">
-            <h1></h1>
-            <div></div>
-            <input type="button" value="отправить запрос" id="save-btn" name="submit"/>
-        </form>
+        <form id="form-event"></form>
     </div>
 </div>
 
@@ -31,9 +19,14 @@ require(["utils", "kladr/kladr", "blank"],
 function(utils, kladr, blank) {
     var valid = false;
 
-    var F_ids = blank.ShowBlank({{.}}.data, "form-event");
-    blank.getListHistoryEvents("history", F_ids);
+    blank.getListHistoryEvents("history", blank.ShowBlank({{.}}.data, "form-event"));
     kladr.kladr();
+    $("#now").append($("<input/>", {
+        type: "button",
+        value: "отправить запрос",
+        id: "save-btn",
+        name: "submit"
+    }));
 
     $("input#2").blur(function() {
         var pattern = /^.{6,36}$/;
@@ -85,52 +78,6 @@ function(utils, kladr, blank) {
                 blank.ShowServerAns(event_id, data, "now #server-answer");
             },
             "/handler/saveuserrequest/"+{{.}}.token
-        );
-    });
-
-    $("#send-btn").click(function() {
-        utils.postRequest(
-            {
-                "event_id": $("#history select").find(":selected").attr("value")
-            },
-            function(response) {
-                if (response["result"] === "notAuthorized") {
-                    $("#server-answer").text("Пользователь не авторизован.").css("color", "red");
-                    return;
-                }
-
-                var data = response["data"];
-
-                for (var i = 0; i < data.length; ++i) {
-
-                    var f_id = data[i]["form_id"];
-                    var p_id = data[i]["param_id"];
-                    var p_v = data[i]["value"];
-
-                    $("#params-"+f_id +" table #export-param-"+p_id+" input").remove();
-                    $("#params-"+f_id +" table #export-val-"+p_id+" p").remove();
-                    if (data[i]["value"] != "") {
-                        $("#params-"+f_id +" table #export-val-"+p_id).append(blank.drawParam(data[i], 0, false));
-
-                        $("<input/>", {
-                            "id": "export-btn-"+f_id+"-"+p_id,
-                            "type": "button",
-                            "value": "экспорт",
-                            "data-event-type-id": f_id,
-                            "data-param-id": p_id,
-                            "data-param-val": p_v,
-                        }).appendTo("#params-"+f_id+" table #export-param-"+p_id);
-
-                        $("#export-btn-"+f_id+"-"+p_id).click(function() {
-                            var f_id = $(this).attr("data-event-type-id");
-                            var p_id = $(this).attr("data-param-id");
-                            var p_v = $(this).attr("data-param-val");
-                            $("#params-"+f_id+" table #"+p_id).val(p_v);
-                        });
-                    }
-                }
-            },
-            "/handler/gethistoryrequest"
         );
     });
 });

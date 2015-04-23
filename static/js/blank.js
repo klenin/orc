@@ -94,12 +94,12 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
         console.log("ShowPersonBlankFromGroup: ", data);
 
         $("#"+dialogId).empty();
-        $("#"+dialogId).append($("<h1/>")).append($("<div/>"));
 
         utils.postRequest(
             data,
             function(data) {
                 ShowBlank(data["data"], dialogId);
+                $("#"+dialogId+" #history").hide();
             },
             "/gridhandler/getrequest"
         );
@@ -138,6 +138,13 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
             alert("Нет данных.");
             return;
         }
+
+        var history = $("<p/>", {id: "history"})
+            .append($("<h5/>", {text: "Ранее заполненные анкеты"}))
+            .append($("<select/>", {}))
+            .append($("<input/>", {type: "button", value: "выбрать", id: "send-btn", name: "submit"}));
+
+        $("#"+dialogId).append(history).append($("<h1/>")).append($("<div/>"));
 
         var F_ids = {};
 
@@ -182,6 +189,22 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
         $("#" + dialogId + " #" + "event-" + d[0]["event_id"]).tabs();
 
         console.log("F_ids: ", F_ids);
+
+        $("#"+dialogId+" #history #send-btn").click(function() {
+            utils.postRequest(
+                {
+                    "event_id": $("#"+dialogId+" #history select").find(":selected").attr("value")
+                },
+                function(response) {
+                    if (response["result"] !== "ok") {
+                        ShowServerAns(-1, response, "now #server-answer");
+                        return;
+                    }
+                    ExportDataLoad(response["data"], dialogId);
+                },
+                "/handler/gethistoryrequest"
+            );
+        });
 
         return F_ids;
     }
@@ -233,12 +256,12 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
 
         $("#"+dialogId).empty();
 
-        $("#"+dialogId).empty();
-        $("#"+dialogId).append($("<h1/>")).append($("<div/>"));
-
         utils.postRequest(
             { "reg_id": id },
-            function(data) { ShowBlank(data["data"], dialogId); },
+            function(data) {
+                var f_ids = ShowBlank(data["data"], dialogId);
+                getListHistoryEvents(dialogId+" #history", f_ids);
+            },
             "/gridhandler/getpersonrequest"
         );
 
@@ -270,11 +293,44 @@ define(["utils", "grid-utils", "datepicker/datepicker"], function(utils, gridUti
         });
     }
 
+    function ExportDataLoad(data, dialogId) {
+        console.log("ExportDataLoad: ", data);
+
+        for (var i = 0; i < data.length; ++i) {
+            var f_id = data[i]["form_id"];
+            var p_id = data[i]["param_id"];
+            var p_v = data[i]["value"];
+
+            $("#"+dialogId+" #params-"+f_id +" table #export-param-"+p_id+" input").remove();
+            $("#"+dialogId+" #params-"+f_id +" table #export-val-"+p_id+" p").remove();
+            if (data[i]["value"] != "") {
+                $("#"+dialogId+" #params-"+f_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
+
+                $("<input/>", {
+                    "id": "export-btn-"+f_id+"-"+p_id,
+                    "type": "button",
+                    "value": "экспорт",
+                    "data-event-type-id": f_id,
+                    "data-param-id": p_id,
+                    "data-param-val": p_v,
+                }).appendTo("#"+dialogId+" #params-"+f_id+" table #export-param-"+p_id);
+
+                $("#export-btn-"+f_id+"-"+p_id).click(function() {
+                    var f_id = $(this).attr("data-event-type-id");
+                    var p_id = $(this).attr("data-param-id");
+                    var p_v = $(this).attr("data-param-val");
+                    $("#"+dialogId+" #params-"+f_id+" table #"+p_id).val(p_v);
+                });
+            }
+        }
+    }
+
     return {
         drawParam: drawParam,
         getFormData: getFormData,
         getListHistoryEvents: getListHistoryEvents,
         ShowBlank: ShowBlank,
+        ExportDataLoad: ExportDataLoad,
 
         ShowPersonBlankFromGroup: ShowPersonBlankFromGroup,
         ShowServerAns: ShowServerAns,

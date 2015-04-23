@@ -26,7 +26,10 @@ func (this *Handler) GetHistoryRequest() {
         return
     }
 
-    event_id := data["event_id"]
+    event_id, err := strconv.Atoi(data["event_id"].(string))
+    if utils.HandleErr("[Handler::GetHistoryRequest] event_id Atoi: ", err, this.Response) {
+        return
+    }
 
     query := `SELECT param_id, params.name, param_types.name as type, param_values.value, forms.id as form_id FROM events
             INNER JOIN events_forms ON events_forms.event_id = events.id
@@ -188,7 +191,7 @@ func (this *Handler) GetRequest(tableName, id, token string) {
     }
 
         event_id, err := strconv.Atoi(id)
-        if utils.HandleErr("[GridHandler::GetParamsByEventId] event_id Atoi: ", err, this.Response) {
+        if utils.HandleErr("[Handler::GetRequestGetRequest] event_id Atoi: ", err, this.Response) {
             return
         }
 
