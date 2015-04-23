@@ -11,6 +11,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
             || data["type"] === "street"
             || data["type"] === "building"
             || data["type"] === "text"
+            || data["type"] === "email"
             || data["type"] === "password"
             || data["type"] === "phon") {
             block = $("<input/>", {type: data["type"]});
