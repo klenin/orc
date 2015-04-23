@@ -7,6 +7,9 @@ import (
     "math"
     "net/http"
     "strconv"
+    "encoding/json"
+    "log"
+    "strings"
 )
 
 func (this *GridHandler) Load(tableName string) {
@@ -20,6 +23,57 @@ func (this *GridHandler) Load(tableName string) {
         return
     }
 
+    qWhere := ""
+
+    if this.Request.PostFormValue("_search") == "true" {
+        qWhere = " WHERE "
+        var filters map[string]interface{}
+        err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
+        if utils.HandleErr("[GridHandler::Load]: ", err, this.Response) {
+            return
+        }
+
+        groupOp := filters["groupOp"].(string)
+        rules := filters["rules"].([]interface{})
+
+        if len(rules) > 10 {
+            log.Println("More 10 rules for serching!")
+        }
+
+        firstElem := true
+
+        for _, v := range rules {
+            if !firstElem {
+                if groupOp != "AND" && groupOp != "OR" {
+                    log.Println("`groupOp` parameter is not allowed!")
+                    continue
+                }
+                qWhere += " " + groupOp + " "
+            } else {
+                firstElem = false
+            }
+
+            rule := v.(map[string]interface{})
+
+            switch rule["op"].(string) {
+            case "eq":
+                qWhere += rule["field"].(string) + " = " + rule["data"].(string)
+                break
+            case "ne":
+                qWhere += rule["field"].(string) + " <> " + rule["data"].(string)
+                break
+            case "bw":
+                qWhere += rule["field"].(string) + " LIKE " + rule["data"].(string) + "%"
+                break
+            case "cn":
+                qWhere += rule["field"].(string) + " LIKE %" + rule["data"].(string) + "%"
+                break
+            default:
+                panic("`op` parameter is not allowed!")
+            }
+        }
+    }
+
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
     if utils.HandleErr("[GridHandler::Load] limit Atoi: ", err, this.Response) {
         return
@@ -30,15 +84,16 @@ func (this *GridHandler) Load(tableName string) {
         return
     }
 
+    sord := this.Request.PostFormValue("sord")
     sidx := this.Request.FormValue("sidx")
     start := limit*page - limit
 
     model := GetModel(tableName)
-    model.SetOrder(sidx)
-    model.SetLimit(limit)
-    model.SetOffset(start)
 
-    rows := db.Select(model, model.GetColumns())
+    query := `SELECT ` + strings.Join(model.GetColumns(), ", ") + ` FROM ` + model.GetTableName()
+    query += qWhere + " ORDER BY $1 " + sord + " LIMIT $2 OFFSET $3;"
+    rows := db.Query(query, []interface{}{sidx, limit, start})
+
     count := db.SelectCount(tableName)
 
     var totalPages int

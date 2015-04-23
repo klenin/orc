@@ -104,8 +104,7 @@ func (this *Handler) ConfirmUser(token string) {
 
     var id string
     err := db.SelectRow(user, []string{"id"}).Scan(&id)
-    if err != nil {
-        utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response)
+    if utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response) {
         return
     }
 

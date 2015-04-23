@@ -105,15 +105,15 @@ function(grid, utils, resetPass, importForms, list, blank, regGroup) {
 
         $("#grid-table").navGrid(
             "#grid-table-pager",
-            {   //buttons
+            {   // buttons
                 edit:    true,
                 add:     {{.TableName}} == "users" ? false : true,
                 del:     true,
                 refresh: false,
                 view:    false,
-                search:  false
+                search:  true
             },
-            {   //edit
+            {   // edit
                 width:           "100%",
                 recreateForm:    true,
                 afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
@@ -137,15 +137,18 @@ function(grid, utils, resetPass, importForms, list, blank, regGroup) {
                     }
                 }
             },
-            {   //add
+            {   // add
                 width:           "100%",
                 recreateForm:    true,
                 addedrow:        "last",
                 afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
                 errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
             },
-            {   //del
+            {   // del
                 closeAfterAdd:  true,
+            },
+            {   // search
+                closeOnEscape: true, multipleSearch: true, closeAfterSearch: true
             }
         );
 

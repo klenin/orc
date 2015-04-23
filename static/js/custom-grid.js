@@ -17,6 +17,7 @@ function(utils, datepicker, blank) {
         data["index"] = field;
         data["editable"] = true;
         data["editrules"] = {required: true};
+        data["searchoptions"] = {};
 
         // if ((field.indexOf("id") > -1)) {
         if (field == "id") {
@@ -75,6 +76,8 @@ function(utils, datepicker, blank) {
             data["editoptions"] = {value: str.slice(0, -1)};
             data["searchoptions"] = {value: ":Все;"+str.slice(0, -1)};
         }
+        data["searchoptions"]["sort"] = ["eq","ne","bw","cn"];
+
         return data;
     }
 
