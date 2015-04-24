@@ -25,7 +25,7 @@ define(["utils"], function(utils) {
         );
     }
 
-    function showServerPromtInDialog(dialogId, prompt) {
+    function showServerPromtInDialog(obj, prompt) {
         console.log("showServerPromtInDialog");
 
         var serverAns = $("<div/>", {
@@ -35,10 +35,10 @@ define(["utils"], function(utils) {
             .append($("<strong/>", {text: prompt}))
             .append($("<br/>"));
 
-        $("#"+dialogId).append(serverAns);
+       obj.append(serverAns);
         setTimeout(
             function() {
-                serverAns.fadeOut( "slow", function() {} );
+                serverAns.fadeOut( "slow", function() { serverAns.remove(); } );
             },
             3000
         );

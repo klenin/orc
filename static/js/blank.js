@@ -120,7 +120,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
 
                     utils.postRequest(
                         { "data": values },
-                        function(data) { gridUtils.showServerPromtInDialog(dialogId, data["result"]); },
+                        function(data) { gridUtils.showServerPromtInDialog($(this), data["result"]); },
                         "/gridhandler/editparams"
                     );
                 },
@@ -283,7 +283,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
 
                     utils.postRequest(
                         { "data": values },
-                        function(data) { gridUtils.showServerPromtInDialog(dialogId, data["result"]); },
+                        function(data) { gridUtils.showServerPromtInDialog($(this), data["result"]); },
                         "/gridhandler/editparams"
                     );
 

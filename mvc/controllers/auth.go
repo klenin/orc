@@ -115,7 +115,7 @@ func (this *Handler) ConfirmUser(token string) {
     db.QueryUpdate_(user).Scan()
 
     if this.Response != nil {
-        this.Render([]string{"mvc/views/msg.html"}, "msg", "Регестрация подтверждена.")
+        this.Render([]string{"mvc/views/msg.html"}, "msg", "Регистрация подтверждена.")
     }
 }
 

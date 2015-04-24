@@ -15,8 +15,8 @@
 </div>
 
 <script type="text/javascript">
-require(["utils", "kladr/kladr", "blank"],
-function(utils, kladr, blank) {
+require(["utils", "kladr/kladr", "blank", "grid-utils"],
+function(utils, kladr, blank, gridUtils) {
     var valid = false;
 
     blank.getListHistoryEvents("history", blank.ShowBlank({{.}}.data, "form-event"));
@@ -28,25 +28,52 @@ function(utils, kladr, blank) {
         name: "submit"
     }));
 
-    $("input#2").blur(function() {
-        var pattern = /^.{6,36}$/;
-        if (pattern.test($(this).val())) {
-            $(this).css({"border": "2px solid green"});
-        } else {
+    $("input#1").blur(function() {
+        var pattern = /^[a-zA-Z0-9]{2,36}$/;
+        if (!pattern.test($(this).val())) {
             valid = false;
             $(this).css({"border": "2px solid red"});
+            gridUtils.showServerPromtInDialog( $(this).parent(), "Логин может содержать латинские буквы и/или "
+                + "цифры и иметь длину от 2 до 36 символов.");
+
+        } else {
+            valid = true;
+            $(this).css({"border": "2px solid green"});
+        }
+    });
+
+    $("input#2").blur(function() {
+        var pattern = /^.{6,36}$/;
+        if (!pattern.test($(this).val())) {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+            gridUtils.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
+
+        } else {
+            valid = true;
+            $(this).css({"border": "2px solid green"});
         }
     });
 
     $("input#3").blur(function() {
         var pattern = /^.{6,36}$/;
-        if (pattern.test($(this).val()) && $(this).val() === $("input#2").val()) {
-            valid = true;
-            $(this).css({"border": "2px solid green"});
-        } else {
+
+        if (!pattern.test($(this).val())) {
             valid = false;
             $(this).css({"border": "2px solid red"});
+            gridUtils.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
+            return;
         }
+
+        if ($(this).val() !== $("input#2").val()) {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+            gridUtils.showServerPromtInDialog( $(this).parent(), "Пароли не совпадают.");
+            return;
+        }
+
+        valid = true;
+        $(this).css({"border": "2px solid green"});
     });
 
     $("#save-btn").click(function() {
@@ -54,8 +81,7 @@ function(utils, kladr, blank) {
         var event_id = {{.}}.data[0]["event_id"];
 
         if (!valid && event_id == 1) {
-            $("#now #server-answer").text("Логин может содержать латинские буквы и/или "
-                + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
+            $("#now #server-answer").text("Проверьте данные о логине и пароле.").css("color", "red");
             return;
         }
 
@@ -73,6 +99,7 @@ function(utils, kladr, blank) {
             function(data) {
                 if (data["result"] == "ok") {
                     $("#now form").hide();
+                    $("#now #save-btn").hide();
                     $("div #history").hide();
                 }
                 blank.ShowServerAns(event_id, data, "now #server-answer");
