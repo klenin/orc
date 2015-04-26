@@ -76,7 +76,6 @@ function(utils, datepicker, blank) {
             data["editoptions"] = {value: str.slice(0, -1)};
             data["searchoptions"] = {value: ":Все;"+str.slice(0, -1)};
         }
-        data["searchoptions"]["sort"] = ["eq","ne","bw","cn"];
 
         return data;
     }

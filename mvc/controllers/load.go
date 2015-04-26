@@ -24,9 +24,10 @@ func (this *GridHandler) Load(tableName string) {
     }
 
     qWhere := ""
+    i := 1
+    var params []interface{}
 
     if this.Request.PostFormValue("_search") == "true" {
-        qWhere = " WHERE "
         var filters map[string]interface{}
         err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
         if utils.HandleErr("[GridHandler::Load]: ", err, this.Response) {
@@ -41,6 +42,7 @@ func (this *GridHandler) Load(tableName string) {
         }
 
         firstElem := true
+        qWhere = " WHERE "
 
         for _, v := range rules {
             if !firstElem {
@@ -56,21 +58,78 @@ func (this *GridHandler) Load(tableName string) {
             rule := v.(map[string]interface{})
 
             switch rule["op"].(string) {
-            case "eq":
-                qWhere += rule["field"].(string) + " = " + rule["data"].(string)
+            case "eq":// equal
+                qWhere += rule["field"].(string) + "::text = $"+strconv.Itoa(i)
+                params = append(params, rule["data"])
+                i += 1
                 break
-            case "ne":
-                qWhere += rule["field"].(string) + " <> " + rule["data"].(string)
+            case "ne":// not equal
+                qWhere += rule["field"].(string) + "::text <> $"+strconv.Itoa(i)
+                params = append(params, rule["data"])
+                i += 1
                 break
-            case "bw":
-                qWhere += rule["field"].(string) + " LIKE " + rule["data"].(string) + "%"
+            case "bw":// begins with
+                qWhere += rule["field"].(string) + "::text LIKE $"+strconv.Itoa(i)+"||'%'"
+                params = append(params, rule["data"])
+                i += 1
                 break
-            case "cn":
-                qWhere += rule["field"].(string) + " LIKE %" + rule["data"].(string) + "%"
+            case "bn":// does not begin with
+                qWhere += rule["field"].(string) + "::text NOT LIKE $"+strconv.Itoa(i)+"||'%'"
+                params = append(params, rule["data"])
+                i += 1
+                break
+            case "ew":// ends with
+                qWhere += rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)
+                params = append(params, rule["data"])
+                i += 1
+                break
+            case "en":// does not end with
+                qWhere += rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)
+                params = append(params, rule["data"])
+                i += 1
+                break
+            case "cn":// contains
+                qWhere += rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
+                params = append(params, rule["data"])
+                i += 1
+                break
+            case "nc":// does not contain
+                qWhere += rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
+                params = append(params, rule["data"])
+                i += 1
+                break
+            case "nu":// is null
+                qWhere += rule["field"].(string) + "::text IS NULL"
+                break
+            case "nn":// is not null
+                qWhere += rule["field"].(string) + "::text IS NOT NULL"
+                break
+            case "in":// is in
+                qWhere += rule["field"].(string) + "::text IN ("
+                result := strings.Split(rule["data"].(string), ",")
+                for k := range result {
+                    qWhere += "$"+strconv.Itoa(i)+", "
+                    params = append(params, result[k])
+                    i += 1
+                }
+                qWhere = qWhere[:len(qWhere)-2]
+                qWhere += ")"
+                break
+            case "ni":// is not in
+                qWhere += rule["field"].(string) + "::text NOT IN ("
+                result := strings.Split(rule["data"].(string), ",")
+                for k := range result {
+                    qWhere += "$"+strconv.Itoa(i)+", "
+                    params = append(params, result[k])
+                    i += 1
+                }
+                qWhere = qWhere[:len(qWhere)-2]
+                qWhere += ")"
                 break
             default:
                 panic("`op` parameter is not allowed!")
             }
+
         }
     }
 
@@ -90,9 +149,9 @@ func (this *GridHandler) Load(tableName string) {
 
     model := GetModel(tableName)
 
-    query := `SELECT ` + strings.Join(model.GetColumns(), ", ") + ` FROM ` + model.GetTableName()
-    query += qWhere + " ORDER BY $1 " + sord + " LIMIT $2 OFFSET $3;"
-    rows := db.Query(query, []interface{}{sidx, limit, start})
+    query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()
+    query += qWhere+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(i)+` OFFSET $`+strconv.Itoa(i+1)+`;`
+    rows := db.Query(query, append(params, []interface{}{limit, start}...))
 
     count := db.SelectCount(tableName)
 

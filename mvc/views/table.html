@@ -76,7 +76,6 @@ function(grid, utils, resetPass, importForms, list, blank, regGroup) {
             colModel:      colModel_,
             pager:         "#grid-table-pager",
             gridview:      true,
-            sortname:      "id",
             viewrecords:   true,
             height:        "100%",
             width:         "auto",
@@ -154,7 +153,10 @@ function(grid, utils, resetPass, importForms, list, blank, regGroup) {
                 closeAfterAdd:  true,
             },
             {   // search
-                closeOnEscape: true, multipleSearch: true, closeAfterSearch: true
+                // multipleGroup: true,
+                closeOnEscape: true,
+                multipleSearch: true,
+                closeAfterSearch: true
             }
         );
 
