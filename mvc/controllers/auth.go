@@ -102,9 +102,9 @@ func (this *Handler) ConfirmUser(token string) {
     user := GetModel("users")
     user.LoadWherePart(map[string]interface{}{"token": token})
 
-    var id string
+    var id int
     err := db.SelectRow(user, []string{"id"}).Scan(&id)
-    if utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response) {
+    if utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response) && id != 0 {
         return
     }
 
