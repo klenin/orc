@@ -29,6 +29,7 @@
     <div style="display:none;" id="dialog-reg-group" title="Регистрация группы"></div>
 
     <div style="display:none;" id="dialog-persons-request" title="Анкета участника"></div>
+
     <div style="display:none;" id="dialog-group-person-request" title="Анкета участника"></div>
 
     <div id="error"></div>
@@ -157,6 +158,30 @@ function(grid, utils, resetPass, importForms, list, blank, regGroup) {
                 closeOnEscape: true,
                 multipleSearch: true,
                 closeAfterSearch: true
+            }
+        );
+
+        $("#grid-table").jqGrid (
+            "navButtonAdd",
+            "#grid-table-pager",
+            {
+                caption: "", buttonicon: "ui-icon-calculator", title: "Выбрать столбцы",
+                onClickButton: function() {
+                    $("#grid-table").jqGrid(
+                        "columnChooser",
+                        {
+                            done: function(perm) {
+                                if (perm) {
+                                    $("#grid-table").jqGrid("remapColumns", perm, true);
+                                    $(window).bind("resize", function() {
+                                        $("#grid-table").setGridWidth($(window).width()-50, true);
+                                    }).trigger("resize");
+
+                                }
+                            }
+                        }
+                    );
+                }
             }
         );
 
