@@ -295,30 +295,3 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
     rows.Close()
     return answer
 }
-
-func InnerJoin(
-    selectFields []string,
-
-    fromTable string,
-    fromTableRef string,
-    fromField []string,
-
-    joinTables []string,
-    joinRef []string,
-    joinField []string,
-
-    where string) string {
-
-    query := "SELECT "
-    for i := 0; i < len(selectFields); i++ {
-        query += selectFields[i] + ", "
-    }
-    query = query[0 : len(query)-2]
-    query += " FROM " + fromTable + " " + fromTableRef
-    for i := 0; i < len(joinTables); i++ {
-        query += " INNER JOIN " + joinTables[i] + " " + joinRef[i]
-        query += " ON " + joinRef[i] + "." + joinField[i] + " = " + fromTableRef + "." + fromField[i]
-    }
-    query += " " + where
-    return query
-}
