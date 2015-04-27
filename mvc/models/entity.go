@@ -2,6 +2,7 @@ package models
 
 import (
     "github.com/orc/utils"
+    "github.com/orc/db"
     "reflect"
     "strconv"
     "strings"
@@ -196,6 +197,25 @@ func (this *Entity) SetOffset(offset int) {
     reflect.ValueOf(this).Elem().FieldByName("Offset").SetInt(int64(offset))
 }
 
+func (this *Entity) GetModelRefDate() (fields []string, result map[string]interface{}) {
+    result = make(map[string]interface{})
+    rt := reflect.ValueOf(this.Fields).Type()
+
+    for i := 0; i < rt.Elem().NumField(); i++ {
+        refFieldShow := rt.Elem().Field(i).Tag.Get("refFieldShow")
+        if refFieldShow != "" {
+            fields = append(fields, refFieldShow)
+            refField := rt.Elem().Field(i).Tag.Get("refField")
+            m := new(ModelManager).GetModel(rt.Elem().Field(i).Tag.Get("refTable"))
+            data := db.Select(m, []string{refField, refFieldShow})
+            result[rt.Elem().Field(i).Tag.Get("name")] = make([]interface{}, len(data))
+            result[rt.Elem().Field(i).Tag.Get("name")] = data
+        }
+    }
+
+    return fields, result
+}
+
 type VirtEntity interface {
     LoadModelData(data map[string]interface{})
     LoadWherePart(data map[string]interface{})
@@ -221,4 +241,42 @@ type VirtEntity interface {
     GetColNames() []string
     GetColumnByIdx(index int) string
     GetColumnSlice(index int) []string
+
+    GetModelRefDate() (fields []string, result map[string]interface{})
+}
+
+func (this *ModelManager) GetModel(tableName string) VirtEntity {
+    switch tableName {
+    case "events":
+        return this.Events()
+    case "event_types":
+        return this.EventTypes()
+    case "events_types":
+        return this.EventsTypes()
+    case "persons":
+        return this.Persons()
+    case "users":
+        return this.Users()
+    case "forms":
+        return this.Forms()
+    case "params":
+        return this.Params()
+    case "events_forms":
+        return this.EventsForms()
+    case "param_values":
+        return this.ParamValues()
+    case "param_types":
+        return this.ParamTypes()
+    case "registrations":
+        return this.Registrations()
+    case "faces":
+        return this.Faces()
+    case "reg_param_vals":
+        return this.RegParamVals()
+    case "groups":
+        return this.Groups()
+    case "group_registrations":
+        return this.GroupRegistrations()
+    }
+    return nil
 }

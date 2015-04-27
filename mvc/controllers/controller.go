@@ -5,11 +5,13 @@ import (
     "github.com/orc/mvc/models"
     "github.com/orc/sessions"
     "net/http"
-    "reflect"
     "html/template"
+    "fmt"
 )
 
 const HASH_SIZE = 32
+
+var err error
 
 type BaseController struct{}
 
@@ -43,58 +45,19 @@ type RequestModel struct {
 }
 
 func GetModel(tableName string) models.VirtEntity {
-    base := new(models.ModelManager)
-    switch tableName {
-    case "events":
-        return base.Events()
-    case "event_types":
-        return base.EventTypes()
-    case "events_types":
-        return base.EventsTypes()
-    case "persons":
-        return base.Persons()
-    case "users":
-        return base.Users()
-    case "forms":
-        return base.Forms()
-    case "params":
-        return base.Params()
-    case "events_forms":
-        return base.EventsForms()
-    case "param_values":
-        return base.ParamValues()
-    case "param_types":
-        return base.ParamTypes()
-    case "registrations":
-        return base.Registrations()
-    case "faces":
-        return base.Faces()
-    case "reg_param_vals":
-        return base.RegParamVals()
-    case "groups":
-        return base.Groups()
-    case "group_registrations":
-        return base.GroupRegistrations()
-    }
-    return nil
+    return new(models.ModelManager).GetModel(tableName)
 }
 
-func GetModelRefDate(model models.VirtEntity) (fields []string, result map[string]interface{}) {
-    result = make(map[string]interface{})
-    rt := reflect.TypeOf(model.GetFields())
-
-    for i := 0; i < rt.Elem().NumField(); i++ {
-        refFieldShow := rt.Elem().Field(i).Tag.Get("refFieldShow")
-        if refFieldShow != "" {
-            fields = append(fields, refFieldShow)
-            refField := rt.Elem().Field(i).Tag.Get("refField")
-            data := db.Select(GetModel(rt.Elem().Field(i).Tag.Get("refTable")), []string{refField, refFieldShow})
-            result[rt.Elem().Field(i).Tag.Get("name")] = make([]interface{}, len(data))
-            result[rt.Elem().Field(i).Tag.Get("name")] = data
-        }
+func Init(runTest bool) {
+    if !runTest {
+        return
     }
 
-    return fields, result
+    for i, v := range db.Tables {
+        db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", v), nil)
+        db.Exec(fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v), nil)
+        db.QueryCreateTable_(GetModel(db.Tables[i]))
+    }
 }
 
 func (this *Controller) Render(filenames []string, tmpname string, data interface{}) {
@@ -107,10 +70,6 @@ func (this *Controller) Render(filenames []string, tmpname string, data interfac
     if err := tmpl.ExecuteTemplate(this.Response, tmpname, data); err != nil {
         http.Error(this.Response, err.Error(), http.StatusInternalServerError)
     }
-}
-
-type VirtController interface {
-    Render(filename string, data interface{})
 }
 
 func (this *Controller) isAdmin() bool {
@@ -130,4 +89,9 @@ func (this *Controller) isAdmin() bool {
     }
 
     return role == "admin"
+}
+
+type VirtController interface {
+    Render(filename string, data interface{})
+    isAdmin() bool
 }

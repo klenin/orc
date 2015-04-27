@@ -93,7 +93,7 @@ func (this *Handler) ShowCabinet(tableName string) {
         this.Render([]string{"mvc/views/"+role+".html"}, role, model)
     } else {
         groups := GetModel("groups")
-        groupsRefFields, groupsRefData := GetModelRefDate(groups)
+        groupsRefFields, groupsRefData := groups.GetModelRefDate()
         persons := GetModel("persons")
 
         query := `SELECT groups.id, groups.name FROM groups
@@ -120,7 +120,7 @@ func (this *Handler) ShowCabinet(tableName string) {
             SubColNames:  persons.GetColNames()[:len(persons.GetColNames())-1]}
 
         regs := GetModel("registrations")
-        regsRefFields, regsRefData := GetModelRefDate(regs)
+        regsRefFields, regsRefData := regs.GetModelRefDate()
 
         regsModel := Model{
             RefData:   regsRefData,
@@ -132,7 +132,7 @@ func (this *Handler) ShowCabinet(tableName string) {
             Sub:       regs.GetSub()}
 
         groupRegs := GetModel("group_registrations")
-        groupRegsRefFields, groupRegsRefData := GetModelRefDate(groupRegs)
+        groupRegsRefFields, groupRegsRefData := groupRegs.GetModelRefDate()
 
         groupRegsModel := Model{
             RefData:   groupRegsRefData,

@@ -39,7 +39,7 @@ func (this *GridHandler) GetSubTable() {
     index, _ := strconv.Atoi(request["index"].(string))
     subModel := GetModel(model.GetSubTable(index))
     subModel.LoadWherePart(map[string]interface{}{model.GetSubField(): request["id"]})
-    refFields, refData := GetModelRefDate(subModel)
+    refFields, refData := subModel.GetModelRefDate()
 
     response, err := json.Marshal(map[string]interface{}{
         "name":      subModel.GetTableName(),
@@ -67,7 +67,7 @@ func (this *GridHandler) Select(tableName string) {
     }
 
     model := GetModel(tableName)
-    refFields, refData := GetModelRefDate(model)
+    refFields, refData := model.GetModelRefDate()
 
     this.Render([]string{"mvc/views/table.html"}, "table", Model{
         RefData:   refData,
