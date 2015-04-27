@@ -1,27 +1,5 @@
 define(["utils", "grid-utils"], function(utils, gridUtils) {
 
-    function listPersons(data) {
-        console.log("listPersons: ", data)
-
-        if (data["result"] !== "ok") {
-            gridUtils.showErrorMsg(data["result"]);
-            return;
-        }
-
-        var result = $("<div/>");
-
-        for (i in data["data"]) {
-            result.append($("<div/>", {
-                id: data["data"][i]["id"],
-                text: data["data"][i]["name"],
-            }));
-        }
-
-        w = window.open();
-        w.document.title = "Участники";
-        $(w.document.body).html(result);
-    }
-
     function listParams(dialogId, data) {
         console.log("listParams: ", data)
 
@@ -61,15 +39,15 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
             width: "auto",
             buttons: {
                 "Получить список участников": function() {
-                    var ids = [];
+                    var url ="/gridhandler/getpersonsbyeventid?event="+id+"&params=";
+
                     $("#"+dialogId+" select option:selected").each(function(i, selected) {
-                       ids[i] = $(selected).val();
+                       url += $(selected).val() + ",";
                     });
-                    utils.postRequest(
-                        { "event_id": id, "params_ids": ids },
-                        listPersons,
-                        "/gridhandler/getpersonsbyeventid"
-                    );
+
+                    url = url.slice(0, url.length-1);
+
+                    location.href = url;
                 },
                 "Отмена": function() {
                     $(this).dialog("close");

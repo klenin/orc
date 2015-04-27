@@ -10,6 +10,7 @@ import (
     "strconv"
     "strings"
     "time"
+    "errors"
 )
 
 var DB *sql.DB = nil
@@ -258,22 +259,33 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
                 switch col.(type) {
                 case bool:
                     record[columns[i]] = col.(bool)
+                    break
                 case int:
                     record[columns[i]] = col.(int)
+                    break
                 case int64:
                     record[columns[i]] = col.(int64)
+                    break
                 case float64:
                     record[columns[i]] = col.(float64)
+                    break
                 case string:
                     record[columns[i]] = col.(string)
-                case []byte:
-                    record[columns[i]] = string(col.([]byte))
+                    break
+                // case []byte:
+                //     record[columns[i]] = string(col.([]byte))
+                //     break
                 case []int8:
                     record[columns[i]] = col.([]string)
+                    break
                 case time.Time:
                     record[columns[i]] = col
+                    break
+                case []uint8:
+                    record[columns[i]] = strings.Split(strings.Trim(string(col.([]uint8)), "{}"), ",")
+                    break
                 default:
-                    utils.HandleErr("Entity.Select: Unexpected type.", nil, nil)
+                    utils.HandleErr("ConvertData: ", errors.New("Unexpected type."), nil)
                 }
             }
             answer[j] = record

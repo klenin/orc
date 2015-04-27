@@ -1,0 +1,29 @@
+{{ define "list" }}
+
+{{template "header"}}
+
+<div id="list"></div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    var table = $("<table/>", {style: "border: 1px solid #4c9ac3;"});
+
+    var data = {{.}};
+    console.log("list: ", data);
+
+    for (i = 0; i < data.length; ++i) {
+        var tr = $("<tr/>");
+        for (var key in data[i]["data"]) {
+            var td = $("<td/>", {style: "border: 1px solid #4c9ac3;"}).text(data[i]["data"][key]);
+            tr.append(td);
+        }
+        table.append(tr);
+    }
+
+    $("#list").append(table);
+});
+</script>
+
+{{template "footer"}}
+
+{{ end }}
