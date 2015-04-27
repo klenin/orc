@@ -22,9 +22,14 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
 
     if err != nil {
         result["result"] = "invalidCredentials"
+
     } else if enabled == false {
         result["result"] = "notEnabled"
-    } else if passHash == utils.GetMD5Hash(pass+salt) {
+
+    } else if passHash != utils.GetMD5Hash(pass+salt) {
+        result["result"] = "badPassword"
+
+    } else {
         result["result"] = "ok"
 
         hash := utils.GetRandSeq(HASH_SIZE)
@@ -36,8 +41,6 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
         db.QueryUpdate_(user).Scan()
 
         sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
-    } else {
-        result["result"] = "badPassword"
     }
 
     return result
