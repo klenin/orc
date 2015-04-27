@@ -4,7 +4,6 @@ import (
     "database/sql"
     "fmt"
     _ "github.com/lib/pq"
-    "github.com/orc/mvc/models"
     "github.com/orc/utils"
     "log"
     "reflect"
@@ -58,11 +57,10 @@ func QueryCreateSecuence(tableName string) {
     Exec("CREATE SEQUENCE "+tableName+"_id_seq;", nil)
 }
 
-func QueryCreateTable_(tableName string) {
-    model := FindModel(tableName)
-    if model.IsNil() {
-        return
-    }
+func QueryCreateTable_(m interface{}) {
+    model := reflect.ValueOf(m).Elem()
+    tableName := model.FieldByName("TableName").String()
+
     QueryCreateSecuence(tableName)
     query := "CREATE TABLE IF NOT EXISTS %s ("
     mF := model.Elem().FieldByName("Fields").Elem().Type()
@@ -221,7 +219,7 @@ func Select(m interface{}, fields []string) []interface{} {
     }
 }
 
-func SelectRow(m models.VirtEntity, fields []string) *sql.Row {
+func SelectRow(m interface{}, fields []string) *sql.Row {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
 
@@ -238,9 +236,6 @@ func SelectRow(m models.VirtEntity, fields []string) *sql.Row {
 }
 
 func SelectCount(tableName string) int {
-    if FindModel(tableName) == nil {
-        panic("Table " + tableName + " not exists")
-    }
     return int(Query("SELECT COUNT(*) FROM "+tableName+";", nil)[0].(map[string]interface{})["count"].(int64))
 }
 
@@ -314,19 +309,4 @@ func InnerJoin(
     }
     query += " " + where
     return query
-}
-
-func FindModel(modelName string) *reflect.Value {
-    baseModel := new(models.ModelManager)
-    bmt := reflect.TypeOf(baseModel)
-    for i := 0; i < bmt.NumMethod(); i++ {
-        bmtMethod := bmt.Method(i)
-        if strings.ToLower(bmtMethod.Name) == strings.ToLower(strings.Join(strings.Split(modelName, "_"), "")) {
-            params := make([]reflect.Value, 1)
-            params[0] = reflect.ValueOf(baseModel)
-            result := bmtMethod.Func.Call(params)
-            return &result[0]
-        }
-    }
-    return nil
 }
