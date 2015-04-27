@@ -149,8 +149,8 @@ func (this *GridHandler) Load(tableName string) {
 
     model := GetModel(tableName)
 
-    query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()
-    query += qWhere+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(i)+` OFFSET $`+strconv.Itoa(i+1)+`;`
+    query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+qWhere+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(i)+` OFFSET $`+strconv.Itoa(i+1)+`;`
+
     rows := db.Query(query, append(params, []interface{}{limit, start}...))
 
     count := db.SelectCount(tableName)
