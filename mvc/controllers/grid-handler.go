@@ -132,9 +132,17 @@ func (this *GridHandler) Edit(tableName string) {
     case "add":
         if tableName == "groups" {
             var face_id int
-            face := GetModel("faces")
-            face.LoadModelData(map[string]interface{}{"user_id": user_id})
-            db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
+            // face := GetModel("faces")
+            // face.LoadModelData(map[string]interface{}{"user_id": user_id})
+            // db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
+            query := `SELECT faces.id
+                FROM registrations
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN events ON events.id = registrations.event_id
+                INNER JOIN users ON faces.user_id = users.id
+                WHERE users.id = $1 AND events.id = $2;`
+
+            db.QueryRow(query, []interface{}{user_id, 1}).Scan(&face_id)
             params["face_id"] = face_id
 
         } else if tableName == "persons" {
