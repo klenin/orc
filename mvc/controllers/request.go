@@ -96,12 +96,12 @@ func (this *Handler) GetListHistoryEvents() {
 
             for i = 2; i < len(events); i++ {
                 query += "$" + strconv.Itoa(i) + ", "
-                params = append(params, int(events[i-2].(map[string]interface{})["event_id"].(int64)))
-                log.Println("EVENT_ID: ", strconv.Itoa(int(events[i-2].(map[string]interface{})["event_id"].(int64))))
+                params = append(params, int(events[i-2].(map[string]interface{})["event_id"].(int)))
+                log.Println("EVENT_ID: ", strconv.Itoa(int(events[i-2].(map[string]interface{})["event_id"].(int))))
             }
 
             query += "$" + strconv.Itoa(i) + ")"
-            params = append(params, int(events[i-2].(map[string]interface{})["event_id"].(int64)))
+            params = append(params, int(events[i-2].(map[string]interface{})["event_id"].(int)))
             result["data"] = db.Query(query, params)
         }
     }

@@ -237,7 +237,7 @@ func SelectRow(m interface{}, fields []string) *sql.Row {
 }
 
 func SelectCount(tableName string) int {
-    return int(Query("SELECT COUNT(*) FROM "+tableName+";", nil)[0].(map[string]interface{})["count"].(int64))
+    return int(Query("SELECT COUNT(*) FROM "+tableName+";", nil)[0].(map[string]interface{})["count"].(int))
 }
 
 func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
@@ -264,7 +264,7 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
                     record[columns[i]] = col.(int)
                     break
                 case int64:
-                    record[columns[i]] = col.(int64)
+                    record[columns[i]] = int(col.(int64))
                     break
                 case float64:
                     record[columns[i]] = col.(float64)

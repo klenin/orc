@@ -204,7 +204,7 @@ func (this *Handler) GroupsLoad() {
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
 
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int64))
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -257,7 +257,7 @@ func (this *Handler) RegistrationsLoad() {
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
 
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int64))
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -312,7 +312,7 @@ func (this *Handler) GroupRegistrationsLoad() {
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
 
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int64))
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -381,7 +381,7 @@ func (this *Handler) PersonsLoad(group_id string) {
         INNER JOIN faces ON faces.id = groups.face_id
         WHERE groups.id = $1;`
 
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int64))
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {

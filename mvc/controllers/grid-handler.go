@@ -311,10 +311,10 @@ func (this *GridHandler) ImportForms() {
             INNER JOIN events ON events.id = events_forms.event_id
             WHERE events.id = $1 ORDER BY forms.id;`
 
-        formsResult := db.Query(query, []interface{}{int(eventResult[0].(map[string]interface{})["id"].(int64))})
+        formsResult := db.Query(query, []interface{}{int(eventResult[0].(map[string]interface{})["id"].(int))})
 
         for i := 0; i < len(formsResult); i++ {
-            form_id := int(formsResult[i].(map[string]interface{})["id"].(int64))
+            form_id := int(formsResult[i].(map[string]interface{})["id"].(int))
             eventsForms := GetModel("events_forms")
             eventsForms.LoadWherePart(map[string]interface{}{"event_id":  event_id, "form_id": form_id})
             var p int
@@ -696,7 +696,7 @@ func (this *GridHandler) RegGroup() {
         params := db.Query(query, []interface{}{event_id})
 
         for _, v := range data {
-            face_id := int(v.(map[string]interface{})["face_id"].(int64))
+            face_id := int(v.(map[string]interface{})["face_id"].(int))
             status := v.(map[string]interface{})["status"].(bool)
 
             if !status {
@@ -715,7 +715,7 @@ func (this *GridHandler) RegGroup() {
             }
 
             for _, p := range params {
-                param_id := int(p.(map[string]interface{})["id"].(int64))
+                param_id := int(p.(map[string]interface{})["id"].(int))
 
                 var param_val_id int
                 paramValues := GetModel("param_values")
