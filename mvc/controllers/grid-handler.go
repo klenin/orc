@@ -388,7 +388,7 @@ func (this *GridHandler) GetPersonsByEventId() {
         INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
         INNER JOIN params ON params.id = param_values.param_id
         WHERE params.id in (` + strings.Join(db.MakeParams(len(queryParams)), ", ")
-    query += ") AND events.id = $" + strconv.Itoa(len(queryParams)+1) + " GROUP BY reg_param_vals.reg_id ORDER BY reg_param_vals.reg_id, params.id;"
+    query += ") AND events.id = $" + strconv.Itoa(len(queryParams)+1) + " GROUP BY reg_param_vals.reg_id ORDER BY reg_param_vals.reg_id;"
 
     data := db.Query(query, append(queryParams, event_id))
 
