@@ -282,7 +282,12 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
                     record[columns[i]] = col
                     break
                 case []uint8:
-                    record[columns[i]] = strings.Split(strings.Trim(string(col.([]uint8)), "{}"), ",")
+                    data := strings.Split(strings.Trim(string(col.([]uint8)), "{}"), ",")
+                    if len(data) == 1 {
+                        record[columns[i]] = data[0]
+                    } else {
+                        record[columns[i]] = data
+                    }
                     break
                 default:
                     utils.HandleErr("ConvertData: ", errors.New("Unexpected type."), nil)
