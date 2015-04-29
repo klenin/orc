@@ -3,6 +3,7 @@ package controllers
 import (
     "database/sql"
     "encoding/json"
+    "encoding/csv"
     "fmt"
     "github.com/orc/db"
     "github.com/orc/mailer"
@@ -13,6 +14,8 @@ import (
     "strconv"
     "strings"
     "errors"
+    "reflect"
+    "time"
 )
 
 func (c *BaseController) GridHandler() *GridHandler {
@@ -732,5 +735,64 @@ func (this *GridHandler) RegGroup() {
         }
 
         utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
+    }
+}
+
+func (this *GridHandler) JsonToExcel(tableName string) {
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
+    } else {
+        var filters map[string]interface{}
+        if request["filters"] == nil {
+            filters = nil
+        } else {
+            filters = request["filters"].(map[string]interface{})
+        }
+
+        fields := utils.ArrayInterfaceToString(request["fields"].([]interface{}))
+        sord := request["sord"].(string)
+        sidx := request["sidx"].(string)
+        data := GetModel(tableName).Select(fields, filters, -1, -1, sord, sidx)
+
+        // this.Response.Header().Set("Access-Control-Allow-Origin", "*")
+        this.Response.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+        this.Response.Header().Set("Content-type", "text/csv")
+        this.Response.Header().Set("Content-Disposition", "filename=\"myfile.csv\"")
+
+        w := csv.NewWriter(this.Response)
+        for _, obj := range data {
+            var record []string
+
+            for _, col := range obj.(map[string]interface{}) {
+                fmt.Printf("type= %s\n", reflect.TypeOf(col))
+                switch col.(type) {
+                case int:
+                    record = append(record, strconv.Itoa(col.(int)))
+                    break
+                case int64:
+                    record = append(record, strconv.Itoa(int(col.(int64))))
+                    break
+                case string:
+                    record = append(record, col.(string))
+                    break
+                case bool:
+                    record = append(record, strconv.FormatBool(col.(bool)))
+                    break
+                case []string:
+                    record = append(record, col.([]string)[0])
+                    break
+                case time.Time:
+                    record = append(record, col.(time.Time).Format("2006-01-02 15:04:05 07:00"))
+                default:
+                    panic("fff")
+                }
+            }
+
+            w.Write(record)
+        }
+
+        w.Flush()
     }
 }

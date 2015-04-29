@@ -1,5 +1,9 @@
 package models
 
+type EventsModel struct {
+    Entity
+}
+
 type Event struct {
     Id         int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     Name       string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
@@ -30,8 +34,4 @@ func (c *ModelManager) Events() *EventsModel {
     model.SubField = "event_id"
 
     return model
-}
-
-type EventsModel struct {
-    Entity
 }

@@ -6,6 +6,7 @@ import (
     "reflect"
     "strconv"
     "strings"
+    "log"
 )
 
 type ModelManager struct{}
@@ -216,6 +217,142 @@ func (this *Entity) GetModelRefDate() (fields []string, result map[string]interf
     return fields, result
 }
 
+func (this *Entity) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+    if len(fields) == 0 {
+        return nil
+    }
+
+    where, params := this.Where(filters)
+
+    query := `SELECT `+strings.Join(fields, ", ")+` FROM `+this.GetTableName()+where
+
+    if sidx != "" {
+        query += ` ORDER BY `+this.GetTableName()+"."+sidx
+    }
+
+    query += ` `+ sord
+
+    if limit != -1 {
+        params = append(params, limit)
+        query += ` LIMIT $`+strconv.Itoa(len(params))
+    }
+
+    if offset != -1 {
+        params = append(params, offset)
+        query += ` OFFSET $`+strconv.Itoa(len(params))
+    }
+
+    query += `;`
+
+    return db.Query(query, params)
+}
+
+func (this *Entity) Where(filters map[string]interface{}) (where string, params []interface{}) {
+    where = ""
+    if filters == nil {
+        return where, nil
+    }
+    i := 1
+
+    groupOp := filters["groupOp"].(string)
+    rules := filters["rules"].([]interface{})
+
+    if len(rules) > 10 {
+        log.Println("More 10 rules for serching!")
+    }
+
+    firstElem := true
+    where = " WHERE "
+
+    for _, v := range rules {
+        if !firstElem {
+            if groupOp != "AND" && groupOp != "OR" {
+                log.Println("`groupOp` parameter is not allowed!")
+                continue
+            }
+            where += " " + groupOp + " "
+        } else {
+            firstElem = false
+        }
+
+        rule := v.(map[string]interface{})
+
+        switch rule["op"].(string) {
+        case "eq":// equal
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text = $"+strconv.Itoa(i)
+            params = append(params, rule["data"])
+            i += 1
+            break
+        case "ne":// not equal
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text <> $"+strconv.Itoa(i)
+            params = append(params, rule["data"])
+            i += 1
+            break
+        case "bw":// begins with
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE $"+strconv.Itoa(i)+"||'%'"
+            params = append(params, rule["data"])
+            i += 1
+            break
+        case "bn":// does not begin with
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE $"+strconv.Itoa(i)+"||'%'"
+            params = append(params, rule["data"])
+            i += 1
+            break
+        case "ew":// ends with
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)
+            params = append(params, rule["data"])
+            i += 1
+            break
+        case "en":// does not end with
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)
+            params = append(params, rule["data"])
+            i += 1
+            break
+        case "cn":// contains
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
+            params = append(params, rule["data"])
+            i += 1
+            break
+        case "nc":// does not contain
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
+            params = append(params, rule["data"])
+            i += 1
+            break
+        case "nu":// is null
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text IS NULL"
+            break
+        case "nn":// is not null
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text IS NOT NULL"
+            break
+        case "in":// is in
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text IN ("
+            result := strings.Split(rule["data"].(string), ",")
+            for k := range result {
+                where += "$"+strconv.Itoa(i)+", "
+                params = append(params, result[k])
+                i += 1
+            }
+            where = where[:len(where)-2]
+            where += ")"
+            break
+        case "ni":// is not in
+            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT IN ("
+            result := strings.Split(rule["data"].(string), ",")
+            for k := range result {
+                where += "$"+strconv.Itoa(i)+", "
+                params = append(params, result[k])
+                i += 1
+            }
+            where = where[:len(where)-2]
+            where += ")"
+            break
+        default:
+            panic("`op` parameter is not allowed!")
+        }
+    }
+    return where, params
+}
+
 type VirtEntity interface {
     LoadModelData(data map[string]interface{})
     LoadWherePart(data map[string]interface{})
@@ -243,6 +380,8 @@ type VirtEntity interface {
     GetColumnSlice(index int) []string
 
     GetModelRefDate() (fields []string, result map[string]interface{})
+    Where(filters map[string]interface{}) (where string, params []interface{})
+    Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{})
 }
 
 func (this *ModelManager) GetModel(tableName string) VirtEntity {

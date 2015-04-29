@@ -36,8 +36,8 @@
 </div>
 
 <script type="text/javascript">
-require(["custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "blank", "reg-group"],
-function(grid, utils, resetPass, importForms, list, blank, regGroup) {
+require(["utils", "custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "blank", "reg-group"],
+function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
 
     var refFields = {{.RefFields}};
     var refData   = {};
@@ -66,190 +66,235 @@ function(grid, utils, resetPass, importForms, list, blank, regGroup) {
     console.log("colModel");
     console.log(colModel_);
 
-    $(document).ready(function() {
+    $("#grid-table").jqGrid({
+        url:           "/gridhandler/load/" + {{.TableName}},
+        datatype:      "json",
+        mtype:         "POST",
+        treeGrid:      false,
+        colNames:      {{.ColNames}},
+        colModel:      colModel_,
+        pager:         "#grid-table-pager",
+        gridview:      true,
+        viewrecords:   true,
+        height:        "100%",
+        width:         "auto",
+        rowNum:        5,
+        rownumbers:    true,
+        rownumWidth:   20,
+        rowList:       [5, 10, 20, 50],
+        caption:       {{.Caption}},
+        sortname:      "id",
+        sortorder:     "asc",
+        multiselect:   true,
+        editurl:       "/gridhandler/edit/" + {{.TableName}},
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: ' + jqXHR.status + '\n'
+                + 'textStatus: ' + textStatus + '\n'
+                + 'errorThrown: ' + errorThrown);
+            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+        },
 
-        $("#grid-table").jqGrid({
-            url:           "/gridhandler/load/" + {{.TableName}},
-            datatype:      "json",
-            mtype:         "POST",
-            treeGrid:      false,
-            colNames:      {{.ColNames}},
-            colModel:      colModel_,
-            pager:         "#grid-table-pager",
-            gridview:      true,
-            viewrecords:   true,
-            height:        "100%",
-            width:         "auto",
-            rowNum:        5,
-            rownumbers:    true,
-            rownumWidth:   20,
-            rowList:       [5, 10, 20, 50],
-            caption:       {{.Caption}},
-            sortname:      "id",
-            sortorder:     "asc",
-            multiselect:   true,
-            editurl:       "/gridhandler/edit/" + {{.TableName}},
-            loadError: function (jqXHR, textStatus, errorThrown) {
-                alert('HTTP status code: ' + jqXHR.status + '\n'
-                    + 'textStatus: ' + textStatus + '\n'
-                    + 'errorThrown: ' + errorThrown);
-                alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
-            },
+        subGrid:            {{.Sub}},
+        subGridOptions:     {
+                                "plusicon": "ui-icon-triangle-1-e",
+                                "minusicon": "ui-icon-triangle-1-s",
+                                "openicon": "ui-icon-arrowreturn-1-e",
+                                "reloadOnExpand": true,
+                                "selectOnExpand": true
+                            },
+        subGridRowExpanded: function(subgrid_id, row_id) {
+                                grid.AddSubTable(subgrid_id, row_id, "0", {{.TableName}}, "grid-table");
+                            }
+    });
 
-            subGrid:            {{.Sub}},
-            subGridOptions:     {
-                                    "plusicon": "ui-icon-triangle-1-e",
-                                    "minusicon": "ui-icon-triangle-1-s",
-                                    "openicon": "ui-icon-arrowreturn-1-e",
-                                    "reloadOnExpand": true,
-                                    "selectOnExpand": true
-                                },
-            subGridRowExpanded: function(subgrid_id, row_id) {
-                                    grid.AddSubTable(subgrid_id, row_id, "0", {{.TableName}}, "grid-table");
-                                }
-        });
+    $("#grid-table").navGrid(
+        "#grid-table-pager",
+        {   // buttons
+            edit:    true,
+            add:     {{.TableName}} == "users" ? false : true,
+            del:     true,
+            refresh: false,
+            view:    false,
+            search:  true
+        },
+        {   // edit
+            width:           "100%",
+            recreateForm:    true,
+            afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
+            errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
+            beforeShowForm:  function() {
+                if ({{.TableName}} == "registrations") {
+                    var id = utils.getCurrRowId("grid-table");
+                    var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
+                    if (event_id == 1) {
+                        return;
+                    }
+                    $('<a href="#">Подтвердить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
+                    .click(function() { utils.ConfirmOrRejectPersonRequest("grid-table", true); })
+                    .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
+                    .prependTo("#Act_Buttons>td.EditButton");
 
-        $("#grid-table").navGrid(
-            "#grid-table-pager",
-            {   // buttons
-                edit:    true,
-                add:     {{.TableName}} == "users" ? false : true,
-                del:     true,
-                refresh: false,
-                view:    false,
-                search:  true
-            },
-            {   // edit
-                width:           "100%",
-                recreateForm:    true,
-                afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
-                errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
-                beforeShowForm:  function() {
-                    if ({{.TableName}} == "registrations") {
-                        var id = utils.getCurrRowId("grid-table");
-                        var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
-                        if (event_id == 1) {
-                            return;
-                        }
-                        $('<a href="#">Подтвердить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
-                        .click(function() { utils.ConfirmOrRejectPersonRequest("grid-table", true); })
-                        .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
-                        .prependTo("#Act_Buttons>td.EditButton");
+                    $('<a href="#">Отклонить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
+                    .click(function() { utils.ConfirmOrRejectPersonRequest("grid-table", false); })
+                    .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
+                    .prependTo("#Act_Buttons>td.EditButton");
+                }
+            }
+        },
+        {   // add
+            width:           "100%",
+            recreateForm:    true,
+            addedrow:        "last",
+            afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
+            errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
+        },
+        {   // del
+            closeAfterAdd:  true,
+        },
+        {   // search
+            // multipleGroup: true,
+            closeOnEscape: true,
+            multipleSearch: true,
+            closeAfterSearch: true
+        }
+    );
 
-                        $('<a href="#">Отклонить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
-                        .click(function() { utils.ConfirmOrRejectPersonRequest("grid-table", false); })
-                        .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
-                        .prependTo("#Act_Buttons>td.EditButton");
+    $("#grid-table").jqGrid(
+        "navButtonAdd",
+        "#grid-table-pager",
+        {
+            caption: "", buttonicon: "ui-icon-print", title: "Скачать данные из таблицы",
+            onClickButton: function() {
+                var columns = $("#grid-table").getGridParam("colModel");
+                var fields = [];
+                for (i = 0; i < columns.length; ++i) {
+                    if (columns[i].hidden == false && columns[i].index != undefined) {
+                        fields.push(columns[i].index)
                     }
                 }
-            },
-            {   // add
-                width:           "100%",
-                recreateForm:    true,
-                addedrow:        "last",
-                afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
-                errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
-            },
-            {   // del
-                closeAfterAdd:  true,
-            },
-            {   // search
-                // multipleGroup: true,
-                closeOnEscape: true,
-                multipleSearch: true,
-                closeAfterSearch: true
-            }
-        );
+                var filters = $("#grid-table").getGridParam("postData").filters;
+                var sord = $("#grid-table").getGridParam("postData").sord;
+                var sidx = $("#grid-table").getGridParam("postData").sidx;
+                var data = { "filters": filters ? JSON.parse(filters) : null, "sord": sord, "sidx": sidx, "fields": fields };
+                console.log("Download params: ", data);
 
-        $("#grid-table").jqGrid (
+                $.ajax({
+                    method: "post",
+                    type: "post",
+                    url: "/gridhandler/jsontoexcel/" + {{.TableName}},
+                    async: false,
+                    data: JSON.stringify(data),
+                    ContentType: "charset=utf-8",
+                    success: function(response) {
+                        console.log(response);
+                        var data = response;
+                        // document.location = "data:application/octet-stream;filename=data.csv," + encodeURIComponent(data);
+
+                        var link = document.createElement("a");
+                        link.download = {{.TableName}}+".csv";
+                        link.href = "data:application/csv;charset=utf-8," + encodeURIComponent(data);
+                        link.click();
+                        delete link;
+                    },
+                    error: function(ajaxRequest, ajaxOptions, thrownError) {
+                        console.log(thrownError);
+                        console.log(ajaxOptions);
+                        console.log(ajaxRequest);
+                        alert(ajaxRequest["responseText"]);
+                    }
+                });
+            }
+        }
+    );
+
+    $("#grid-table").jqGrid (
+        "navButtonAdd",
+        "#grid-table-pager",
+        {
+            caption: "", buttonicon: "ui-icon-calculator", title: "Выбрать столбцы",
+            onClickButton: function() {
+                $("#grid-table").jqGrid(
+                    "columnChooser",
+                    {
+                        done: function(perm) {
+                            if (perm) {
+                                $("#grid-table").jqGrid("remapColumns", perm, true);
+                                $(window).bind("resize", function() {
+                                    $("#grid-table").setGridWidth($(window).width()-50, true);
+                                }).trigger("resize");
+
+                            }
+                        }
+                    }
+                );
+            }
+        }
+    );
+
+    if ({{.TableName}} == "users") {
+        $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
-                caption: "", buttonicon: "ui-icon-calculator", title: "Выбрать столбцы",
-                onClickButton: function() {
-                    $("#grid-table").jqGrid(
-                        "columnChooser",
-                        {
-                            done: function(perm) {
-                                if (perm) {
-                                    $("#grid-table").jqGrid("remapColumns", perm, true);
-                                    $(window).bind("resize", function() {
-                                        $("#grid-table").setGridWidth($(window).width()-50, true);
-                                    }).trigger("resize");
-
-                                }
-                            }
-                        }
-                    );
-                }
+                caption: "", buttonicon: "ui-icon-key", title: "Сменить пароля",
+                onClickButton: function() { resetPass.ResetPassword("dialog-reset-pass", "grid-table", "password-1", "password-2"); }
             }
         );
 
-        if ({{.TableName}} == "users") {
-            $("#grid-table").jqGrid(
-                "navButtonAdd",
-                "#grid-table-pager",
-                {
-                    caption: "", buttonicon: "ui-icon-key", title: "Сменить пароля",
-                    onClickButton: function() { resetPass.ResetPassword("dialog-reset-pass", "grid-table", "password-1", "password-2"); }
-                }
-            );
-
-        } else if ({{.TableName}} == "events") {
-            $("#grid-table").jqGrid(
-                "navButtonAdd",
-                "#grid-table-pager",
-                {
-                    caption: "", buttonicon: "ui-icon-pin-s", title: "Прикрепить формы",
-                    onClickButton: function() { importForms.ImportForms("dialog-import-forms", "grid-table"); }
-                }
-            );
-
-            $("#grid-table").jqGrid(
-                "navButtonAdd",
-                "#grid-table-pager",
-                {
-                    caption: "", buttonicon: "ui-icon-person", title: "Список участников",
-                    onClickButton: function() { list.GetPersons("dialog-params", "grid-table"); }
-                }
-            );
-
-        } else if ({{.TableName}} == "registrations") {
-            $("#grid-table").jqGrid(
-                "navButtonAdd",
-                "#grid-table-pager",
-                {
-                    caption: "", buttonicon: "ui-icon-script", title: "Анкета участника",
-                    onClickButton: function() { blank.ShowPersonBlank("dialog-persons-request", "grid-table"); }
-                }
-            );
-
-        } else if ({{.TableName}} == "groups") {
-            $("#grid-table").jqGrid(
-                "navButtonAdd",
-                "#grid-table-pager",
-                {
-                    caption: "", buttonicon: "ui-icon-script", title: "Регистрация группы",
-                    onClickButton: function() { regGroup.Registration("dialog-reg-group", "grid-table"); }
-                }
-            );
-        }
+    } else if ({{.TableName}} == "events") {
+        $("#grid-table").jqGrid(
+            "navButtonAdd",
+            "#grid-table-pager",
+            {
+                caption: "", buttonicon: "ui-icon-pin-s", title: "Прикрепить формы",
+                onClickButton: function() { importForms.ImportForms("dialog-import-forms", "grid-table"); }
+            }
+        );
 
         $("#grid-table").jqGrid(
-            "filterToolbar",
+            "navButtonAdd",
+            "#grid-table-pager",
             {
-                stringResult:  true,
-                searchOnEnter: false,
-                defaultSearch: "cn"
+                caption: "", buttonicon: "ui-icon-person", title: "Список участников",
+                onClickButton: function() { list.GetPersons("dialog-params", "grid-table"); }
             }
         );
 
-        $(window).bind("resize", function() {
-            $("#grid-table").setGridWidth($(window).width()-50, true);
-        }).trigger("resize");
+    } else if ({{.TableName}} == "registrations") {
+        $("#grid-table").jqGrid(
+            "navButtonAdd",
+            "#grid-table-pager",
+            {
+                caption: "", buttonicon: "ui-icon-contact", title: "Анкета участника",
+                onClickButton: function() { blank.ShowPersonBlank("dialog-persons-request", "grid-table"); }
+            }
+        );
 
-    });
-})
+    } else if ({{.TableName}} == "groups") {
+        $("#grid-table").jqGrid(
+            "navButtonAdd",
+            "#grid-table-pager",
+            {
+                caption: "", buttonicon: "ui-icon-script", title: "Регистрация группы",
+                onClickButton: function() { regGroup.Registration("dialog-reg-group", "grid-table"); }
+            }
+        );
+    }
+
+    $("#grid-table").jqGrid(
+        "filterToolbar",
+        {
+            stringResult:  true,
+            searchOnEnter: false,
+            defaultSearch: "cn"
+        }
+    );
+
+    $(window).bind("resize", function() {
+        $("#grid-table").setGridWidth($(window).width()-50, true);
+    }).trigger("resize");
+
+});
 </script>
 
 {{template "footer"}}

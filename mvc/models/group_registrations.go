@@ -1,5 +1,14 @@
 package models
 
+import (
+    "github.com/orc/db"
+    "strconv"
+)
+
+type GroupRegistrationModel struct {
+    Entity
+}
+
 type GroupRegistration struct {
     Id      int  `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     EventId int  `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
@@ -27,10 +36,57 @@ func (c *ModelManager) GroupRegistrations() *GroupRegistrationModel {
     model.SubTable = []string{"persons"}
     model.SubField = "group_id"
 
-
     return model
 }
 
-type GroupRegistrationModel struct {
-    Entity
+func (this *GroupRegistrationModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+    if len(fields) == 0 {
+        return nil
+    }
+
+    query := `SELECT `
+
+    for _, field := range fields {
+        switch field {
+        case "id":
+            query += "group_registrations.id, "
+            break
+        case "event_id":
+            query += "events.name as event_name, "
+            break
+        case "group_id":
+            query += "groups.name as group_name, "
+            break
+        case "status":
+            query += "group_registrations.status, "
+            break
+        }
+    }
+
+    query = query[:len(query)-2]
+    query += ` FROM group_registrations
+        INNER JOIN events ON events.id = group_registrations.event_id
+        INNER JOIN groups ON groups.id = group_registrations.group_id`
+    where, params := this.Where(filters)
+    query += where
+
+    if sidx != "" {
+        query += ` ORDER BY group_registrations.`+sidx
+    }
+
+    query += ` `+ sord
+
+    if limit != -1 {
+        params = append(params, limit)
+        query += ` LIMIT $`+strconv.Itoa(len(params))
+    }
+
+    if offset != -1 {
+        params = append(params, offset)
+        query += ` OFFSET $`+strconv.Itoa(len(params))
+    }
+
+    query += `;`
+
+    return db.Query(query, params)
 }

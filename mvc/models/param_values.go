@@ -1,9 +1,18 @@
 package models
 
+import (
+    "github.com/orc/db"
+    "strconv"
+)
+
+type ParamValuesModel struct {
+    Entity
+}
+
 type ParamValues struct {
-    Id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    ParamId     int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
-    Value       string `name:"value" type:"text" null:"NULL" extra:""`
+    Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    ParamId int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
+    Value   string `name:"value" type:"text" null:"NULL" extra:""`
 }
 
 func (c *ModelManager) ParamValues() *ParamValuesModel {
@@ -29,6 +38,51 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
     return model
 }
 
-type ParamValuesModel struct {
-    Entity
+func (this *ParamValuesModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+    if len(fields) == 0 {
+        return nil
+    }
+
+    query := `SELECT `
+
+    for _, field := range fields {
+        switch field {
+        case "id":
+            query += "param_values.id, "
+            break
+        case "param_id":
+            query += "params.name, "
+            break
+        case "value":
+            query += "param_values.value, "
+            break
+        }
+    }
+
+    query = query[:len(query)-2]
+
+    query += ` FROM param_values INNER JOIN params ON params.id = param_values.param_id`
+
+    where, params := this.Where(filters)
+    query += where
+
+    if sidx != "" {
+        query += ` ORDER BY param_values.`+sidx
+    }
+
+    query += ` `+ sord
+
+    if limit != -1 {
+        params = append(params, limit)
+        query += ` LIMIT $`+strconv.Itoa(len(params))
+    }
+
+    if offset != -1 {
+        params = append(params, offset)
+        query += ` OFFSET $`+strconv.Itoa(len(params))
+    }
+
+    query += `;`
+
+    return db.Query(query, params)
 }

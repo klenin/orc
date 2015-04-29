@@ -8,7 +8,6 @@ import (
     "net/http"
     "strconv"
     "encoding/json"
-    "log"
     "strings"
 )
 
@@ -23,113 +22,12 @@ func (this *GridHandler) Load(tableName string) {
         return
     }
 
-    qWhere := ""
-    i := 1
-    var params []interface{}
+    var filters map[string]interface{}
 
     if this.Request.PostFormValue("_search") == "true" {
-        var filters map[string]interface{}
         err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
         if utils.HandleErr("[GridHandler::Load]: ", err, this.Response) {
             return
-        }
-
-        groupOp := filters["groupOp"].(string)
-        rules := filters["rules"].([]interface{})
-
-        if len(rules) > 10 {
-            log.Println("More 10 rules for serching!")
-        }
-
-        firstElem := true
-        qWhere = " WHERE "
-
-        for _, v := range rules {
-            if !firstElem {
-                if groupOp != "AND" && groupOp != "OR" {
-                    log.Println("`groupOp` parameter is not allowed!")
-                    continue
-                }
-                qWhere += " " + groupOp + " "
-            } else {
-                firstElem = false
-            }
-
-            rule := v.(map[string]interface{})
-
-            switch rule["op"].(string) {
-            case "eq":// equal
-                qWhere += rule["field"].(string) + "::text = $"+strconv.Itoa(i)
-                params = append(params, rule["data"])
-                i += 1
-                break
-            case "ne":// not equal
-                qWhere += rule["field"].(string) + "::text <> $"+strconv.Itoa(i)
-                params = append(params, rule["data"])
-                i += 1
-                break
-            case "bw":// begins with
-                qWhere += rule["field"].(string) + "::text LIKE $"+strconv.Itoa(i)+"||'%'"
-                params = append(params, rule["data"])
-                i += 1
-                break
-            case "bn":// does not begin with
-                qWhere += rule["field"].(string) + "::text NOT LIKE $"+strconv.Itoa(i)+"||'%'"
-                params = append(params, rule["data"])
-                i += 1
-                break
-            case "ew":// ends with
-                qWhere += rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)
-                params = append(params, rule["data"])
-                i += 1
-                break
-            case "en":// does not end with
-                qWhere += rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)
-                params = append(params, rule["data"])
-                i += 1
-                break
-            case "cn":// contains
-                qWhere += rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
-                params = append(params, rule["data"])
-                i += 1
-                break
-            case "nc":// does not contain
-                qWhere += rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
-                params = append(params, rule["data"])
-                i += 1
-                break
-            case "nu":// is null
-                qWhere += rule["field"].(string) + "::text IS NULL"
-                break
-            case "nn":// is not null
-                qWhere += rule["field"].(string) + "::text IS NOT NULL"
-                break
-            case "in":// is in
-                qWhere += rule["field"].(string) + "::text IN ("
-                result := strings.Split(rule["data"].(string), ",")
-                for k := range result {
-                    qWhere += "$"+strconv.Itoa(i)+", "
-                    params = append(params, result[k])
-                    i += 1
-                }
-                qWhere = qWhere[:len(qWhere)-2]
-                qWhere += ")"
-                break
-            case "ni":// is not in
-                qWhere += rule["field"].(string) + "::text NOT IN ("
-                result := strings.Split(rule["data"].(string), ",")
-                for k := range result {
-                    qWhere += "$"+strconv.Itoa(i)+", "
-                    params = append(params, result[k])
-                    i += 1
-                }
-                qWhere = qWhere[:len(qWhere)-2]
-                qWhere += ")"
-                break
-            default:
-                panic("`op` parameter is not allowed!")
-            }
-
         }
     }
 
@@ -148,11 +46,9 @@ func (this *GridHandler) Load(tableName string) {
     start := limit*page - limit
 
     model := GetModel(tableName)
-
-    query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+qWhere+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(i)+` OFFSET $`+strconv.Itoa(i+1)+`;`
-
+    where, params := model.Where(filters)
+    query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+where+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
     rows := db.Query(query, append(params, []interface{}{limit, start}...))
-
     count := db.SelectCount(tableName)
 
     var totalPages int

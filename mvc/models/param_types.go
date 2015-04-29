@@ -1,5 +1,9 @@
 package models
 
+type ParamTypesModel struct {
+    Entity
+}
+
 type ParamTypes struct {
     Id   int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     Name string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
@@ -26,8 +30,4 @@ func (c *ModelManager) ParamTypes() *ParamTypesModel {
     model.SubField = ""
 
     return model
-}
-
-type ParamTypesModel struct {
-    Entity
 }

@@ -1,6 +1,13 @@
 package models
 
-import "github.com/orc/db"
+import (
+    "github.com/orc/db"
+    "strconv"
+)
+
+type PersonsModel struct {
+    Entity
+}
 
 type Person struct {
     Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
@@ -35,10 +42,6 @@ func (c *ModelManager) Persons() *PersonsModel {
     return model
 }
 
-type PersonsModel struct {
-    Entity
-}
-
 func (this *PersonsModel) GetModelRefDate() (fields []string, result map[string]interface{}) {
     fields = []string{"name", "name"}
 
@@ -58,4 +61,73 @@ func (this *PersonsModel) GetModelRefDate() (fields []string, result map[string]
     result["face_id"] = db.Query(query, nil)
 
     return fields, result
+}
+
+func (this *PersonsModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+    if len(fields) == 0 {
+        return nil
+    }
+
+    query := `SELECT `
+
+    for _, field := range fields {
+        switch field {
+        case "id":
+            query += "persons.id, "
+            break
+        case "name":
+            query += "persons.name as person_name, "
+            break
+        case "email":
+            query += "persons.email, "
+            break
+        case "group_id":
+            query += "groups.name as group_name, "
+            break
+        case "status":
+            query += "persons.status, "
+            break
+        case "face_id":
+            query += "array_to_string(array_agg(param_values.value), ' ') as face_name, "
+            break
+        }
+    }
+
+    query = query[:len(query)-2]
+
+    query += ` FROM reg_param_vals
+        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        INNER JOIN params ON params.id = param_values.param_id
+        INNER JOIN persons ON persons.face_id = faces.id
+        INNER JOIN groups ON groups.face_id = groups.id`
+
+    where, params := this.Where(filters)
+    if where != "" {
+        query += where + ` AND params.id in (5, 6, 7) AND events.id = 1 GROUP BY persons.id, groups.id`
+    } else {
+        query += ` WHERE params.id in (5, 6, 7) AND events.id = 1 GROUP BY persons.id, groups.id`
+    }
+
+    if sidx != "" {
+        query += ` ORDER BY persons.`+sidx
+    }
+
+    query += ` `+ sord
+
+    if limit != -1 {
+        params = append(params, limit)
+        query += ` LIMIT $`+strconv.Itoa(len(params))
+    }
+
+    if offset != -1 {
+        params = append(params, offset)
+        query += ` OFFSET $`+strconv.Itoa(len(params))
+    }
+
+    query += `;`
+
+    return db.Query(query, params)
 }
