@@ -45,7 +45,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
                     });
                     utils.postRequest(
                         { "event_id": id, "event_types_ids": ids },
-                        function(data) { gridUtils.showServerPromtInDialog($(this), data["result"]); },
+                        function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
                         "/gridhandler/importforms"
                     );
                 },

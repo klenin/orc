@@ -43,7 +43,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
 
                     utils.postRequest(
                         { "group_id": id, "event_id": event_id },
-                        function(data) { gridUtils.showServerPromtInDialog($(this), data["result"]); },
+                        function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
                         "/gridhandler/reggroup"
                     );
                 },
