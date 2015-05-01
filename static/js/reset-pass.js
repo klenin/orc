@@ -51,7 +51,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
                         return false;
                     }
                     utils.postRequest(
-                        { "pass1": $("#"+passId1).val(), "pass2": $("#"+passId2).val(), "id": id },
+                        { "pass1": $("#"+passId1).val(), "pass2": $("#"+passId2).val() },
                         function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
                         "/gridhandler/resetpassword"
                     );
@@ -65,6 +65,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
 
     return {
         ResetPassword: ResetPassword,
+        CheckPass: CheckPass,
     };
 
 });

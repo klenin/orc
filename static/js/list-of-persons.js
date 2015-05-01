@@ -39,7 +39,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
             width: "auto",
             buttons: {
                 "Получить список участников": function() {
-                    var url ="/gridhandler/getpersonsbyeventid?event="+id+"&params=";
+                    var url = "/gridhandler/getpersonsbyeventid?event="+id+"&params=";
 
                     $("#"+dialogId+" select option:selected").each(function(i, selected) {
                        url += $(selected).val() + ",";

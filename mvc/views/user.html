@@ -12,26 +12,50 @@
     <div id="title" class="left"></div></br>
 
     <div id="cabinet" class="left">
-        <div>
-            <div hidden="true" id="dialog-reg-group" title="Регистрация группы"></div>
-            <div hidden="true" id="dialog-person-request" title="Анкета"></div>
-            <div hidden="true" id="dialog-group-person-request" title="Анкета"></div>
-            <p>
+        <div hidden="true" id="dialog-reg-group" title="Регистрация группы"></div>
+        <div hidden="true" id="dialog-person-request" title="Анкета"></div>
+        <div hidden="true" id="dialog-group-person-request" title="Анкета"></div>
+        <div id="error"></div>
+        <p id="userData"></p>
+
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-1">Группы</a></li>
+                <li><a href="#tabs-2">Регистрации в мероприятиях</a></li>
+                <li><a href="#tabs-3">Регистрации групп</a></li>
+                <li><a href="#tabs-4">Смена пароля</a></li>
+            </ul>
+
+            <div id="tabs-1">
                 <table id="group-table"></table>
                 <div id="group-table-pager"></div>
-            </p>
+            </div>
 
-            <p>
+            <div id="tabs-2">
                 <table id="reg-table"></table>
                 <div id="reg-table-pager"></div>
-            </p>
+            </div>
 
-            <p>
+            <div id="tabs-3">
                 <table id="groupreg-table"></table>
                 <div id="groupreg-table-pager"></div>
-            </p>
+            </div>
 
-            <div id="error"></div>
+            <div id="tabs-4">
+                <div id="dialog-reset-pass">
+                    <form>
+                        <p>
+                            <label for="password-1">Пароль</label>
+                            <input type="password" id="password-1" name="password-1"/>
+                        </p>
+                        <p>
+                            <label for="password-2">Потвердите пароль</label>
+                            <input type="password" id="password-2" name="password-2"/>
+                        </p>
+                        <p><input type="button" id="reset-btn" value="сохранить"/></p>
+                    </form>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -42,8 +66,67 @@
 
 $("#title").append("Личный кабинет");
 
-require(["grid-utils", "custom-grid", "reg-group", "blank", "utils"],
-function(utils, grid, regGroup, blank, req) {
+$(function() {
+    $("#tabs").tabs();
+});
+
+require(["grid-utils", "custom-grid", "reg-group", "blank", "utils", "reset-pass", "utils"],
+function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
+
+    var valid = false;
+
+    $("#password-1").blur(function() {
+        var pattern = /^.{6,36}$/;
+        if (!pattern.test($(this).val())) {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+            utils.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
+
+        } else {
+            valid = true;
+            $(this).css({"border": "2px solid green"});
+        }
+    });
+
+    $("#password-2").blur(function() {
+        var pattern = /^.{6,36}$/;
+
+        if (!pattern.test($(this).val())) {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+            utils.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
+            return;
+        }
+
+        if ($(this).val() !== $("#password-1").val()) {
+            valid = false;
+            $(this).css({"border": "2px solid red"});
+            utils.showServerPromtInDialog( $(this).parent(), "Пароли не совпадают.");
+            return;
+        }
+
+        valid = true;
+        $(this).css({"border": "2px solid green"});
+    });
+
+    $("#reset-btn").click(function() {
+        if (!valid) {
+            $("#error").text("Проверьте данные о логине и пароле.").css("color", "red");
+            return;
+        }
+
+        var result = resetPass.CheckPass("password-1", "password-2");
+        if (!result.result) {
+            utils.showErrorMsg(result.msg);
+            return false;
+        }
+        reqUtils.postRequest(
+            { "pass1": $("#password-1").val(), "pass2": $("#password-2").val() },
+            function(data) { utils.showServerPromtInDialog($("#dialog-reset-pass"), data["result"]); },
+            "/gridhandler/resetpassword"
+        );
+    })
+
     $("#userData").append($("<div/>").text({{.}}.userData[0].name+": "+{{.}}.userData[0].value));
     if ({{.}}.userData[1]) $("#userData").append($("<div/>").text({{.}}.userData[1].name+": "+{{.}}.userData[1].value));
 
@@ -290,7 +373,7 @@ function(utils, grid, regGroup, blank, req) {
     );
 
     $(window).bind("resize", function() {
-        $("#group-table").setGridWidth($(window).width()-50, true);
+        $("#group-table").setGridWidth($(window).width()-100, true);
     }).trigger("resize");
 
     $("#reg-table").jqGrid({
@@ -347,7 +430,7 @@ function(utils, grid, regGroup, blank, req) {
     );
 
     $(window).bind("resize", function() {
-        $("#reg-table").setGridWidth($(window).width()-50, true);
+        $("#reg-table").setGridWidth($(window).width()-100, true);
     }).trigger("resize");
 
     $("#groupreg-table").jqGrid({
@@ -482,7 +565,7 @@ function(utils, grid, regGroup, blank, req) {
     );
 
     $(window).bind("resize", function() {
-        $("#groupreg-table").setGridWidth($(window).width()-50, true);
+        $("#groupreg-table").setGridWidth($(window).width()-100, true);
     }).trigger("resize");
 
 });

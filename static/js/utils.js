@@ -1,4 +1,4 @@
-define(function() {
+define(["grid-utils"], function(gridUtils) {
 
     function postRequest(data, callback, url) {
         $.ajax({
@@ -23,9 +23,8 @@ define(function() {
     };
 
     function checkSession() {
-        postRequest({
-                "action": "checkSession",
-            },
+        postRequest(
+            { "action": "checkSession" },
             function(data) {
                 if (data["result"] === "ok") {
                     $("#logout-btn, #cabinet-btn").css("visibility", "visible");
@@ -37,11 +36,31 @@ define(function() {
             },
             "/handler"
         );
+    };
+
+    function login(gridId) {
+        var user_id = gridUtils.getCurrRowId(gridId);
+        if (user_id == -1) return false;
+
+        location.href = "/handler/login/"+user_id;
+    }
+
+    function sendEmailWellcomeToProfile(gridId, dialog) {
+        var user_id = gridUtils.getCurrRowId(gridId);
+        if (user_id == -1) return false;
+
+        postRequest(
+            { "action": "sendEmailWellcomeToProfile", "user_id": user_id },
+            function(data) { gridUtils.showServerPromtInDialog(dialog, data["result"]); },
+            "/handler"
+        );
     }
 
     return {
         postRequest: postRequest,
         checkSession: checkSession,
+        login: login,
+        sendEmailWellcomeToProfile: sendEmailWellcomeToProfile,
     };
 
 });

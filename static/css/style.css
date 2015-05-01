@@ -48,7 +48,7 @@ td input {
     width: auto;
 }
 
-#save-btn, #send-btn, #login-btn, #home-btn, #logout-btn, #cabinet-btn, #create-group, #close, #add-person {
+#save-btn, #send-btn, #login-btn, #home-btn, #logout-btn, #cabinet-btn, #create-group, #close, #add-person, #reset-btn {
     color: #4c9ac3;
     background: white;
     cursor: pointer;

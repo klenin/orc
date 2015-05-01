@@ -33,6 +33,7 @@
     <div style="display:none;" id="dialog-group-person-request" title="Анкета участника"></div>
 
     <div id="error"></div>
+    <div id="msg"></div>
 </div>
 
 <script type="text/javascript">
@@ -236,8 +237,26 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "navButtonAdd",
             "#grid-table-pager",
             {
-                caption: "", buttonicon: "ui-icon-key", title: "Сменить пароля",
+                caption: "", buttonicon: "ui-icon-key", title: "Сменить пароль",
                 onClickButton: function() { resetPass.ResetPassword("dialog-reset-pass", "grid-table", "password-1", "password-2"); }
+            }
+        );
+
+        $("#grid-table").jqGrid(
+            "navButtonAdd",
+            "#grid-table-pager",
+            {
+                caption: "", buttonicon: "ui-icon-person", title: "Войти под пользователем",
+                onClickButton: function() { reqUtils.login("grid-table"); }
+            }
+        );
+
+        $("#grid-table").jqGrid(
+            "navButtonAdd",
+            "#grid-table-pager",
+            {
+                caption: "", buttonicon: "ui-icon-mail-closed", title: "Пригласить к пользованию аккаунта",
+                onClickButton: function() { reqUtils.sendEmailWellcomeToProfile("grid-table", $("#msg")); }
             }
         );
 
