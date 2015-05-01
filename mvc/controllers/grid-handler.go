@@ -192,15 +192,17 @@ func (this *GridHandler) Edit(tableName string) {
 }
 
 func (this *GridHandler) ResetPassword() {
-    if !sessions.CheackSession(this.Response, this.Request) {
+    user_id := sessions.GetValue("id", this.Request)
+
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
-    if !this.isAdmin() {
-        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
-        return
-    }
+    // if !this.isAdmin() {
+    //     http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
+    //     return
+    // }
 
     this.Response.Header().Set("Access-Control-Allow-Origin", "*")
     this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -223,9 +225,16 @@ func (this *GridHandler) ResetPassword() {
         return
     }
 
-    id, err :=  strconv.Atoi(request["id"].(string))
-    if utils.HandleErr("[Grid-Handler::ResetPassword] strconv.Atoi: ", err, this.Response) {
-        return
+    var id int
+
+    if request["id"] == nil {
+        id = user_id.(int)
+
+    } else {
+        id, err =  strconv.Atoi(request["id"].(string))
+        if utils.HandleErr("[Grid-Handler::ResetPassword] strconv.Atoi: ", err, this.Response) {
+            return
+        }
     }
 
     user := GetModel("users")
