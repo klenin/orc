@@ -66,7 +66,6 @@ func SendEmail(address, tmp string, context *SmtpTemplateData) bool {
 }
 
 func SendConfirmEmail(to, address, token string) bool {
-
     log.Println("SendConfirmEmail: address: ", address)
     log.Println("SendConfirmEmail: to: ", to)
 
@@ -81,7 +80,6 @@ func SendConfirmEmail(to, address, token string) bool {
 }
 
 func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bool) bool {
-
     log.Println("SendEmailToConfirmRejectPersonRequest: address: ", address)
     log.Println("SendEmailToConfirmRejectPersonRequest: to: ", to)
 
@@ -104,7 +102,6 @@ func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bo
 }
 
 func InviteToGroup(to, address, token, headName, groupName string) bool {
-
     log.Println("InviteToGroup: address: ", address)
     log.Println("InviteToGroup: to: ", to)
 
@@ -121,7 +118,6 @@ func InviteToGroup(to, address, token, headName, groupName string) bool {
 }
 
 func AttendAnEvent(to, address, eventName, groupName string) bool {
-
     log.Println("AttendAnEvent: address: ", address)
     log.Println("AttendAnEvent: to: ", to)
 
