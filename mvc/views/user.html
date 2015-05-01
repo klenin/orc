@@ -44,6 +44,8 @@ $("#title").append("Личный кабинет");
 
 require(["grid-utils", "custom-grid", "reg-group", "blank", "utils"],
 function(utils, grid, regGroup, blank, req) {
+    $("#userData").append($("<div/>").text({{.}}.userData[0].name+": "+{{.}}.userData[0].value));
+    if ({{.}}.userData[1]) $("#userData").append($("<div/>").text({{.}}.userData[1].name+": "+{{.}}.userData[1].value));
 
     var groupRefFields = {{.}}.group.RefFields;
     var groupRefData   = {};

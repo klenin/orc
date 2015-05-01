@@ -70,7 +70,7 @@ func (this *Handler) Index() {
     }
 }
 
-func (this *Handler) ShowCabinet(tableName string) {
+func (this *Handler) ShowCabinet() {
     user_id := sessions.GetValue("id", this.Request)
 
     if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
@@ -149,10 +149,22 @@ func (this *Handler) ShowCabinet(tableName string) {
             SubColumns:   persons.GetColumns()[:len(persons.GetColumns())-1],
             SubColNames:  persons.GetColNames()[:len(persons.GetColNames())-1]}
 
+        query = `SELECT params.name, param_values.value
+            FROM reg_param_vals
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params ON params.id = param_values.param_id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE params.id in (1, 4) AND users.id = $1 ORDER BY params.id;`
+
+        data := db.Query(query, []interface{}{user_id})
+
         this.Render(
             []string{"mvc/views/"+role+".html"},
             role,
-            map[string]interface{}{"group": groupsModel, "reg": regsModel, "groupreg": groupRegsModel})
+            map[string]interface{}{"group": groupsModel, "reg": regsModel, "groupreg": groupRegsModel, "userData": data})
     }
 }
 
