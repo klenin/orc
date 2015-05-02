@@ -31,7 +31,7 @@ func main() {
     flag.Parse()
 
     baseController := new(controllers.BaseController).Index()
-    baseController.Init(true)
+    baseController.Init(false)
     baseController.CreateRegistrationEvent()
     resources.LoadAdmin()
 
