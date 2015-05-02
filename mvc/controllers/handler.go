@@ -274,5 +274,5 @@ func (this *Handler) Login(user_id string) {
 
     sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
 
-    this.ShowCabinet()
+    http.Redirect(this.Response, this.Request, "/handler/showcabinet/users", 200)
 }
