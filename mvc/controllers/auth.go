@@ -5,7 +5,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "github.com/orc/mvc/models"
-    "github.com/orc/mailer"
+    // "github.com/orc/mailer"
     "strconv"
     "time"
     "net/http"
