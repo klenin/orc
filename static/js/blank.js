@@ -102,7 +102,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                 ShowBlank(data["data"], dialogId);
                 $("#"+dialogId+" #history").hide();
             },
-            "/gridhandler/getrequest"
+            "/gridhandler/getpersonrequestfromgroup"
         );
 
         $("#"+dialogId).dialog({
@@ -235,7 +235,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
             $("#"+responseId).text("Пароль должен иметь длину от 6 "
                 + "до 36 символов.").css("color", "red");
 
-        } else if (data.result === "notAuthorized") {
+        } else if (data.result === "Unauthorized") {
             $("#"+responseId).text("Пользователь не авторизован.").css("color", "red");
 
         } else if (data.result === "authorized") {

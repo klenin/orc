@@ -59,8 +59,8 @@ func QueryCreateSecuence(tableName string) {
 }
 
 func QueryCreateTable_(m interface{}) {
-    model := reflect.ValueOf(m).Elem()
-    tableName := model.FieldByName("TableName").String()
+    model := reflect.ValueOf(m)
+    tableName := model.Elem().FieldByName("TableName").String()
 
     QueryCreateSecuence(tableName)
     query := "CREATE TABLE IF NOT EXISTS %s ("
@@ -299,4 +299,24 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
     }
     rows.Close()
     return answer
+}
+
+func IsUserGroup(user_id, group_id int) (face_id int, err error) {
+    face_id = -1
+
+    query := `SELECT groups.face_id FROM groups
+        INNER JOIN faces ON faces.id = groups.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1 AND groups.id = $2;`
+
+    err = QueryRow(query, []interface{}{user_id, group_id}).Scan(&face_id)
+
+    if err != nil {
+        return face_id, err
+
+    } else if face_id == -1 {
+        return face_id, errors.New("Нет прав редактировать эту группу")
+    }
+
+    return face_id, nil
 }

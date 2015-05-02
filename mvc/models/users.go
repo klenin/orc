@@ -2,7 +2,7 @@ package models
 
 type User struct {
     Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Login   string `name:"login" type:"text" null:"NOT NULL" extra:""`
+    Login   string `name:"login" type:"text" null:"NOT NULL" extra:"UNIQUE"`
     Pass    string `name:"pass" type:"text" null:"NOT NULL" extra:""`
     Salt    string `name:"salt" type:"text" null:"NOT NULL" extra:""`
     Role    string `name:"role" type:"text" null:"NOT NULL" extra:""`

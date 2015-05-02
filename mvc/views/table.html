@@ -87,7 +87,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         sortname:      "id",
         sortorder:     "asc",
         multiselect:   true,
-        editurl:       "/gridhandler/edit/" + {{.TableName}},
+        editurl:       "/gridhandler/editgridrow/" + {{.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: ' + jqXHR.status + '\n'
                 + 'textStatus: ' + textStatus + '\n'

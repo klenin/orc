@@ -41,11 +41,8 @@ func HandleErr(message string, err error, w http.ResponseWriter) bool {
             return true
         }
 
-        if err.Error() == "sql: no rows in result set" {
-            return false
-        }
-
-        http.Error(w, fmt.Sprintf(message+"%v\n", err.Error()), http.StatusMethodNotAllowed)
+        fmt.Fprintf(w, "%s", message+err.Error())
+        // http.Error(w, fmt.Sprintf(message+"%v\n", err.Error()), -1)
         // os.Exit(1)
 
         return true

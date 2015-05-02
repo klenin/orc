@@ -8,6 +8,7 @@ import (
     "github.com/orc/mailer"
     "strconv"
     "time"
+    "net/http"
 )
 
 func (this *Handler) HandleLogin(login, pass string) interface{} {
@@ -16,7 +17,7 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
     var passHash, salt string
     result := make(map[string]interface{}, 1)
 
-    user := GetModel("users")
+    user := this.GetModel("users")
     user.LoadWherePart(map[string]interface{}{"login": login})
     err := db.SelectRow(user, []string{"id", "pass", "salt", "enabled"}).Scan(&id, &passHash, &salt, &enabled)
 
@@ -34,7 +35,7 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
 
         hash := utils.GetRandSeq(HASH_SIZE)
 
-        user := GetModel("users")
+        user := this.GetModel("users")
         user.LoadModelData(map[string]interface{}{"hash": hash})
         user.GetFields().(*models.User).Enabled = true
         user.LoadWherePart(map[string]interface{}{"id": id})
@@ -81,17 +82,17 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
         }
 
         var user_id int
-        user := GetModel("users")
+        user := this.GetModel("users")
         user.LoadModelData(map[string]interface{}{"login": login, "pass": pass, "salt": salt, "role": role, "token": token, "enabled": false})
         user.GetFields().(*models.User).Enabled = false
         db.QueryInsert_(user, "RETURNING id").Scan(&user_id)
 
         var face_id int
-        face := GetModel("faces")
+        face := this.GetModel("faces")
         face.LoadModelData(map[string]interface{}{"user_id": user_id})
         db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
 
-        registration := GetModel("registrations")
+        registration := this.GetModel("registrations")
         registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": 1})
         db.QueryInsert_(registration, "RETURNING id").Scan(&reg_id)
 
@@ -102,16 +103,16 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
 }
 
 func (this *Handler) ConfirmUser(token string) {
-    user := GetModel("users")
+    user := this.GetModel("users")
     user.LoadWherePart(map[string]interface{}{"token": token})
 
     var id int
     err := db.SelectRow(user, []string{"id"}).Scan(&id)
-    if utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response) && id != 0 {
+    if utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response) {
         return
     }
 
-    user = GetModel("users")
+    user = this.GetModel("users")
     user.LoadModelData(map[string]interface{}{"token": " ", "enabled": true})
     user.GetFields().(*models.User).Enabled = true
     user.LoadWherePart(map[string]interface{}{"id": id})
@@ -123,7 +124,7 @@ func (this *Handler) ConfirmUser(token string) {
 }
 
 func (this *Handler) RejectUser(token string) {
-    user := GetModel("users")
+    user := this.GetModel("users")
     user.LoadWherePart(map[string]interface{}{"token": token})
 
     var id string
@@ -138,4 +139,65 @@ func (this *Handler) RejectUser(token string) {
     if this.Response != nil {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Вы успешно отписаны от рассылок Secret Oasis.")
     }
+}
+
+func (this *Handler) ResetPassword() {
+    user_id := sessions.GetValue("id", this.Request)
+
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    // if !this.isAdmin() {
+    //     http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
+    //     return
+    // }
+
+    this.Response.Header().Set("Access-Control-Allow-Origin", "*")
+    this.Response.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    this.Response.Header().Set("Content-type", "application/json")
+
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(err.Error(), this.Response)
+        return
+    }
+
+    pass1 := request["pass1"].(string)
+    pass2 := request["pass2"].(string)
+
+    if !utils.MatchRegexp("^.{6,36}$", pass1) || !utils.MatchRegexp("^.{6,36}$", pass2) {
+        utils.SendJSReply(map[string]interface{}{"result": "badPassword"}, this.Response)
+        return
+    } else if pass1 != pass2 {
+        utils.SendJSReply(map[string]interface{}{"result": "differentPasswords"}, this.Response)
+        return
+    }
+
+    var id int
+
+    if request["id"] == nil {
+        id = user_id.(int)
+
+    } else {
+        id, err =  strconv.Atoi(request["id"].(string))
+        if utils.HandleErr("[Grid-Handler::ResetPassword] strconv.Atoi: ", err, this.Response) {
+            return
+        }
+    }
+
+    user := this.GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"id": id})
+
+    var salt string
+    var enabled bool
+    db.SelectRow(user, []string{"salt", "enabled"}).Scan(&salt, &enabled)
+
+    user.GetFields().(*models.User).Enabled = enabled
+
+    user.LoadModelData(map[string]interface{}{"pass": utils.GetMD5Hash(pass1 + salt)})
+    db.QueryUpdate_(user).Scan()
+
+    utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }

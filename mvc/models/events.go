@@ -29,9 +29,9 @@ func (c *ModelManager) Events() *EventsModel {
     model.Limit = "ALL"
     model.Offset = 0
 
-    model.Sub = true
-    model.SubTable = []string{"events_types"}
-    model.SubField = "event_id"
+    // model.Sub = true
+    // model.SubTable = []string{"events_types"}
+    // model.SubField = "event_id"
 
     return model
 }

@@ -6,7 +6,6 @@ import (
     "github.com/orc/sessions"
     "net/http"
     "html/template"
-    "fmt"
 )
 
 const HASH_SIZE = 32
@@ -44,20 +43,8 @@ type RequestModel struct {
     P []interface{} //params
 }
 
-func GetModel(tableName string) models.VirtEntity {
+func (this *Controller) GetModel(tableName string) models.VirtEntity {
     return new(models.ModelManager).GetModel(tableName)
-}
-
-func Init(runTest bool) {
-    if !runTest {
-        return
-    }
-
-    for i, v := range db.Tables {
-        db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", v), nil)
-        db.Exec(fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v), nil)
-        db.QueryCreateTable_(GetModel(db.Tables[i]))
-    }
 }
 
 func (this *Controller) Render(filenames []string, tmpname string, data interface{}) {
@@ -81,7 +68,7 @@ func (this *Controller) isAdmin() bool {
         return false
     }
 
-    user := GetModel("users")
+    user := this.GetModel("users")
     user.LoadWherePart(map[string]interface{}{"id": user_id})
     err := db.SelectRow(user, []string{"role"}).Scan(&role)
     if err != nil || role == "user" {
@@ -92,6 +79,7 @@ func (this *Controller) isAdmin() bool {
 }
 
 type VirtController interface {
+    GetModel(tableName string) models.VirtEntity
     Render(filename string, data interface{})
     isAdmin() bool
 }

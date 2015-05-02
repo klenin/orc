@@ -11,6 +11,11 @@ $(document).ready(function() {
     var data = {{.}};
     console.log("list: ", data);
 
+    if (data.length < 2) {
+        $("#list").text("Нет записей.");
+        return;
+    }
+
     for (i = 0; i < data.length; ++i) {
         var tr = $("<tr/>");
         for (var key in data[i]["data"]) {

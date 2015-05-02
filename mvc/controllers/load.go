@@ -9,6 +9,7 @@ import (
     "strconv"
     "encoding/json"
     "strings"
+    "errors"
 )
 
 func (this *GridHandler) Load(tableName string) {
@@ -18,6 +19,7 @@ func (this *GridHandler) Load(tableName string) {
     }
 
     if !this.isAdmin() {
+        utils.SendJSReply(map[string]interface{}{"result": errors.New("Forbidden")}, this.Response)
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
@@ -26,18 +28,21 @@ func (this *GridHandler) Load(tableName string) {
 
     if this.Request.PostFormValue("_search") == "true" {
         err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
-        if utils.HandleErr("[GridHandler::Load]: ", err, this.Response) {
+        if err != nil {
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
-    if utils.HandleErr("[GridHandler::Load] limit Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
-    if utils.HandleErr("[GridHandler::Load] page Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
@@ -45,7 +50,7 @@ func (this *GridHandler) Load(tableName string) {
     sidx := this.Request.FormValue("sidx")
     start := limit*page - limit
 
-    model := GetModel(tableName)
+    model := this.GetModel(tableName)
     where, params := model.Where(filters)
     query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+where+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
     rows := db.Query(query, append(params, []interface{}{limit, start}...))
@@ -76,12 +81,14 @@ func (this *Handler) GroupsLoad() {
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
-    if utils.HandleErr("[GridHandler::GroupsLoad] limit Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
-    if utils.HandleErr("[GridHandler::GroupsLoad] page Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
@@ -92,14 +99,12 @@ func (this *Handler) GroupsLoad() {
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
-
     rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM groups
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
-
     count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -127,12 +132,14 @@ func (this *Handler) RegistrationsLoad() {
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
-    if utils.HandleErr("[GridHandler::RegistrationsLoad] limit Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
-    if utils.HandleErr("[GridHandler::RegistrationsLoad] page Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
@@ -144,7 +151,6 @@ func (this *Handler) RegistrationsLoad() {
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
-
     rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM registrations
@@ -152,7 +158,6 @@ func (this *Handler) RegistrationsLoad() {
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
-
     count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -180,12 +185,14 @@ func (this *Handler) GroupRegistrationsLoad() {
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
-    if utils.HandleErr("[GridHandler::GroupRegistrationsLoad] limit Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
-    if utils.HandleErr("[GridHandler::GroupRegistrationsLoad] page Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
@@ -198,7 +205,6 @@ func (this *Handler) GroupRegistrationsLoad() {
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
-
     rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM group_registrations
@@ -207,7 +213,6 @@ func (this *Handler) GroupRegistrationsLoad() {
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
-
     count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -235,17 +240,20 @@ func (this *Handler) PersonsLoad(group_id string) {
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
-    if utils.HandleErr("[GridHandler::PersonsLoad] limit Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
-    if utils.HandleErr("[GridHandler::PersonsLoad] page Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
     id, err := strconv.Atoi(group_id)
-    if utils.HandleErr("[GridHandler::PersonsLoad] id Atoi: ", err, this.Response) {
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
@@ -276,7 +284,6 @@ func (this *Handler) PersonsLoad(group_id string) {
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = groups.face_id
         WHERE groups.id = $1;`
-
     count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int

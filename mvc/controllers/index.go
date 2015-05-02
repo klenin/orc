@@ -8,6 +8,7 @@ import (
     "net/http"
     "strconv"
     "time"
+    "fmt"
 )
 
 func (c *BaseController) Index() *IndexController {
@@ -21,6 +22,18 @@ type IndexController struct {
 func (this *IndexController) Index() {
     this.Response.Header().Set("Content-Type", "text/html; charset=utf-8")
     this.Render([]string{"mvc/views/login.html", "mvc/views/index.html"}, "index", nil)
+}
+
+func (this *IndexController) Init(runTest bool) {
+    if !runTest {
+        return
+    }
+
+    for i, v := range db.Tables {
+        db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", v), nil)
+        db.Exec(fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v), nil)
+        db.QueryCreateTable_(this.GetModel(db.Tables[i]))
+    }
 }
 
 func (this *IndexController) LoadContestsFromCats() {
@@ -44,7 +57,7 @@ func (this *IndexController) LoadContestsFromCats() {
 
     for _, v := range data["contests"].([]interface{}) {
         contest := v.(map[string]interface{})
-        event := GetModel("events")
+        event := this.GetModel("events")
         time_, err := time.Parse("20060102T150405", contest["start_time"].(string))
         if utils.HandleErr("[loadContestsFromCats] time.Parse: ", err, this.Response) {
             continue
@@ -69,24 +82,24 @@ func (this *IndexController) LoadContestsFromCats() {
 
 }
 
-func CreateRegistrationEvent() {
+func (this *IndexController) CreateRegistrationEvent() {
 
     var event_id int
-    events := GetModel("events")
+    events := this.GetModel("events")
     events.LoadModelData(map[string]interface{}{"name": "Регистрация для входа в систему", "date_start": "2006-01-02", "date_finish": "2006-01-02", "time": "00:00:00"})
     db.QueryInsert_(events, "RETURNING id").Scan(&event_id)
 
     var form_id1 int
-    forms := GetModel("forms")
+    forms := this.GetModel("forms")
     forms.LoadModelData(map[string]interface{}{"name": "Регистрационные данные"})
     db.QueryInsert_(forms, "RETURNING id").Scan(&form_id1)
 
-    eventsForms := GetModel("events_forms")
+    eventsForms := this.GetModel("events_forms")
     eventsForms.LoadModelData(map[string]interface{}{"form_id": form_id1, "event_id": event_id})
     db.QueryInsert_(eventsForms, "").Scan()
 
     var param_text_type_id int
-    paramTypes := GetModel("param_types")
+    paramTypes := this.GetModel("param_types")
     paramTypes.LoadModelData(map[string]interface{}{"name": "text"})
     db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_text_type_id)
 
@@ -94,7 +107,7 @@ func CreateRegistrationEvent() {
     paramTypes.LoadModelData(map[string]interface{}{"name": "password"})
     db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_pass_type_id)
 
-    params := GetModel("params")
+    params := this.GetModel("params")
     params.LoadModelData(map[string]interface{}{
         "name":          "Логин",
         "form_id":       form_id1,

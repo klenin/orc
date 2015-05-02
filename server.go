@@ -30,8 +30,9 @@ func main() {
     testData := flag.Bool("test-data", false, "to load test data")
     flag.Parse()
 
-    controllers.Init(false)
-    controllers.CreateRegistrationEvent()
+    baseController := new(controllers.BaseController).Index()
+    baseController.Init(false)
+    baseController.CreateRegistrationEvent()
     resources.LoadAdmin()
 
     if *testData == true {
@@ -42,6 +43,7 @@ func main() {
     // base.Index().LoadContestsFromCats()
 
     http.Handle("/", new(router.FastCGIServer))
+    http.HandleFunc("/handler/wellcometoprofile/", controllers.WellcomeToProfile)
     http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js"))))
     http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
     http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))

@@ -123,12 +123,12 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
         reqUtils.postRequest(
             { "pass1": $("#password-1").val(), "pass2": $("#password-2").val() },
             function(data) { utils.showServerPromtInDialog($("#dialog-reset-pass"), data["result"]); },
-            "/gridhandler/resetpassword"
+            "/handler/resetpassword"
         );
     })
 
+    $("#userData").append($("<div/>").text("Логин: "+{{.}}.userData[0].login));
     $("#userData").append($("<div/>").text({{.}}.userData[0].name+": "+{{.}}.userData[0].value));
-    if ({{.}}.userData[1]) $("#userData").append($("<div/>").text({{.}}.userData[1].name+": "+{{.}}.userData[1].value));
 
     var groupRefFields = {{.}}.group.RefFields;
     var groupRefData   = {};
@@ -225,7 +225,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
         caption:       {{.group.Caption}},
         sortname:      "id",
         sortorder:     "asc",
-        editurl:       "/gridhandler/edit/" + {{.group.TableName}},
+        editurl:       "/gridhandler/editgridrow/" + {{.group.TableName}},
         multiselect:   true,
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: ' + jqXHR.status + '\n'
@@ -285,7 +285,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                 sortname:    "num",
                 sortorder:   "asc",
                 height:      "100%",
-                editurl:     "/gridhandler/edit/"+{{.group.SubTableName}},
+                editurl:     "/gridhandler/editgridrow/"+{{.group.SubTableName}},
                 loadError: function (jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: ' + jqXHR.status + '\n'
                         + 'textStatus: ' + textStatus + '\n'
@@ -397,7 +397,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
         sortname:      "id",
         sortorder:     "asc",
         multiselect:   true,
-        editurl:       "/gridhandler/edit/" + {{.reg.TableName}},
+        editurl:       "/gridhandler/editgridrow/" + {{.reg.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: ' + jqXHR.status + '\n'
                 + 'textStatus: ' + textStatus + '\n'
@@ -453,7 +453,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
         caption:       {{.groupreg.Caption}},
         sortname:      "id",
         sortorder:     "asc",
-        editurl:       "/gridhandler/edit/" + {{.groupreg.TableName}},
+        editurl:       "/gridhandler/editgridrow/" + {{.groupreg.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: ' + jqXHR.status + '\n'
                 + 'textStatus: ' + textStatus + '\n'
@@ -512,7 +512,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                 sortname:    "num",
                 sortorder:   "asc",
                 height:      "100%",
-                editurl:     "/gridhandler/edit/"+{{.groupreg.SubTableName}},
+                editurl:     "/gridhandler/editgridrow/"+{{.groupreg.SubTableName}},
                 multiselect: true,
                 loadError: function (jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: ' + jqXHR.status + '\n'
