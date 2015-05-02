@@ -9,7 +9,6 @@ import (
     "net/http"
     "strconv"
     "strings"
-    "reflect"
     "github.com/orc/mailer"
 )
 
