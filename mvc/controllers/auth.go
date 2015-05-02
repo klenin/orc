@@ -77,9 +77,9 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
     } else {
         token := utils.GetRandSeq(HASH_SIZE)
 
-        if !mailer.SendConfirmEmail(login, email, token) {
-            return "badEmail", -1
-        }
+        // if !mailer.SendConfirmEmail(login, email, token) {
+        //     return "badEmail", -1
+        // }
 
         var user_id int
         user := this.GetModel("users")
