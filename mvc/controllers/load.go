@@ -72,7 +72,7 @@ func (this *GridHandler) Load(tableName string) {
     utils.SendJSReply(result, this.Response)
 }
 
-func (this *Handler) GroupsLoad() {
+func (this *Handler) UserGroupsLoad() {
     user_id := sessions.GetValue("id", this.Request)
 
     if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
@@ -103,6 +103,59 @@ func (this *Handler) GroupsLoad() {
 
     query = `SELECT COUNT(*) FROM groups
         INNER JOIN faces ON faces.id = groups.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1;`
+    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
+
+    var totalPages int
+    if count > 0 {
+        totalPages = int(math.Ceil(float64(count) / float64(limit)))
+    } else {
+        totalPages = 0
+    }
+
+    result := make(map[string]interface{}, 2)
+    result["rows"] = rows
+    result["page"] = page
+    result["total"] = totalPages
+    result["records"] = count
+
+    utils.SendJSReply(result, this.Response)
+}
+
+func (this *Handler) GroupsLoad() {
+    user_id := sessions.GetValue("id", this.Request)
+
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    page, err := strconv.Atoi(this.Request.PostFormValue("page"))
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    sidx := this.Request.FormValue("sidx")
+    start := limit*page - limit
+
+    query := `SELECT groups.id, groups.name FROM groups
+        INNER JOIN persons ON persons.group_id = groups.id
+        INNER JOIN faces ON faces.id = persons.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
+    rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
+
+    query = `SELECT COUNT(*) FROM groups
+        INNER JOIN persons ON persons.group_id = groups.id
+        INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
     count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
