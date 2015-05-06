@@ -69,40 +69,40 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
 
     $("#grid-table").jqGrid({
         url:           "/gridhandler/load/" + {{.TableName}},
-        datatype:      "json",
-        mtype:         "POST",
-        treeGrid:      false,
-        colNames:      {{.ColNames}},
-        colModel:      colModel_,
-        pager:         "#grid-table-pager",
-        gridview:      true,
-        viewrecords:   true,
-        height:        "100%",
-        width:         "auto",
-        rowNum:        5,
-        rownumbers:    true,
-        rownumWidth:   20,
-        rowList:       [5, 10, 20, 50],
-        caption:       {{.Caption}},
-        sortname:      "id",
-        sortorder:     "asc",
-        multiselect:   true,
-        editurl:       "/gridhandler/editgridrow/" + {{.TableName}},
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+        datatype "json",
+        mtype "POST",
+        treeGrid false,
+        colNames {{.ColNames}},
+        colModel colModel_,
+        pager "#grid-table-pager",
+        gridview true,
+        viewrecords true,
+        height "100%",
+        width "auto",
+        rowNum 5,
+        rownumbers true,
+        rownumWidth 20,
+        rowList [5, 10, 20, 50],
+        caption {{.Caption}},
+        sortname "id",
+        sortorder "asc",
+        multiselect true,
+        editurl "/gridhandler/editgridrow/" + {{.TableName}},
+        loadError function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code ' + jqXHR.status + '\n'
+                + 'textStatus ' + textStatus + '\n'
+                + 'errorThrown ' + errorThrown);
+            alert('HTTP message body: ' + jqXHR.responseText);
         },
 
-        subGrid:            {{.Sub}},
-        subGridOptions:     {
-                                "plusicon": "ui-icon-triangle-1-e",
-                                "minusicon": "ui-icon-triangle-1-s",
-                                "openicon": "ui-icon-arrowreturn-1-e",
-                                "reloadOnExpand": true,
-                                "selectOnExpand": true
-                            },
+        subGrid {{.Sub}},
+        subGridOptionsfaces{
+            "plusicon": "ui-icon-triangle-1-e",
+            "minusicon": "ui-icon-triangle-1-s",
+            "openicon": "ui-icon-arrowreturn-1-e",
+            "reloadOnExpand": true,
+            "selectOnExpand": true
+        },
         subGridRowExpanded: function(subgrid_id, row_id) {
                                 grid.AddSubTable(subgrid_id, row_id, "0", {{.TableName}}, "grid-table");
                             }
@@ -111,19 +111,19 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
     $("#grid-table").navGrid(
         "#grid-table-pager",
         {   // buttons
-            edit:    true,
-            add:     {{.TableName}} == "users" ? false : true,
-            del:     true,
+            edit: true,
+            add: {{.TableName}} == "users" ? false : true,
+            del: true,
             refresh: false,
-            view:    false,
-            search:  true
+            view: false,
+            search: true
         },
         {   // edit
-            width:           "100%",
-            recreateForm:    true,
-            afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
+            width: "100%",
+            recreateForm: true,
+            afterSubmit: function(data) { return utils.errTextFormat(data, "grid-table"); },
             errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
-            beforeShowForm:  function() {
+            beforeShowForm: function() {
                 if ({{.TableName}} == "registrations") {
                     var id = utils.getCurrRowId("grid-table");
                     var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
@@ -143,14 +143,14 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             }
         },
         {   // add
-            width:           "100%",
-            recreateForm:    true,
-            addedrow:        "last",
-            afterSubmit:     function(data) { return utils.errTextFormat(data, "grid-table"); },
+            width: "100%",
+            recreateForm: true,
+            addedrow: "last",
+            afterSubmit: function(data) { return utils.errTextFormat(data, "grid-table"); },
             errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
         },
         {   // del
-            closeAfterAdd:  true,
+            closeAfterAdd: true,
         },
         {   // search
             // multipleGroup: true,
@@ -303,8 +303,8 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
     $("#grid-table").jqGrid(
         "filterToolbar",
         {
-            stringResult:  true,
-            searchOnEnter: false,
+            stringResult: true,
+            searchOnEnter: true,
             defaultSearch: "cn"
         }
     );
