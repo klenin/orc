@@ -5,11 +5,15 @@ function(utils, datepicker, blank) {
         console.log("GetColModelItem");
 
         function timePicker(e) {
-            $(e).timepicker({"timeFormat": "HH:mm"});
+            $(e).timepicker({"timeFormat": "HH:mm:ss"});
         }
 
         function timeFormat(cellvalue, options, rowObject) {
             return cellvalue.slice(11, 19);
+        }
+
+        function dateFormat(cellvalue, options, rowObject) {
+            return cellvalue.slice(0, 10);
         }
 
         var data = {};
@@ -29,15 +33,32 @@ function(utils, datepicker, blank) {
         //     data["editable"] = false;
 
         } else if (field.indexOf("date") > -1) {
-            data["formatter"] = "date";
+            data["formatter"] = dateFormat;
             data["editrules"].date = true;
             data["formatoptions"] = {srcformat: 'Y-m-d', newformat: 'Y-m-d'};
             data["editoptions"] = {dataInit: datepicker.initDatePicker};
+            data["searchoptions"] = {
+                sopt: ['eq', 'ne'],
+                dataInit: function(e) { datepicker.initDatePicker(e); }
+            };
 
         } else if (field == "time") {
             data["formatter"] = timeFormat;
-            data["editrules"].time = true;
-            data["editoptions"] = {dataInit: timePicker};
+            // data["editrules"].time = true;
+            data["editrules"].custom = true;
+            data["editrules"].custom_func = function(e) {
+                console.log(e);
+                var pattern = /^[0-2][0-9]:[0-6][0-9]:[0-6][0-9]$/;
+                if (!(pattern.test(e))) {
+                    return [false, "Неверный формат времени. (HH:mm:ss)"];
+                }
+
+                return [true, ""];
+            };
+            data["searchoptions"] = {
+                sopt: ['eq', 'ne'],
+                dataInit: function(el) { timePicker(el); }
+            };
 
         } else if (field == "topicality" || field == "status" || field == "enabled") {
             data["formatter"] = "checkbox";
@@ -48,6 +69,7 @@ function(utils, datepicker, blank) {
         } else if (field == "url") {
             data["formatter"] = "link";
             data["editrules"].required = false;
+            data["editrules"].url = true;
 
         } else if (field == "avatar") {
             data["manual"] = true;
