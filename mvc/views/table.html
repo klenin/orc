@@ -68,35 +68,35 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
     console.log(colModel_);
 
     $("#grid-table").jqGrid({
-        url:           "/gridhandler/load/" + {{.TableName}},
-        datatype "json",
-        mtype "POST",
-        treeGrid false,
-        colNames {{.ColNames}},
-        colModel colModel_,
-        pager "#grid-table-pager",
-        gridview true,
-        viewrecords true,
-        height "100%",
-        width "auto",
-        rowNum 5,
-        rownumbers true,
-        rownumWidth 20,
-        rowList [5, 10, 20, 50],
-        caption {{.Caption}},
-        sortname "id",
-        sortorder "asc",
-        multiselect true,
-        editurl "/gridhandler/editgridrow/" + {{.TableName}},
-        loadError function (jqXHR, textStatus, errorThrown) {
+        url: "/gridhandler/load/" + {{.TableName}},
+        datatype: "json",
+        mtype: "POST",
+        treeGrid: false,
+        colNames: {{.ColNames}},
+        colModel: colModel_,
+        pager: "#grid-table-pager",
+        gridview: true,
+        viewrecords: true,
+        height: "100%",
+        width: "auto",
+        rowNum: 5,
+        rownumbers: true,
+        rownumWidth: 20,
+        rowList: [5, 10, 20, 50],
+        caption: {{.Caption}},
+        sortname: "id",
+        sortorder: "asc",
+        multiselect: true,
+        editurl: "/gridhandler/editgridrow/" + {{.TableName}},
+        loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code ' + jqXHR.status + '\n'
                 + 'textStatus ' + textStatus + '\n'
                 + 'errorThrown ' + errorThrown);
             alert('HTTP message body: ' + jqXHR.responseText);
         },
 
-        subGrid {{.Sub}},
-        subGridOptionsfaces{
+        subGrid: {{.Sub}},
+        subGridOptionsfaces: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
             "openicon": "ui-icon-arrowreturn-1-e",
