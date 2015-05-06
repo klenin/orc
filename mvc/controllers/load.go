@@ -52,6 +52,9 @@ func (this *GridHandler) Load(tableName string) {
 
     model := this.GetModel(tableName)
     where, params := model.Where(filters)
+    if len(where) < 8 {
+        where = ""
+    }
     query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+where+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
     rows := db.Query(query, append(params, []interface{}{limit, start}...))
     count := db.SelectCount(tableName)
