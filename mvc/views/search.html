@@ -1,0 +1,281 @@
+{{define "search"}}
+{{template "header"}}
+
+<link rel="stylesheet"
+      href="/css/jquery.kladr.min.css">
+
+<script type="text/javascript"
+        src="/js/kladr/jquery.kladr.min.js"></script>
+
+<div id="container">
+    <p>
+        <div hidden="true" id="dialog-person-request" title="Анкета"></div>        
+    </p>
+
+    <p>
+        <table id="params-table"></table>
+        <div id="params-table-pager"></div>
+    </p>
+
+    <p>
+        <table id="faces-table"></table>
+        <div id="faces-table-pager"></div>
+    </p>
+
+    <div id="error"></div>
+</div>
+
+<script type="text/javascript">
+require(["utils", "custom-grid", "grid-utils", "blank"],
+function(reqUtils, grid, utils, blank) {
+
+    var paramsRefFields = {{.params.RefFields}};
+    var paramsRefData   = {};
+    var paramsColModel_ = [];
+
+    {{with .params.RefData}}
+        {{range $index, $elmt := .}}
+            paramsRefData[{{$index}}] = [];
+            {{range $i, $v := $elmt}}
+                paramsRefData[{{$index}}][{{$i}}] = {};
+                {{range $j, $k := $v}}
+                    paramsRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
+                {{end}}
+            {{end}}
+        {{end}}
+    {{end}}
+
+    {{with .params.Columns}}
+        {{range $i, $v := .}}
+            paramsColModel_.push(grid.GetColModelItem(paramsRefData, paramsRefFields, {{$v}}))
+        {{end}}
+    {{end}}
+
+    console.log("paramsRefData");
+    console.log(paramsRefData);
+    console.log("paramsColModel");
+    console.log(paramsColModel_);
+
+    var facesRefFields = {{.faces.RefFields}};
+    var facesRefData   = {};
+    var facesColModel_ = [];
+
+    var filterData = {{.filter}}
+
+    {{with .faces.RefData}}
+        {{range $index, $elmt := .}}
+            facesRefData[{{$index}}] = [];
+            {{range $i, $v := $elmt}}
+                facesRefData[{{$index}}][{{$i}}] = {};
+                {{range $j, $k := $v}}
+                    facesRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
+                {{end}}
+            {{end}}
+        {{end}}
+    {{end}}
+
+    {{with .faces.Columns}}
+        {{range $i, $v := .}}
+            facesColModel_.push(grid.GetColModelItem(facesRefData, facesRefFields, {{$v}}))
+        {{end}}
+    {{end}}
+
+    console.log("facesRefData");
+    console.log(facesRefData);
+    console.log("facesColModel");
+    console.log(facesColModel_);
+
+    var filter = {};
+
+    $("#params-table").jqGrid({
+        url: "/gridhandler/load/" + {{.params.TableName}},
+        datatype: "json",
+        mtype: "POST",
+        treeGrid: false,
+        colNames: {{.params.ColNames}},
+        colModel: paramsColModel_,
+        pager: "#params-table-pager",
+        gridview: true,
+        viewrecords: true,
+        height: "100%",
+        width: "auto",
+        rowNum: 5,
+        rownumbers: true,
+        rownumWidth: 20,
+        rowList: [5, 10, 20, 50],
+        caption: {{.params.Caption}},
+        sortname: "id",
+        sortorder: "asc",
+        multiselect: true,
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: ' + jqXHR.status + '\n'
+                + 'textStatus: ' + textStatus + '\n'
+                + 'errorThrown: ' + errorThrown);
+            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+        },
+        loadComplete: function() {
+            $("#faces-table").trigger('reloadGrid')
+        },
+        beforeRequest: function() {
+            filter = $("#params-table").getGridParam("postData").filters;
+        }
+    });
+
+    $("#params-table").navGrid(
+        "#params-table-pager",
+        {   // buttons
+            edit: false,
+            add: false,
+            del: false,
+            refresh: false,
+            view: false,
+            search: true
+        }, {}, {}, {},
+        {   // search
+            // multipleGroup: true,
+            closeOnEscape: true,
+            multipleSearch: true,
+            closeAfterSearch: true
+        });
+
+    $(window).bind("resize", function() {
+        $("#params-table").setGridWidth($(window).width()-50, true);
+    }).trigger("resize");
+
+    $("#faces-table").jqGrid({
+        url: "/gridhandler/load/search",
+        datatype: "json",
+        mtype: "POST",
+        treeGrid: false,
+        colNames: {{.faces.ColNames}},
+        colModel: facesColModel_,
+        pager: "#faces-table-pager",
+        gridview: true,
+        viewrecords: true,
+        height: "100%",
+        width: "auto",
+        rowNum: 5,
+        rownumbers: true,
+        rownumWidth: 20,
+        rowList: [5, 10, 20, 50],
+        caption: {{.faces.Caption}},
+        sortname: "id",
+        sortorder: "asc",
+        multiselect: true,
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: ' + jqXHR.status + '\n'
+                + 'textStatus: ' + textStatus + '\n'
+                + 'errorThrown: ' + errorThrown);
+            alert('HTTP message body: ' + jqXHR.responseText);
+        },
+        beforeRequest: function() {
+            $("#faces-table").setGridParam({ postData: {
+                "filters": filter ? filter : null,
+            } });
+        },
+        subGrid: {{.faces.Sub}},
+        subGridOptions: {
+            "plusicon": "ui-icon-triangle-1-e",
+            "minusicon": "ui-icon-triangle-1-s",
+            "openicon": "ui-icon-arrowreturn-1-e",
+            "reloadOnExpand": true,
+            "selectOnExpand": true
+        },
+        subGridRowExpanded: function(subgrid_id, row_id) {
+            $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
+                + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
+
+            var user_id = $("#faces-table").jqGrid("getCell", row_id, "user_id");
+
+            var RefData = {};
+
+            {{with .faces.SubRefData}}
+                {{range $index, $elmt := .}}
+                    RefData[{{$index}}] = [];
+                    {{range $i, $v := $elmt}}
+                        RefData[{{$index}}][{{$i}}] = {};
+                        {{range $j, $k := $v}}
+                            RefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
+                        {{end}}
+                    {{end}}
+                {{end}}
+            {{end}}
+
+            var ColModel_ = [];
+            var refFields = {{.}}.faces.SubRefFields;
+
+            {{with .faces.SubColumns}}
+                {{range $i, $v := .}}
+                    ColModel_.push(grid.GetColModelItem(RefData, refFields, {{$v}}))
+                {{end}}
+            {{end}}
+
+            $("#" + subgrid_id + "_t").jqGrid({
+                url: "/handler/"+{{.faces.SubTableName}}.replace(/_/g, "")+"load/"+user_id,
+                datatype: "json",
+                mtype: "POST",
+                colNames: {{.faces.SubColNames}},
+                colModel: ColModel_,
+                rowNum: 5,
+                rowList: [5, 10, 20, 50],
+                pager: "#" + subgrid_id + "_p",
+                caption: {{.faces.SubCaption}},
+                sortname: "num",
+                sortorder: "asc",
+                height: "100%",
+                width: $("#faces-table").width()-65,
+                editurl: "/gridhandler/editgridrow/"+{{.faces.SubTableName}},
+                multiselect: true,
+                loadError: function (jqXHR, textStatus, errorThrown) {
+                    alert('HTTP status code: ' + jqXHR.status + '\n'
+                        + 'textStatus: ' + textStatus + '\n'
+                        + 'errorThrown: ' + errorThrown);
+                    alert('HTTP message body: ' + jqXHR.responseText);
+                },
+            });
+
+            $("#"+subgrid_id + "_t").navGrid(
+                "#"+subgrid_id + "_p",
+                {
+                    edit: false,
+                    add: false,
+                    del: false,
+                    refresh: false,
+                    view: false,
+                    search: false
+                }
+            );
+
+            $("#"+subgrid_id + "_t").jqGrid(
+                "navButtonAdd",
+                "#"+subgrid_id + "_p",
+                {
+                    caption: "", buttonicon: "ui-icon-script", title: "Анкета",
+                    onClickButton: function() { blank.ShowPersonBlank("dialog-person-request", subgrid_id + "_t"); }
+                }
+            );
+
+            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["face_id"]);
+        }
+    });
+
+    $("#faces-table").navGrid(
+        "#faces-table-pager",
+        {   // buttons
+            edit: false,
+            add: false,
+            del: false,
+            refresh: true,
+            view: false,
+            search: false
+    });
+
+    $(window).bind("resize", function() {
+        $("#faces-table").setGridWidth($(window).width()-50, true);
+    }).trigger("resize");
+
+});
+</script>
+
+{{template "footer"}}
+{{end}}

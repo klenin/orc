@@ -66,6 +66,44 @@ func (this *GridHandler) CreateGrid(tableName string) {
         return
     }
 
+    if tableName == "search" {
+        model := this.GetModel("faces")
+        refFields, refData := model.GetModelRefDate()
+
+        regs := this.GetModel("registrations")
+        regsRefFields, regsRefData := regs.GetModelRefDate()
+
+        faces := Model{
+            RefData:      refData,
+            RefFields:    refFields,
+            TableName:    model.GetTableName(),
+            ColNames:     model.GetColNames(),
+            Columns:      model.GetColumns(),
+            Caption:      model.GetCaption(),
+            Sub:          true,
+            SubTableName: regs.GetTableName(),
+            SubCaption:   regs.GetCaption(),
+            SubRefData:   regsRefData,
+            SubRefFields: regsRefFields,
+            SubColumns:   regs.GetColumns(),
+            SubColNames:  regs.GetColNames()}
+
+        model = this.GetModel("param_values")
+        refFields, refData = model.GetModelRefDate()
+
+        params := Model{
+            RefData:   refData,
+            RefFields: refFields,
+            TableName: model.GetTableName(),
+            ColNames:  model.GetColNames(),
+            Columns:   model.GetColumns(),
+            Caption:   model.GetCaption(),
+            Sub:       model.GetSub()}
+
+        this.Render([]string{"mvc/views/search.html"}, "search", map[string]interface{}{"params": params, "faces": faces})
+            return
+    }
+
     model := this.GetModel(tableName)
     refFields, refData := model.GetModelRefDate()
 

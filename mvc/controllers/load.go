@@ -50,6 +50,59 @@ func (this *GridHandler) Load(tableName string) {
     sidx := this.Request.FormValue("sidx")
     start := limit*page - limit
 
+    if tableName == "search" {
+        model := this.GetModel("param_values")
+
+        var filters map[string]interface{}
+
+        err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
+        if err != nil {
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            return
+        }
+
+        where, params := model.Where(filters)
+
+        query := `SELECT faces.id, faces.user_id
+            FROM reg_param_vals
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params ON params.id = param_values.param_id
+            INNER JOIN users ON users.id = faces.user_id` + where + ` ORDER BY params.id ` + sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
+
+        rows := db.Query(query, append(params, []interface{}{limit, start}...))
+
+        query = `SELECT COUNT(*)
+            FROM reg_param_vals
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params ON params.id = param_values.param_id
+            INNER JOIN users ON users.id = faces.user_id` + where + `;`
+
+        count := int(db.Query(query, params)[0].(map[string]interface{})["count"].(int))
+
+        var totalPages int
+        if count > 0 {
+            totalPages = int(math.Ceil(float64(count) / float64(limit)))
+        } else {
+            totalPages = 0
+        }
+
+        result := make(map[string]interface{}, 4)
+        result["rows"] = rows
+        result["page"] = page
+        result["total"] = totalPages
+        result["records"] = count
+
+        utils.SendJSReply(result, this.Response)
+
+        return
+    }
+
     model := this.GetModel(tableName)
     where, params := model.Where(filters)
     if len(where) < 8 {
@@ -179,7 +232,7 @@ func (this *Handler) GroupsLoad() {
     utils.SendJSReply(result, this.Response)
 }
 
-func (this *Handler) RegistrationsLoad() {
+func (this *Handler) RegistrationsLoad(userId string) {
     user_id := sessions.GetValue("id", this.Request)
 
     if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
@@ -202,6 +255,14 @@ func (this *Handler) RegistrationsLoad() {
     sidx := this.Request.FormValue("sidx")
     start := limit*page - limit
 
+    if this.isAdmin() {
+        user_id, err = strconv.Atoi(userId)
+        if err != nil {
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            return
+        }
+
+    }
     query := `SELECT registrations.id, registrations.event_id, registrations.status FROM registrations
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id

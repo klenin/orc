@@ -19,6 +19,12 @@
             href: "/gridhandler/creategrid/" + {{.Columns}}[i]
         }).appendTo("#cabinet");
     }
+    $("<a/>", {
+        class: "tables",
+        text: "Поиск участников",
+        id: "search",
+        href: "/gridhandler/creategrid/search"
+    }).appendTo("#cabinet");
 </script>
 
 {{template "footer"}}
