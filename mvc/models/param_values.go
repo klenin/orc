@@ -38,6 +38,16 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
     return model
 }
 
+func (this *ParamValuesModel) GetModelRefDate() (fields []string, result map[string]interface{}) {
+    fields = []string{"name"}
+
+    query := `SELECT params.id, forms.name || ': ' || params.name as name
+        FROM params
+        INNER JOIN forms ON forms.id = params.form_id ORDER BY params.id`
+
+    return fields, map[string]interface{}{"param_id": db.Query(query, nil)}
+}
+
 func (this *ParamValuesModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
     if len(fields) == 0 {
         return nil
@@ -51,7 +61,7 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
             query += "param_values.id, "
             break
         case "param_id":
-            query += "params.name, "
+            query += "forms.name || ': ' || params.name as name, "
             break
         case "value":
             query += "param_values.value, "
@@ -61,7 +71,9 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
 
     query = query[:len(query)-2]
 
-    query += ` FROM param_values INNER JOIN params ON params.id = param_values.param_id`
+    query += ` FROM param_values
+        INNER JOIN params ON params.id = param_values.param_id
+        INNER JOIN forms ON forms.id = params.form_id`
 
     where, params := this.Where(filters)
     query += where
