@@ -55,7 +55,6 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                 "value": $(this).val(),
                 "param_val_id": $(this).attr("param_val_id"),
                 "id": $(this).attr("id"),
-                "event_type_id": $(this).attr("event_type_id"),
             });
         });
 
