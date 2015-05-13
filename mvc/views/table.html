@@ -1,4 +1,4 @@
-﻿{{define "table"}}
+{{define "table"}}
 {{template "header"}}
 
 <link rel="stylesheet"
@@ -87,6 +87,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         sortname: "id",
         sortorder: "asc",
         multiselect: true,
+        sortable: true,
         editurl: "/gridhandler/editgridrow/" + {{.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code ' + jqXHR.status + '\n'
