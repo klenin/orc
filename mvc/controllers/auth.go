@@ -48,10 +48,34 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
 }
 
 func (this *Handler) HandleLogout() interface{} {
-    result := map[string]string{"result": "ok"}
+    user_id := sessions.GetValue("id", this.Request)
+    user_hash := sessions.GetValue("hash", this.Request)
+
+    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil || user_hash == nil || user_hash == " " {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return map[string]string{"result": "badSid"}
+    }
+
+    user := this.GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"id": user_id, "hash": user_hash})
+
+    var id string
+    var enabled bool
+    err := db.SelectRow(user, []string{"id", "enabled"}).Scan(&id, &enabled)
+    if err != nil {
+        utils.HandleErr("[Handle::HandleLogout]: ", err, this.Response)
+        return map[string]string{"result": "badSid"}
+    }
+
+    user = this.GetModel("users")
+    user.LoadModelData(map[string]interface{}{"hash": " "})
+    user.GetFields().(*models.User).Enabled = enabled
+    user.LoadWherePart(map[string]interface{}{"id": id})
+    db.QueryUpdate_(user).Scan()
+
     sessions.ClearSession(this.Response)
 
-    return result
+    return map[string]string{"result": "ok"}
 }
 
 func (this *Handler) HandleRegister_(login, password, email, role string) (result string, reg_id int) {
