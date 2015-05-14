@@ -87,6 +87,8 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         sortname: "id",
         sortorder: "asc",
         multiselect: true,
+        multiselectWidth: 20,
+        multiboxonly: true,
         sortable: true,
         editurl: "/gridhandler/editgridrow/" + {{.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
@@ -94,6 +96,11 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
                 + 'textStatus ' + textStatus + '\n'
                 + 'errorThrown ' + errorThrown);
             alert('HTTP message body: ' + jqXHR.responseText);
+        },
+        gridComplete: function() {
+            $("#grid-table_cb").css("width", "20px");
+            $("#grid-table tbody tr").children().first("td").css("width", "24px");
+            $($("#grid-table tbody tr").children()[1]).css("width", "24px");
         },
 
         subGrid: {{.Sub}},
