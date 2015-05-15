@@ -198,25 +198,6 @@ func (this *Entity) SetOffset(offset int) {
     reflect.ValueOf(this).Elem().FieldByName("Offset").SetInt(int64(offset))
 }
 
-func (this *Entity) GetModelRefDate() (fields []string, result map[string]interface{}) {
-    result = make(map[string]interface{})
-    rt := reflect.ValueOf(this.Fields).Type()
-
-    for i := 0; i < rt.Elem().NumField(); i++ {
-        refFieldShow := rt.Elem().Field(i).Tag.Get("refFieldShow")
-        if refFieldShow != "" {
-            fields = append(fields, refFieldShow)
-            refField := rt.Elem().Field(i).Tag.Get("refField")
-            m := new(ModelManager).GetModel(rt.Elem().Field(i).Tag.Get("refTable"))
-            data := db.Select(m, []string{refField, refFieldShow})
-            result[rt.Elem().Field(i).Tag.Get("name")] = make([]interface{}, len(data))
-            result[rt.Elem().Field(i).Tag.Get("name")] = data
-        }
-    }
-
-    return fields, result
-}
-
 func (this *Entity) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
     if len(fields) == 0 {
         return nil
@@ -387,7 +368,6 @@ type VirtEntity interface {
     GetColumnByIdx(index int) string
     GetColumnSlice(index int) []string
 
-    GetModelRefDate() (fields []string, result map[string]interface{})
     Where(filters map[string]interface{}) (where string, params []interface{})
     Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{})
 

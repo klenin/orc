@@ -93,11 +93,7 @@ func (this *GridHandler) CreateGrid(tableName string) {
     }
 
     model := this.GetModel(tableName)
-    refFields, refData := model.GetModelRefDate()
-
     this.Render([]string{"mvc/views/table.html"}, "table", Model{
-        RefData:   refData,
-        RefFields: refFields,
         ColModel:  model.GetColModel(),
         TableName: model.GetTableName(),
         ColNames:  model.GetColNames(),
