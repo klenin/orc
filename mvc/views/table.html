@@ -40,40 +40,13 @@
 require(["utils", "custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "blank", "reg-group"],
 function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
 
-    var refFields = {{.RefFields}};
-    var refData   = {};
-    var colModel_ = [];
-
-    {{with .RefData}}
-        {{range $index, $elmt := .}}
-            refData[{{$index}}] = [];
-            {{range $i, $v := $elmt}}
-                refData[{{$index}}][{{$i}}] = {};
-                {{range $j, $k := $v}}
-                    refData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                {{end}}
-            {{end}}
-        {{end}}
-    {{end}}
-
-    {{with .Columns}}
-        {{range $i, $v := .}}
-            colModel_.push(grid.GetColModelItem(refData, refFields, {{$v}}))
-        {{end}}
-    {{end}}
-
-    console.log("refData");
-    console.log(refData);
-    console.log("colModel");
-    console.log(colModel_);
-
     $("#grid-table").jqGrid({
         url: "/gridhandler/load/" + {{.TableName}},
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
         colNames: {{.ColNames}},
-        colModel: colModel_,
+        colModel: grid.SetPrimitive({{.ColModel}}),
         pager: "#grid-table-pager",
         gridview: true,
         viewrecords: true,

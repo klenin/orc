@@ -90,3 +90,55 @@ func (this *GroupRegistrationModel) Select(fields []string, filters map[string]i
 
     return db.Query(query, params)
 }
+
+func (this *GroupRegistrationModel) GetColModel() []map[string]interface{} {
+    query := `SELECT array_to_string(
+        array(SELECT events.id || ':' || events.name FROM events GROUP BY events.id ORDER BY events.id), ';') as name;`
+    events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    query = `SELECT array_to_string(
+        array(SELECT groups.id || ':' || groups.name FROM groups GROUP BY groups.id ORDER BY groups), ';') as name;`
+    groups := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "event_id",
+            "name": "event_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": events},
+            "searchoptions": map[string]string{"value": ":Все;"+events},
+        },
+        2: map[string]interface{} {
+            "index": "group_id",
+            "name": "group_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": groups},
+            "searchoptions": map[string]string{"value": ":Все;"+groups},
+        },
+        3: map[string]interface{} {
+            "index": "status",
+            "name": "status",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+            "formatter": "checkbox",
+            "formatoptions": map[string]interface{}{"disabled": true},
+            "edittype": "checkbox",
+            "editoptions": map[string]interface{}{"value": "true:false"},
+        },
+    }
+}

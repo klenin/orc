@@ -1,105 +1,42 @@
 define(["utils", "datepicker/datepicker", "blank"],
 function(utils, datepicker, blank) {
 
-    function GetColModelItem(refData, refFields, field) {
-        console.log("GetColModelItem");
+    function timePicker(e) {
+        $(e).timepicker({"timeFormat": "HH:mm:ss"});
+    }
 
-        function timePicker(e) {
-            $(e).timepicker({"timeFormat": "HH:mm:ss"});
+    function timeFormat(cellvalue, options, rowObject) {
+        return cellvalue.slice(11, 19);
+    }
+
+    function timeValidator(e) {
+        var pattern = /^[0-2][0-9]:[0-6][0-9]:[0-6][0-9]$/;
+        if (!(pattern.test(e))) {
+            return [false, "Неверный формат времени. (HH:mm:ss)"];
         }
 
-        function timeFormat(cellvalue, options, rowObject) {
-            return cellvalue.slice(11, 19);
-        }
+        return [true, ""];
+    }
 
-        function dateFormat(cellvalue, options, rowObject) {
-            return cellvalue.slice(0, 10);
-        }
+    function dateFormat(cellvalue, options, rowObject) {
+        return cellvalue.slice(0, 10);
+    }
 
-        var data = {};
-        data["name"] = field;
-        data["index"] = field;
-        data["editable"] = true;
-        data["editrules"] = {required: true};
-        data["searchoptions"] = {};
-
-        // if ((field.indexOf("id") > -1)) {
-        if (field == "id") {
-            data["editable"] = false;
-
-        // } else if (field.indexOf("id") > -1) {
-        //     data["editrules"].edithidden = true;
-        //     data["hidden"] = true;
-        //     data["editable"] = false;
-
-        } else if (field.indexOf("date") > -1) {
-            data["formatter"] = dateFormat;
-            data["editrules"].date = true;
-            data["formatoptions"] = {srcformat: 'Y-m-d', newformat: 'Y-m-d'};
-            data["editoptions"] = {dataInit: datepicker.initDatePicker};
-            data["searchoptions"] = {
-                sopt: ['eq', 'ne'],
-                dataInit: function(e) { datepicker.initDatePicker(e); }
-            };
-
-        } else if (field == "time") {
-            data["formatter"] = timeFormat;
-            // data["editrules"].time = true;
-            data["editrules"].custom = true;
-            data["editrules"].custom_func = function(e) {
-                console.log(e);
-                var pattern = /^[0-2][0-9]:[0-6][0-9]:[0-6][0-9]$/;
-                if (!(pattern.test(e))) {
-                    return [false, "Неверный формат времени. (HH:mm:ss)"];
-                }
-
-                return [true, ""];
-            };
-            data["searchoptions"] = {
-                sopt: ['eq', 'ne'],
-                dataInit: function(el) { timePicker(el); }
-            };
-
-        } else if (field == "topicality" || field == "status" || field == "enabled") {
-            data["formatter"] = "checkbox";
-            data["edittype"] = "checkbox";
-            data["editoptions"] = {value: "true:false"};
-            data["formatoptions"] = {disabled: true};
-
-        } else if (field == "url") {
-            data["formatter"] = "link";
-            data["editrules"].required = false;
-            data["editrules"].url = true;
-
-        } else if (field == "avatar") {
-            data["manual"] = true;
-            data["edittype"] = "file";
-            data["sortable"] = false;
-            data["search"] = false;
-            data["editoptions"] = {enctype: "multipart/form-data"};
-        }
-
-        if (refData[field] != null) {
-            data["formatter"] = "select";
-            data["edittype"] = "select";
-            data["stype"] = "select";
-            data["search"] = true;
-            var str = "", f;
-            for (var i = 0; i < refData[field].length; ++i) {
-                for (var k = 0; k < refFields.length; ++k) {
-                    if (refFields[k] in refData[field][i]) {
-                        f = refFields[k];
-                        console.log("GetColModelItem-f: ", f)
-                        // break;
-                    }
-                }
-                str += refData[field][i]["id"]+":"+refData[field][i][f]+";";
+    function SetPrimitive(colModel) {
+        for (i = 0; i < colModel.length; ++i) {
+            if (colModel[i].type != undefined && colModel[i].type.indexOf("date") > -1) {
+                colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
+                colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
+                colModel[i]["formatter"] = dateFormat;
+            } else if (colModel[i].type != undefined && colModel[i].type.indexOf("time") > -1) {
+                colModel[i]["editrules"]["custom_func"] = timeValidator;
+                colModel[i]["editoptions"]["dataInit"] = timePicker;
+                colModel[i]["searchoptions"]["dataInit"] = timePicker;
+                colModel[i]["formatter"] = timeFormat;
             }
-            data["editoptions"] = {value: str.slice(0, -1)};
-            data["searchoptions"] = {value: ":Все;"+str.slice(0, -1)};
+            continue;
         }
-
-        return data;
+        return colModel;
     }
 
     function AddSubTable(subgrid_id, row_id, index, tableName, gridId) {
@@ -116,7 +53,6 @@ function(utils, datepicker, blank) {
         var subColModel     = [];
         var subData         = [];
         var subColumns      = [];
-        var subRefData      = [];
 
         function collbackSUB(data) {
             console.log("collbackSUB: ", data);
@@ -125,8 +61,7 @@ function(utils, datepicker, blank) {
             subTableName    = data["name"];
             subColNames     = data["colnames"];
             subColumns      = data["columns"];
-            subRefData      = data["refdata"];
-            subRefFields    = data["reffields"];
+            subColModel     = SetPrimitive(data["colmodel"]);
         }
 
         utils.postRequest(
@@ -134,10 +69,6 @@ function(utils, datepicker, blank) {
             collbackSUB,
             "/gridhandler/getsubtable"
         );
-
-        for (var i = 0; i < subColumns.length; ++i) {
-            subColModel.push(GetColModelItem(subRefData, subRefFields, subColumns[i]));
-        }
 
         var url = "/handler/"+subTableName.replace(/_/g, '')+"load";
         if (tableName == "group_registrations") {
@@ -211,8 +142,8 @@ function(utils, datepicker, blank) {
     }
 
     return {
-        GetColModelItem: GetColModelItem,
         AddSubTable: AddSubTable,
+        SetPrimitive: SetPrimitive,
     };
 
 });

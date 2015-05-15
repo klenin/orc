@@ -96,3 +96,57 @@ func (this *ParamsModel) Select(fields []string, filters map[string]interface{},
 
     return db.Query(query, params)
 }
+
+func (this *ParamsModel) GetColModel() []map[string]interface{} {
+    query := `SELECT array_to_string(
+        array(SELECT param_types.id || ':' || param_types.name FROM param_types GROUP BY param_types.id ORDER BY param_types.id), ';') as name;`
+    types := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    query = `SELECT array_to_string(
+        array(SELECT forms.id || ':' || forms.name FROM forms GROUP BY forms.id ORDER BY forms), ';') as name;`
+    forms := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "name",
+            "name": "name",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+        },
+        2: map[string]interface{} {
+            "index": "param_type_id",
+            "name": "param_type_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": types},
+            "searchoptions": map[string]string{"value": ":Все;"+types},
+        },
+        3: map[string]interface{} {
+            "index": "form_id",
+            "name": "form_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": forms},
+            "searchoptions": map[string]string{"value": ":Все;"+forms},
+        },
+        4: map[string]interface{} {
+            "index": "identifier",
+            "name": "identifier",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+        },
+    }
+}

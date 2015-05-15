@@ -35,3 +35,59 @@ func (c *ModelManager) Events() *EventsModel {
 
     return model
 }
+
+func (this *EventsModel) GetColModel() []map[string]interface{} {
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "name",
+            "name": "name",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+        },
+        2: map[string]interface{} {
+            "index": "date_start",
+            "name": "date_start",
+            "editable": true,
+            "formatter": nil,
+            "editrules": map[string]interface{}{"date": true, "required": true},
+            "editoptions": map[string]interface{}{"dataInit": nil},
+            "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
+            "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
+            "type": "date",
+        },
+        3: map[string]interface{} {
+            "index": "date_finish",
+            "name": "date_finish",
+            "editable": true,
+            "formatter": nil,
+            "editrules": map[string]interface{}{"date": true, "required": true},
+            "editoptions": map[string]interface{}{"dataInit": nil},
+            "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
+            "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
+            "type": "date",
+        },
+        4: map[string]interface{} {
+            "index": "time",
+            "name": "time",
+            "editable": true,
+            "formatter": nil,
+            "editrules": map[string]interface{}{"custom": true, "custom_func": nil, "required": true},
+            "editoptions": map[string]interface{}{"dataInit": nil},
+            "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
+            "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
+            "type": "time",
+        },
+        5: map[string]interface{} {
+            "index": "url",
+            "name": "url",
+            "editable": true,
+            "formatter": "link",
+            "editrules": map[string]interface{}{"url": true, "required": false},
+        },
+    }
+}

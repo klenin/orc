@@ -121,3 +121,62 @@ func (this *RegistrationModel) Select(fields []string, filters map[string]interf
 
     return db.Query(query, params)
 }
+
+func (this *RegistrationModel) GetColModel() []map[string]interface{} {
+    query := `SELECT array_to_string(
+        array(SELECT events.id || ':' || events.name FROM events GROUP BY events.id ORDER BY events.id), ';') as name;`
+    events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    query = `SELECT array_to_string(
+        array(SELECT faces.id || ':' || array_to_string(array_agg(param_values.value), ' ')
+        FROM reg_param_vals
+        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        INNER JOIN params ON params.id = param_values.param_id
+        WHERE params.id in (5, 6, 7) GROUP BY faces.id ORDER BY faces.id), ';') as name;`
+    faces := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "face_id",
+            "name": "face_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": faces},
+            "searchoptions": map[string]string{"value": ":Все;"+faces},
+        },
+        2: map[string]interface{} {
+            "index": "event_id",
+            "name": "event_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": events},
+            "searchoptions": map[string]string{"value": ":Все;"+events},
+        },
+        3: map[string]interface{} {
+            "index": "status",
+            "name": "status",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+            "formatter": "checkbox",
+            "formatoptions": map[string]interface{}{"disabled": true},
+            "edittype": "checkbox",
+            "editoptions": map[string]interface{}{"value": "true:false"},
+        },
+    }
+}

@@ -139,88 +139,13 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
     $("#userData").append($("<div/>").text("Логин: "+{{.}}.userData[0].login));
     $("#userData").append($("<div/>").text({{.}}.userData[0].name+": "+{{.}}.userData[0].value));
 
-    var groupRefFields = {{.}}.group.RefFields;
-    var groupRefData   = {};
-    var groupColModel_ = [];
-
-    var regRefFields = {{.}}.reg.RefFields;
-    var regRefData   = {};
-    var regColModel_ = [];
-
-    var groupRegRefFields = {{.}}.groupreg.RefFields;
-    var groupRegRefData   = {};
-    var groupRegColModel_ = [];
-
-    {{with .group.RefData}}
-        {{range $index, $elmt := .}}
-            groupRefData[{{$index}}] = [];
-            {{range $i, $v := $elmt}}
-                groupRefData[{{$index}}][{{$i}}] = {};
-                {{range $j, $k := $v}}
-                    groupRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                {{end}}
-            {{end}}
-        {{end}}
-    {{end}}
-
-    {{with .group.Columns}}
-        {{range $i, $v := .}}
-            groupColModel_.push(grid.GetColModelItem(groupRefData, groupRefFields, {{$v}}))
-        {{end}}
-    {{end}}
-
-    console.log("groupRefData: ", groupRefData);
-    console.log("groupColModel_: ", groupColModel_);
-
-    {{with .reg.RefData}}
-        {{range $index, $elmt := .}}
-            regRefData[{{$index}}] = [];
-            {{range $i, $v := $elmt}}
-                regRefData[{{$index}}][{{$i}}] = {};
-                {{range $j, $k := $v}}
-                    regRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                {{end}}
-            {{end}}
-        {{end}}
-    {{end}}
-
-    {{with .reg.Columns}}
-        {{range $i, $v := .}}
-            regColModel_.push(grid.GetColModelItem(regRefData, regRefFields, {{$v}}))
-        {{end}}
-    {{end}}
-
-    console.log("regRefData: ", regRefData);
-    console.log("regColModel_: ", regColModel_);
-
-    {{with .groupreg.RefData}}
-        {{range $index, $elmt := .}}
-            groupRegRefData[{{$index}}] = [];
-            {{range $i, $v := $elmt}}
-                groupRegRefData[{{$index}}][{{$i}}] = {};
-                {{range $j, $k := $v}}
-                    groupRegRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                {{end}}
-            {{end}}
-        {{end}}
-    {{end}}
-
-    {{with .groupreg.Columns}}
-        {{range $i, $v := .}}
-            groupRegColModel_.push(grid.GetColModelItem(groupRegRefData, groupRegRefFields, {{$v}}))
-        {{end}}
-    {{end}}
-
-    console.log("groupRegRefData: ", groupRegRefData);
-    console.log("groupRegColModel_: ", groupRegColModel_);
-
     $("#my-group-table").jqGrid({
         url: "/handler/usergroupsload",
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
         colNames: {{.group.ColNames}},
-        colModel: groupColModel_,
+        colModel: grid.SetPrimitive({{.group.ColModel}}),
         pager: "#my-group-table-pager",
         gridview: true,
         sortname: "id",
@@ -255,38 +180,12 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
             $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
                 + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
 
-            var RefData = {};
-
-            {{with .group.SubRefData}}
-                {{range $index, $elmt := .}}
-                    RefData[{{$index}}] = [];
-                    {{range $i, $v := $elmt}}
-                        RefData[{{$index}}][{{$i}}] = {};
-                        {{range $j, $k := $v}}
-                            RefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                        {{end}}
-                    {{end}}
-                {{end}}
-            {{end}}
-
-            var ColModel_ = [];
-            var refFields = {{.}}.group.SubRefFields;
-
-            {{with .group.SubColumns}}
-                {{range $i, $v := .}}
-                    ColModel_.push(grid.GetColModelItem(RefData, refFields, {{$v}}))
-                {{end}}
-            {{end}}
-
-            console.log("personRegRefData: ", RefData);
-            console.log("personRegColModel_: ", ColModel_);
-
             $("#" + subgrid_id + "_t").jqGrid({
                 url: "/handler/"+{{.group.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
                 colNames: {{.group.SubColNames}},
-                colModel: ColModel_,
+                colModel: grid.SetPrimitive({{.group.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#" + subgrid_id + "_p",
@@ -391,7 +290,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
         datatype: "json",
         mtype: "POST",
         colNames: {{.group.ColNames}},
-        colModel: groupColModel_,
+        colModel: grid.SetPrimitive({{.group.ColModel}}),
         pager: "#group-table-pager",
         gridview: true,
         sortname: "id",
@@ -424,38 +323,12 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
             $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
                 + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
 
-            var RefData = {};
-
-            {{with .group.SubRefData}}
-                {{range $index, $elmt := .}}
-                    RefData[{{$index}}] = [];
-                    {{range $i, $v := $elmt}}
-                        RefData[{{$index}}][{{$i}}] = {};
-                        {{range $j, $k := $v}}
-                            RefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                        {{end}}
-                    {{end}}
-                {{end}}
-            {{end}}
-
-            var ColModel_ = [];
-            var refFields = {{.}}.group.SubRefFields;
-
-            {{with .group.SubColumns}}
-                {{range $i, $v := .}}
-                    ColModel_.push(grid.GetColModelItem(RefData, refFields, {{$v}}))
-                {{end}}
-            {{end}}
-
-            console.log("personRegRefData: ", RefData);
-            console.log("personRegColModel_: ", ColModel_);
-
             $("#" + subgrid_id + "_t").jqGrid({
                 url: "/handler/"+{{.group.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
                 colNames: {{.group.SubColNames}},
-                colModel: ColModel_,
+                colModel: grid.SetPrimitive({{.group.SubColModel}}),,
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#" + subgrid_id + "_p",
@@ -499,7 +372,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.reg.ColNames}},
-        colModel: regColModel_,
+        colModel: grid.SetPrimitive({{.reg.ColModel}}),
         pager: "#reg-table-pager",
         gridview: true,
         sortname: "id",
@@ -556,7 +429,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.groupreg.ColNames}},
-        colModel: groupRegColModel_,
+        colModel: grid.SetPrimitive({{.groupreg.ColModel}}),
         pager: "#groupreg-table-pager",
         gridview: true,
         sortname: "id",
@@ -593,35 +466,12 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
             var group_id = $("#groupreg-table").jqGrid("getCell", row_id, "group_id");
             var event_id = $("#groupreg-table").jqGrid("getCell", row_id, "event_id");
 
-            var RefData = {};
-
-            {{with .groupreg.SubRefData}}
-                {{range $index, $elmt := .}}
-                    RefData[{{$index}}] = [];
-                    {{range $i, $v := $elmt}}
-                        RefData[{{$index}}][{{$i}}] = {};
-                        {{range $j, $k := $v}}
-                            RefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                        {{end}}
-                    {{end}}
-                {{end}}
-            {{end}}
-
-            var ColModel_ = [];
-            var refFields = {{.}}.groupreg.SubRefFields;
-
-            {{with .groupreg.SubColumns}}
-                {{range $i, $v := .}}
-                    ColModel_.push(grid.GetColModelItem(RefData, refFields, {{$v}}))
-                {{end}}
-            {{end}}
-
             $("#" + subgrid_id + "_t").jqGrid({
                 url: "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
                 colNames: {{.groupreg.SubColNames}},
-                colModel: ColModel_,
+                colModel: grid.SetPrimitive({{.groupreg.ColModel}}),,
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#" + subgrid_id + "_p",

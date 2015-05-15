@@ -29,62 +29,6 @@
 require(["utils", "custom-grid", "grid-utils", "blank"],
 function(reqUtils, grid, utils, blank) {
 
-    var paramsRefFields = {{.params.RefFields}};
-    var paramsRefData   = {};
-    var paramsColModel_ = [];
-
-    {{with .params.RefData}}
-        {{range $index, $elmt := .}}
-            paramsRefData[{{$index}}] = [];
-            {{range $i, $v := $elmt}}
-                paramsRefData[{{$index}}][{{$i}}] = {};
-                {{range $j, $k := $v}}
-                    paramsRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                {{end}}
-            {{end}}
-        {{end}}
-    {{end}}
-
-    {{with .params.Columns}}
-        {{range $i, $v := .}}
-            paramsColModel_.push(grid.GetColModelItem(paramsRefData, paramsRefFields, {{$v}}))
-        {{end}}
-    {{end}}
-
-    console.log("paramsRefData");
-    console.log(paramsRefData);
-    console.log("paramsColModel");
-    console.log(paramsColModel_);
-
-    var facesRefFields = {{.faces.RefFields}};
-    var facesRefData   = {};
-    var facesColModel_ = [];
-
-    var filterData = {{.filter}}
-
-    {{with .faces.RefData}}
-        {{range $index, $elmt := .}}
-            facesRefData[{{$index}}] = [];
-            {{range $i, $v := $elmt}}
-                facesRefData[{{$index}}][{{$i}}] = {};
-                {{range $j, $k := $v}}
-                    facesRefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                {{end}}
-            {{end}}
-        {{end}}
-    {{end}}
-
-    {{with .faces.Columns}}
-        {{range $i, $v := .}}
-            facesColModel_.push(grid.GetColModelItem(facesRefData, facesRefFields, {{$v}}))
-        {{end}}
-    {{end}}
-
-    console.log("facesRefData");
-    console.log(facesRefData);
-    console.log("facesColModel");
-    console.log(facesColModel_);
-
     var filter = {};
 
     $("#params-table").jqGrid({
@@ -93,7 +37,7 @@ function(reqUtils, grid, utils, blank) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.params.ColNames}},
-        colModel: paramsColModel_,
+        colModel: grid.SetPrimitive({{.params.ColModel}}),
         pager: "#params-table-pager",
         gridview: true,
         viewrecords: true,
@@ -148,7 +92,7 @@ function(reqUtils, grid, utils, blank) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.faces.ColNames}},
-        colModel: facesColModel_,
+        colModel: grid.SetPrimitive({{.faces.ColModel}}),
         pager: "#faces-table-pager",
         gridview: true,
         viewrecords: true,
@@ -187,35 +131,12 @@ function(reqUtils, grid, utils, blank) {
 
             var user_id = $("#faces-table").jqGrid("getCell", row_id, "user_id");
 
-            var RefData = {};
-
-            {{with .faces.SubRefData}}
-                {{range $index, $elmt := .}}
-                    RefData[{{$index}}] = [];
-                    {{range $i, $v := $elmt}}
-                        RefData[{{$index}}][{{$i}}] = {};
-                        {{range $j, $k := $v}}
-                            RefData[{{$index}}][{{$i}}][{{$j}}] = {{$k}};
-                        {{end}}
-                    {{end}}
-                {{end}}
-            {{end}}
-
-            var ColModel_ = [];
-            var refFields = {{.}}.faces.SubRefFields;
-
-            {{with .faces.SubColumns}}
-                {{range $i, $v := .}}
-                    ColModel_.push(grid.GetColModelItem(RefData, refFields, {{$v}}))
-                {{end}}
-            {{end}}
-
             $("#" + subgrid_id + "_t").jqGrid({
                 url: "/handler/"+{{.faces.SubTableName}}.replace(/_/g, "")+"load/"+user_id,
                 datatype: "json",
                 mtype: "POST",
                 colNames: {{.faces.SubColNames}},
-                colModel: ColModel_,
+                colModel: grid.SetPrimitive({{.faces.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#" + subgrid_id + "_p",

@@ -137,63 +137,43 @@ func (this *Handler) ShowCabinet() {
         this.Render([]string{"mvc/views/"+role+".html"}, role, model)
     } else {
         groups := this.GetModel("groups")
-        groupsRefFields, groupsRefData := groups.GetModelRefDate()
         persons := this.GetModel("persons")
-
-        query := `SELECT groups.id, groups.name FROM groups
-            INNER JOIN faces ON faces.id = groups.face_id
-            INNER JOIN users ON users.id = faces.user_id
-            WHERE users.id = $1 ORDER BY groups.id;`
-        personsRefData := map[string]interface{}{"group_id": db.Query(query, []interface{}{user_id})}
-
-        personsRefFields := []string{"name"}
-
         groupsModel := Model{
-            RefData:      groupsRefData,
-            RefFields:    groupsRefFields,
             TableName:    groups.GetTableName(),
             ColNames:     groups.GetColNames(),
+            ColModel:     groups.GetColModel(),
             Columns:      groups.GetColumns(),
             Caption:      groups.GetCaption(),
             Sub:          groups.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
-            SubRefData:   personsRefData,
-            SubRefFields: personsRefFields,
+            SubColModel:  persons.GetColModelForUser(user_id.(int)),
             SubColumns:   persons.GetColumns()[:len(persons.GetColumns())-1],
             SubColNames:  persons.GetColNames()[:len(persons.GetColNames())-1]}
 
         regs := this.GetModel("registrations")
-        regsRefFields, regsRefData := regs.GetModelRefDate()
-
         regsModel := Model{
-            RefData:   regsRefData,
-            RefFields: regsRefFields,
             TableName: regs.GetTableName(),
             ColNames:  regs.GetColNames(),
+            ColModel:  regs.GetColModel(),
             Columns:   regs.GetColumns(),
-            Caption:   regs.GetCaption(),
-            Sub:       regs.GetSub()}
+            Caption:   regs.GetCaption()}
 
         groupRegs := this.GetModel("group_registrations")
-        groupRegsRefFields, groupRegsRefData := groupRegs.GetModelRefDate()
-
         groupRegsModel := Model{
-            RefData:   groupRegsRefData,
-            RefFields: groupRegsRefFields,
-            TableName: groupRegs.GetTableName(),
-            ColNames:  groupRegs.GetColNames(),
-            Columns:   groupRegs.GetColumns(),
-            Caption:   groupRegs.GetCaption(),
+            TableName:    groupRegs.GetTableName(),
+            ColNames:     groupRegs.GetColNames(),
+            ColModel:     groupRegs.GetColModel(),
+            Columns:      groupRegs.GetColumns(),
+            Caption:      groupRegs.GetCaption(),
             Sub:          groups.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
-            SubRefData:   personsRefData,
-            SubRefFields: personsRefFields,
+            SubColModel:  persons.GetColModelForUser(user_id.(int)),
             SubColumns:   persons.GetColumns()[:len(persons.GetColumns())-1],
             SubColNames:  persons.GetColNames()[:len(persons.GetColNames())-1]}
 
-        query = `SELECT params.name, param_values.value, users.login
+        query := `SELECT params.name, param_values.value, users.login
             FROM reg_param_vals
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id

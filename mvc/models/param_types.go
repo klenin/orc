@@ -31,3 +31,19 @@ func (c *ModelManager) ParamTypes() *ParamTypesModel {
 
     return model
 }
+
+func (this *ParamTypesModel) GetColModel() []map[string]interface{} {
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "name",
+            "name": "name",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+        },
+    }
+}

@@ -98,3 +98,37 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
 
     return db.Query(query, params)
 }
+
+func (this *ParamValuesModel) GetColModel() []map[string]interface{} {
+    query := `SELECT array_to_string(
+        array(SELECT params.id || ':' || forms.name || ': ' || params.name
+        FROM params
+        INNER JOIN forms ON forms.id = params.form_id GROUP BY params.id, forms.name ORDER BY params.id), ';') as name;`
+    params := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "param_id",
+            "name": "param_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": params},
+            "searchoptions": map[string]string{"value": ":Все;"+params},
+        },
+        2: map[string]interface{} {
+            "index": "value",
+            "name": "value",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+        },
+    }
+}

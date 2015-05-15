@@ -8,7 +8,6 @@ type EventTypes struct {
     Id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     Name        string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
     Description string `name:"description" type:"text" null:"NOT NULL" extra:""`
-    Topicality  bool   `name:"topicality" type:"boolean" null:"NOT NULL" extra:""`
 }
 
 func (c *ModelManager) EventTypes() *EventTypesModel {
@@ -17,8 +16,8 @@ func (c *ModelManager) EventTypes() *EventTypesModel {
     model.TableName = "event_types"
     model.Caption = "Типы мероприятий"
 
-    model.Columns = []string{"id", "name", "description", "topicality"}
-    model.ColNames = []string{"ID", "Тип", "Описание", "Актуальность"}
+    model.Columns = []string{"id", "name", "description"}
+    model.ColNames = []string{"ID", "Тип", "Описание"}
 
     model.Fields = new(EventTypes)
     model.WherePart = make(map[string]interface{}, 0)
@@ -32,4 +31,26 @@ func (c *ModelManager) EventTypes() *EventTypesModel {
     model.SubField = ""
 
     return model
+}
+
+func (this *EventTypesModel) GetColModel() []map[string]interface{} {
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "name",
+            "name": "name",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+        },
+        2: map[string]interface{} {
+            "index": "description",
+            "name": "description",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+        },
+    }
 }

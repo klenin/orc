@@ -39,15 +39,13 @@ func (this *GridHandler) GetSubTable() {
     index, _ := strconv.Atoi(request["index"].(string))
     subModel := this.GetModel(model.GetSubTable(index))
     subModel.LoadWherePart(map[string]interface{}{model.GetSubField(): request["id"]})
-    refFields, refData := subModel.GetModelRefDate()
 
     response, err := json.Marshal(map[string]interface{}{
-        "name":      subModel.GetTableName(),
-        "caption":   subModel.GetCaption(),
-        "colnames":  subModel.GetColNames(),
-        "columns":   subModel.GetColumns(),
-        "reffields": refFields,
-        "refdata":   refData})
+        "name":     subModel.GetTableName(),
+        "caption":  subModel.GetCaption(),
+        "colnames": subModel.GetColNames(),
+        "columns":  subModel.GetColumns(),
+        "colmodel": subModel.GetColModel()})
     if utils.HandleErr("[GridHandler::GetSubTable] Marshal: ", err, this.Response) {
         return
     }
@@ -68,14 +66,9 @@ func (this *GridHandler) CreateGrid(tableName string) {
 
     if tableName == "search" {
         model := this.GetModel("faces")
-        refFields, refData := model.GetModelRefDate()
-
         regs := this.GetModel("registrations")
-        regsRefFields, regsRefData := regs.GetModelRefDate()
-
         faces := Model{
-            RefData:      refData,
-            RefFields:    refFields,
+            ColModel:     model.GetColModel(),
             TableName:    model.GetTableName(),
             ColNames:     model.GetColNames(),
             Columns:      model.GetColumns(),
@@ -83,25 +76,20 @@ func (this *GridHandler) CreateGrid(tableName string) {
             Sub:          true,
             SubTableName: regs.GetTableName(),
             SubCaption:   regs.GetCaption(),
-            SubRefData:   regsRefData,
-            SubRefFields: regsRefFields,
+            SubColModel:  regs.GetColModel(),
             SubColumns:   regs.GetColumns(),
             SubColNames:  regs.GetColNames()}
 
         model = this.GetModel("param_values")
-        refFields, refData = model.GetModelRefDate()
-
         params := Model{
-            RefData:   refData,
-            RefFields: refFields,
+            ColModel:  model.GetColModel(),
             TableName: model.GetTableName(),
             ColNames:  model.GetColNames(),
             Columns:   model.GetColumns(),
-            Caption:   model.GetCaption(),
-            Sub:       model.GetSub()}
+            Caption:   model.GetCaption()}
 
         this.Render([]string{"mvc/views/search.html"}, "search", map[string]interface{}{"params": params, "faces": faces})
-            return
+        return
     }
 
     model := this.GetModel(tableName)
@@ -110,6 +98,7 @@ func (this *GridHandler) CreateGrid(tableName string) {
     this.Render([]string{"mvc/views/table.html"}, "table", Model{
         RefData:   refData,
         RefFields: refFields,
+        ColModel:  model.GetColModel(),
         TableName: model.GetTableName(),
         ColNames:  model.GetColNames(),
         Columns:   model.GetColumns(),

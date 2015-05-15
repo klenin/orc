@@ -1,5 +1,9 @@
 package models
 
+type UsersModel struct {
+    Entity
+}
+
 type User struct {
     Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     Login   string `name:"login" type:"text" null:"NOT NULL" extra:"UNIQUE"`
@@ -34,6 +38,33 @@ func (c *ModelManager) Users() *UsersModel {
     return model
 }
 
-type UsersModel struct {
-    Entity
+func (this *UsersModel) GetColModel() []map[string]interface{} {
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "login",
+            "name": "login",
+            "editable": true,
+        },
+        2: map[string]interface{} {
+            "index": "role",
+            "name": "role",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+        },
+        3: map[string]interface{} {
+            "index": "enabled",
+            "name": "enabled",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+            "formatter": "checkbox",
+            "formatoptions": map[string]interface{}{"disabled": true},
+            "edittype": "checkbox",
+            "editoptions": map[string]interface{}{"value": "true:false"},
+        },
+    }
 }

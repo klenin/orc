@@ -28,6 +28,7 @@ type Model struct {
     RefFields []string
     Columns   []string
     ColNames  []string
+    ColModel  []map[string]interface{}
     Sub       bool
     SubTableName string
     SubCaption   string
@@ -35,12 +36,7 @@ type Model struct {
     SubRefFields []string
     SubColumns   []string
     SubColNames  []string
-}
-
-type RequestModel struct {
-    E []interface{} //events
-    F []interface{} //forms
-    P []interface{} //params
+    SubColModel  []map[string]interface{}
 }
 
 func (this *Controller) GetModel(tableName string) models.VirtEntity {

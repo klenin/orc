@@ -353,6 +353,14 @@ func (this *Entity) Where(filters map[string]interface{}) (where string, params 
     return where, params
 }
 
+func (this *Entity) GetColModel() []map[string]interface{} {
+    return nil
+}
+
+func (this *Entity) GetColModelForUser(user_id int) []map[string]interface{} {
+    return nil
+}
+
 type VirtEntity interface {
     LoadModelData(data map[string]interface{})
     LoadWherePart(data map[string]interface{})
@@ -382,6 +390,9 @@ type VirtEntity interface {
     GetModelRefDate() (fields []string, result map[string]interface{})
     Where(filters map[string]interface{}) (where string, params []interface{})
     Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{})
+
+    GetColModel() ([]map[string]interface{})
+    GetColModelForUser(user_id int) ([]map[string]interface{})
 }
 
 func (this *ModelManager) GetModel(tableName string) VirtEntity {

@@ -88,3 +88,45 @@ func (this *EventsTypesModel) Select(fields []string, filters map[string]interfa
 
     return db.Query(query, params)
 }
+
+func (this *EventsTypesModel) GetColModel() []map[string]interface{} {
+    query := `SELECT array_to_string(
+        array(SELECT events.id || ':' || events.name FROM events GROUP BY events.id ORDER BY events.id), ';') as name;`
+    events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    query = `SELECT array_to_string(
+        array(SELECT event_types.id || ':' || event_types.name FROM event_types GROUP BY event_types.id ORDER BY event_types.id), ';') as name;`
+    types := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    return []map[string]interface{} {
+        0: map[string]interface{} {
+            "index": "id",
+            "name": "id",
+            "editable": false,
+        },
+        1: map[string]interface{} {
+            "index": "event_id",
+            "name": "event_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": events},
+            "searchoptions": map[string]string{"value": ":Все;"+events},
+        },
+        2: map[string]interface{} {
+            "index": "type_id",
+            "name": "type_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": types},
+            "searchoptions": map[string]string{"value": ":Все;"+types},
+        },
+    }
+}
