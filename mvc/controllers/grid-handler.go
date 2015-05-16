@@ -76,7 +76,6 @@ func (this *GridHandler) CreateGrid(tableName string) {
             SubTableName: regs.GetTableName(),
             SubCaption:   regs.GetCaption(),
             SubColModel:  regs.GetColModel(),
-            SubColumns:   regs.GetColumns(),
             SubColNames:  regs.GetColNames()}
 
         model = this.GetModel("param_values")
