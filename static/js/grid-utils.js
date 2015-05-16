@@ -79,6 +79,11 @@ define(["utils"], function(utils) {
             prompt = "";
             errMsg = data.responseText;
             break;
+        case 400:
+            noErr = false;
+            prompt = "";
+            errMsg = data.responseText;
+            break;
         }
 
         showServerPromtInGrid(gridId, prompt)

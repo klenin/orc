@@ -113,6 +113,7 @@ func (this *GridHandler) EditGridRow(tableName string) {
     model := this.GetModel(tableName)
     if model == nil {
         utils.HandleErr("[GridHandler::Edit] GetModel: ", errors.New("Unexpected table name"), this.Response)
+        http.Error(this.Response, fmt.Sprintf("Unexpected table name"), 400)
         return
     }
 
@@ -127,14 +128,14 @@ func (this *GridHandler) EditGridRow(tableName string) {
     case "edit":
         id, err := strconv.Atoi(this.Request.PostFormValue("id"))
         if err != nil {
-            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
             return
         }
 
         if tableName == "groups" && !this.isAdmin() {
             face_id, err := db.IsUserGroup(user_id.(int), id)
             if err != nil {
-                utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+                http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
                 return
             }
             params["face_id"] = face_id
@@ -179,6 +180,7 @@ func (this *GridHandler) EditGridRow(tableName string) {
 
             group_id, err := strconv.Atoi(params["group_id"].(string))
             if utils.HandleErr("[GridHandler::Edit] group_id Atoi: ", err, this.Response) {
+                http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
                 return
             }
 
@@ -186,7 +188,7 @@ func (this *GridHandler) EditGridRow(tableName string) {
             db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{group_id}).Scan(&groupName)
 
             if !mailer.InviteToGroup(to, address, token, headName, groupName) {
-                utils.HandleErr("Mailer: ", errors.New("Проверьте правильность введенного Вами email."), this.Response)
+                http.Error(this.Response, fmt.Sprintf("Проверьте правильность введенного Вами email"), 400)
                 return
             }
         }
