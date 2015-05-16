@@ -71,7 +71,6 @@ func (this *GridHandler) CreateGrid(tableName string) {
             ColModel:     model.GetColModel(),
             TableName:    model.GetTableName(),
             ColNames:     model.GetColNames(),
-            Columns:      model.GetColumns(),
             Caption:      model.GetCaption(),
             Sub:          true,
             SubTableName: regs.GetTableName(),
@@ -85,7 +84,6 @@ func (this *GridHandler) CreateGrid(tableName string) {
             ColModel:  model.GetColModel(),
             TableName: model.GetTableName(),
             ColNames:  model.GetColNames(),
-            Columns:   model.GetColumns(),
             Caption:   model.GetCaption()}
 
         this.Render([]string{"mvc/views/search.html"}, "search", map[string]interface{}{"params": params, "faces": faces})
@@ -97,7 +95,6 @@ func (this *GridHandler) CreateGrid(tableName string) {
         ColModel:  model.GetColModel(),
         TableName: model.GetTableName(),
         ColNames:  model.GetColNames(),
-        Columns:   model.GetColumns(),
         Caption:   model.GetCaption(),
         Sub:       model.GetSub()})
 }

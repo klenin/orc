@@ -20,21 +20,16 @@ type Controller struct {
 }
 
 type Model struct {
-    Id        string
-    TableName string
-    Caption   string
-    Table     []interface{}
-    RefData   map[string]interface{}
-    RefFields []string
-    Columns   []string
-    ColNames  []string
-    ColModel  []map[string]interface{}
-    Sub       bool
+    Id           string
+    TableName    string
+    Caption      string
+    Table        []interface{}
+    Columns      []string
+    ColNames     []string
+    ColModel     []map[string]interface{}
+    Sub          bool
     SubTableName string
     SubCaption   string
-    SubRefData   map[string]interface{}
-    SubRefFields []string
-    SubColumns   []string
     SubColNames  []string
     SubColModel  []map[string]interface{}
 }

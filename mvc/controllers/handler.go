@@ -142,13 +142,11 @@ func (this *Handler) ShowCabinet() {
             TableName:    groups.GetTableName(),
             ColNames:     groups.GetColNames(),
             ColModel:     groups.GetColModel(),
-            Columns:      groups.GetColumns(),
             Caption:      groups.GetCaption(),
             Sub:          groups.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
             SubColModel:  persons.GetColModelForUser(user_id.(int)),
-            SubColumns:   persons.GetColumns(),
             SubColNames:  persons.GetColNames()}
 
         regs := this.GetModel("registrations")
@@ -156,7 +154,6 @@ func (this *Handler) ShowCabinet() {
             TableName: regs.GetTableName(),
             ColNames:  regs.GetColNames(),
             ColModel:  regs.GetColModel(),
-            Columns:   regs.GetColumns(),
             Caption:   regs.GetCaption()}
 
         groupRegs := this.GetModel("group_registrations")
@@ -164,13 +161,11 @@ func (this *Handler) ShowCabinet() {
             TableName:    groupRegs.GetTableName(),
             ColNames:     groupRegs.GetColNames(),
             ColModel:     groupRegs.GetColModel(),
-            Columns:      groupRegs.GetColumns(),
             Caption:      groupRegs.GetCaption(),
             Sub:          groups.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
             SubColModel:  persons.GetColModelForUser(user_id.(int)),
-            SubColumns:   persons.GetColumns(),
             SubColNames:  persons.GetColNames()}
 
         query := `SELECT params.name, param_values.value, users.login
