@@ -148,8 +148,8 @@ func (this *Handler) ShowCabinet() {
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
             SubColModel:  persons.GetColModelForUser(user_id.(int)),
-            SubColumns:   persons.GetColumns()[:len(persons.GetColumns())-1],
-            SubColNames:  persons.GetColNames()[:len(persons.GetColNames())-1]}
+            SubColumns:   persons.GetColumns(),
+            SubColNames:  persons.GetColNames()}
 
         regs := this.GetModel("registrations")
         regsModel := Model{
@@ -170,8 +170,8 @@ func (this *Handler) ShowCabinet() {
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
             SubColModel:  persons.GetColModelForUser(user_id.(int)),
-            SubColumns:   persons.GetColumns()[:len(persons.GetColumns())-1],
-            SubColNames:  persons.GetColNames()[:len(persons.GetColNames())-1]}
+            SubColumns:   persons.GetColumns(),
+            SubColNames:  persons.GetColNames()}
 
         query := `SELECT params.name, param_values.value, users.login
             FROM reg_param_vals
