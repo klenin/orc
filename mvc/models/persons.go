@@ -143,7 +143,7 @@ func (this *PersonsModel) GetColModel() []map[string]interface{} {
             "index": "email",
             "name": "email",
             "editable": true,
-            "editrules": map[string]interface{}{"required": true},
+            "editrules": map[string]interface{}{"required": true, "email": true},
         },
         3: map[string]interface{} {
             "index": "group_id",
@@ -218,7 +218,7 @@ func (this *PersonsModel) GetColModelForUser(user_id int) []map[string]interface
             "index": "email",
             "name": "email",
             "editable": true,
-            "editrules": map[string]interface{}{"required": true},
+            "editrules": map[string]interface{}{"required": true, "email": true},
         },
         3: map[string]interface{} {
             "index": "group_id",
