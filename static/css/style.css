@@ -43,7 +43,7 @@ hr {
 }
 
 /* for grid table */
-td input {
+td input, th input {
     background: white;
     width: auto;
 }

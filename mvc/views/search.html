@@ -76,10 +76,11 @@ function(reqUtils, grid, utils, blank) {
             search: true
         }, {}, {}, {},
         {   // search
-            // multipleGroup: true,
+            multipleGroup: true,
             closeOnEscape: true,
             multipleSearch: true,
-            closeAfterSearch: true
+            closeAfterSearch: true,
+            showQuery: true,
         });
 
     $(window).bind("resize", function() {

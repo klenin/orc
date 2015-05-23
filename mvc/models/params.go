@@ -73,7 +73,10 @@ func (this *ParamsModel) Select(fields []string, filters map[string]interface{},
         INNER JOIN param_types ON param_types.id = params.param_type_id
         INNER JOIN forms ON forms.id = params.form_id`
 
-    where, params := this.Where(filters)
+    where, params, _ := this.Where(filters, 1)
+    if where != "" {
+        where = " WHERE " + where
+    }
     query += where
 
     if sidx != "" {

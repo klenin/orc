@@ -69,9 +69,10 @@ func (this *GroupsModel) Select(fields []string, filters map[string]interface{},
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN groups ON groups.face_id = faces.id`
 
-    where, params := this.Where(filters)
+    where, params, _ := this.Where(filters, 1)
+
     if where != "" {
-        query += where + ` AND params.id in (5, 6, 7) AND events.id = 1 GROUP BY groups.id`
+        query += ` WHERE ` + where + ` AND params.id in (5, 6, 7) AND events.id = 1 GROUP BY groups.id`
     } else {
         query += ` WHERE params.id in (5, 6, 7) AND events.id = 1 GROUP BY groups.id`
     }

@@ -5,6 +5,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "math"
+    "log"
     "net/http"
     "strconv"
     "encoding/json"
@@ -51,7 +52,7 @@ func (this *GridHandler) Load(tableName string) {
     start := limit*page - limit
 
     if tableName == "search" {
-        model := this.GetModel("param_values")
+        model := this.GetModel("faces")
 
         var filters map[string]interface{}
 
@@ -61,16 +62,22 @@ func (this *GridHandler) Load(tableName string) {
             return
         }
 
-        where, params := model.Where(filters)
-
-        query := `SELECT faces.id, faces.user_id
+        query := `SELECT DISTINCT faces.id, faces.user_id
             FROM reg_param_vals
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN events ON events.id = registrations.event_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
-            INNER JOIN users ON users.id = faces.user_id` + where + ` ORDER BY params.id ` + sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
+            INNER JOIN users ON users.id = faces.user_id`
+
+        where, params, _ := model.WhereByParams(filters, 1)
+        if where != "" {
+            where = " WHERE " + where
+        }
+        log.Println("WHERE: ", where)
+
+        query += where + ` ORDER BY faces.id ` + sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
 
         rows := db.Query(query, append(params, []interface{}{limit, start}...))
 
@@ -104,9 +111,9 @@ func (this *GridHandler) Load(tableName string) {
     }
 
     model := this.GetModel(tableName)
-    where, params := model.Where(filters)
-    if len(where) < 8 {
-        where = ""
+    where, params, _ := model.Where(filters, 1)
+    if where != "" {
+        where = " WHERE " + where
     }
     query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+where+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
     rows := db.Query(query, append(params, []interface{}{limit, start}...))

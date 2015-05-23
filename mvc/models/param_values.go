@@ -65,7 +65,10 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN forms ON forms.id = params.form_id`
 
-    where, params := this.Where(filters)
+    where, params, _ := this.Where(filters, 1)
+    if where != "" {
+        where = " WHERE " + where
+    }
     query += where
 
     if sidx != "" {

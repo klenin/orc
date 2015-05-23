@@ -67,7 +67,10 @@ func (this *GroupRegistrationModel) Select(fields []string, filters map[string]i
     query += ` FROM group_registrations
         INNER JOIN events ON events.id = group_registrations.event_id
         INNER JOIN groups ON groups.id = group_registrations.group_id`
-    where, params := this.Where(filters)
+    where, params, _ := this.Where(filters, 1)
+    if where != "" {
+        where = " WHERE " + where
+    }
     query += where
 
     if sidx != "" {

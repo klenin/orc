@@ -203,8 +203,10 @@ func (this *Entity) Select(fields []string, filters map[string]interface{}, limi
         return nil
     }
 
-    where, params := this.Where(filters)
-
+    where, params, _ := this.Where(filters, 1)
+    if where != "" {
+        where = " WHERE " + where
+    }
     query := `SELECT `+strings.Join(fields, ", ")+` FROM `+this.GetTableName()+where
 
     if sidx != "" {
@@ -228,22 +230,25 @@ func (this *Entity) Select(fields []string, filters map[string]interface{}, limi
     return db.Query(query, params)
 }
 
-func (this *Entity) Where(filters map[string]interface{}) (where string, params []interface{}) {
+func (this *Entity) Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int) {
     where = ""
     if filters == nil {
-        return where, nil
+        return where, nil, -1
     }
-    i := 1
+    i := num
 
     groupOp := filters["groupOp"].(string)
     rules := filters["rules"].([]interface{})
+    var groups []interface{}
+    if filters["groups"] != nil {
+        groups = filters["groups"].([]interface{})
+    }
 
     if len(rules) > 10 {
         log.Println("More 10 rules for serching!")
     }
 
     firstElem := true
-    where = " WHERE "
 
     for _, v := range rules {
         if !firstElem {
@@ -331,7 +336,27 @@ func (this *Entity) Where(filters map[string]interface{}) (where string, params 
             panic("`op` parameter is not allowed!")
         }
     }
-    return where, params
+
+    for _, v := range groups {
+        filters1 := v.(map[string]interface{})
+        where1, params1, num1 :=  this.Where(filters1, i)
+        i = num1
+        if where != "" {
+            if !firstElem {
+                if groupOp != "AND" && groupOp != "OR" {
+                    log.Println("`groupOp` parameter is not allowed!")
+                    continue
+                }
+                where += " " + groupOp + " "
+            } else {
+                firstElem = false
+            }
+            where += "(" + where1 + ")"
+            params = append(params, params1...)
+        }
+    }
+
+    return where, params, i
 }
 
 func (this *Entity) GetColModel() []map[string]interface{} {
@@ -340,6 +365,10 @@ func (this *Entity) GetColModel() []map[string]interface{} {
 
 func (this *Entity) GetColModelForUser(user_id int) []map[string]interface{} {
     return nil
+}
+
+func (this *Entity) WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int) {
+    return "", nil, -1
 }
 
 type VirtEntity interface {
@@ -368,7 +397,8 @@ type VirtEntity interface {
     GetColumnByIdx(index int) string
     GetColumnSlice(index int) []string
 
-    Where(filters map[string]interface{}) (where string, params []interface{})
+    Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
+    WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{})
 
     GetColModel() ([]map[string]interface{})

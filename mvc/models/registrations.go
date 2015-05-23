@@ -72,10 +72,10 @@ func (this *RegistrationModel) Select(fields []string, filters map[string]interf
         INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
         INNER JOIN params ON params.id = param_values.param_id`
 
-    where, params := this.Where(filters)
+    where, params, _ := this.Where(filters, 1)
 
     if where != "" {
-        query += where + ` AND params.id in (5, 6, 7) GROUP BY registrations.id, events.id`
+        query += ` WHERE ` + where + ` AND params.id in (5, 6, 7) GROUP BY registrations.id, events.id`
     } else {
         query += ` WHERE params.id in (5, 6, 7) GROUP BY registrations.id, events.id`
     }
