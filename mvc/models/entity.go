@@ -437,6 +437,10 @@ func (this *ModelManager) GetModel(tableName string) VirtEntity {
         return this.Groups()
     case "group_registrations":
         return this.GroupRegistrations()
+    case "docs":
+        return this.Docs()
+    case "events_docs":
+        return this.EventsDocs()
     }
     return nil
 }
