@@ -102,7 +102,7 @@ func (this *Handler) GetListHistoryEvents() {
     utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, params)}, this.Response)
 }
 
-func (this *Handler) RegPerson(token string) {
+func (this *Handler) RegPerson() {
     var param_val_ids []interface{}
     var result string
     var reg_id int
@@ -131,18 +131,6 @@ func (this *Handler) RegPerson(token string) {
         face := this.GetModel("faces")
         face.LoadModelData(map[string]interface{}{"user_id": user_id})
         db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
-
-        if token != "nil" {
-            if !db.IsExists_("persons", []string{"token"}, []interface{}{token}) {
-                utils.SendJSReply(map[string]interface{}{"result": "Неизвестный токен."}, this.Response)
-                return
-            } else {
-                person := this.GetModel("persons")
-                person.LoadModelData(map[string]interface{}{"face_id": face_id})
-                person.LoadWherePart(map[string]interface{}{"token": token})
-                db.QueryUpdate_(person).Scan()
-            }
-        }
 
         registration := this.GetModel("registrations")
         registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": event_id})
@@ -176,8 +164,8 @@ func (this *Handler) RegPerson(token string) {
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
 
-func (this *Handler) GetRequest(tableName, id, token string) {
-    event_id, err := strconv.Atoi(id)
+func (this *Handler) GetRequest(eventId string) {
+    event_id, err := strconv.Atoi(eventId)
     if utils.HandleErr("[Handler::GetRequestGetRequest] event_id Atoi: ", err, this.Response) {
         return
     }
@@ -199,7 +187,7 @@ func (this *Handler) GetRequest(tableName, id, token string) {
 
     res := db.Query(query, []interface{}{event_id})
 
-    this.Render([]string{"mvc/views/item.html"}, "item", map[string]interface{}{"data": res, "token": token})
+    this.Render([]string{"mvc/views/item.html"}, "item", map[string]interface{}{"data": res})
 }
 
 func (this *Handler) InsertUserParams(data []interface{}) ([]interface{}, string, string, string) {
