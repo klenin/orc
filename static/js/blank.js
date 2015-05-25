@@ -248,18 +248,15 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         }
     }
 
-    function ShowPersonBlank(dialogId, gridId) {
+    function ShowPersonBlank(dialogId, regId) {
         console.log("ShowPersonBlank");
 
-        var id = gridUtils.getCurrRowId(gridId);
-        if (id == -1) return false;
-
-        console.log("reg_id", id)
+        console.log("reg_id", regId)
 
         $("#"+dialogId).empty();
 
         utils.postRequest(
-            { "reg_id": id },
+            { "reg_id": regId },
             function(data) {
                 var f_ids = ShowBlank(data["data"], dialogId);
                 getListHistoryEvents(dialogId+" #history", f_ids);

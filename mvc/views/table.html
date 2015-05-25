@@ -267,7 +267,11 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-contact", title: "Анкета участника",
-                onClickButton: function() { blank.ShowPersonBlank("dialog-persons-request", "grid-table"); }
+                onClickButton: function() {
+                    var id = utils.getCurrRowId("grid-table");
+                    if (id == -1) return false;
+                    blank.ShowPersonBlank("dialog-persons-request", id);
+                }
             }
         );
 

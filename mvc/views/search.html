@@ -173,7 +173,11 @@ function(reqUtils, grid, utils, blank) {
                 "#"+subgrid_id + "_p",
                 {
                     caption: "", buttonicon: "ui-icon-script", title: "Анкета",
-                    onClickButton: function() { blank.ShowPersonBlank("dialog-person-request", subgrid_id + "_t"); }
+                    onClickButton: function() {
+                        var id = utils.getCurrRowId(subgrid_id + "_t");
+                        if (id == -1) return false;
+                        blank.ShowPersonBlank("dialog-person-request", id);
+                    }
                 }
             );
 
