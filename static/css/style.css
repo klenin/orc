@@ -14,11 +14,6 @@ hr {
     size: 1px;
     color: #4c9ac3;
 }
-/*
-#user-accordion {
-    width: 200px;
-    height: 160px;
-}*/
 
 #server-answer, form, label, textarea {
     font-size: 12px;
@@ -84,16 +79,12 @@ textarea {
     width: 100%;
 }
 
-#user-accordion p {
-   color: #4c9ac3;
-}
-
-a:link, #user-accordion p:link {
+a:link {
     color: #4c9ac3;
     text-decoration: none;
 }
 
-a:hover, #user-accordion p:hover {
+a:hover {
     color: pink;
     text-decoration: none;
     cursor: pointer;
