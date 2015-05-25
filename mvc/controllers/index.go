@@ -179,7 +179,8 @@ func (this *IndexController) CreateRegistrationEvent() {
         "name": "Турнир юных программистов",
         "date_start": "2015-04-25",
         "date_finish": "2015-04-25",
-        "time": "10:00:00"})
+        "time": "10:00:00",
+        "url": "http://imcs.dvfu.ru/cats/main.pl?f=problems;cid=990998"})
     db.QueryInsert_(events, "RETURNING id").Scan(&event_id)
 
     eventsForms.LoadModelData(map[string]interface{}{"form_id": form_id3, "event_id": event_id})
