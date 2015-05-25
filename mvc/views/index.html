@@ -2,51 +2,111 @@
 
 {{template "header"}}
 
+<link rel="stylesheet"
+      href="/css/jquery.kladr.min.css">
+
+<script type="text/javascript"
+        src="/js/kladr/jquery.kladr.min.js"></script>
+
 <script type="text/javascript">
 
-    function listEvents(data) {
+require(["utils", "custom-grid", "grid-utils", "blank"],
+function(reqUtils, grid, utils, blank) {
 
-        if (data["result"] !== "ok") {
-            $("#server-answer").text(data["result"]).css("color", "red");
-            return;
-        }
-
-        for (i in data["data"]) {
-            var p = $("</p>", {});
-            $(p).append($("<a/>", {
-                text: data["data"][i]["name"],
-                href: "/handler/getrequest/event/" + data["data"][i]["id"] + "/nil",
-            }));
-            $(p).appendTo("div#list-events");
-        }
-    }
-
-    $(document).ready(function(){
-        require(["utils"],
-        function(utils) {
-            utils.postRequest(
-                {
-                    "table": "events",
-                    "fields": ["id", "name"]
-                },
-                listEvents,
-                "/handler/getlist"
-            );
-        });
-
+    $("#events-table").jqGrid({
+        url: "/gridhandler/load/" + {{.events.TableName}},
+        datatype: "json",
+        mtype: "POST",
+        colNames: {{.events.ColNames}},
+        colModel: grid.SetPrimitive({{.events.ColModel}}),
+        pager: "#events-table-pager",
+        gridview: true,
+        viewrecords: true,
+        height: "100%",
+        width: "auto",
+        rowNum: 5,
+        rownumbers: true,
+        rownumWidth: 20,
+        rowList: [5, 10, 20, 50],
+        // caption: {{.events.Caption}},
+        sortname: "id",
+        sortorder: "asc",
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: ' + jqXHR.status + '\n'
+                + 'textStatus: ' + textStatus + '\n'
+                + 'errorThrown: ' + errorThrown);
+            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+        },
     });
+
+    $("#events-table").navGrid(
+        "#events-table-pager",
+        {   // buttons
+            edit: false,
+            add: false,
+            del: false,
+            refresh: false,
+            view: true,
+            search: true
+        }, {}, {}, {},
+        {   // search
+            multipleGroup: true,
+            closeOnEscape: true,
+            multipleSearch: true,
+            closeAfterSearch: true,
+        },
+        {   // view
+            width: "100%",
+        }
+    );
+
+    $("#events-table").jqGrid(
+        "navButtonAdd",
+        "#events-table-pager",
+        {
+            caption: "", buttonicon: "ui-icon-contact", title: "Заполнить анкету",
+            onClickButton: function() {
+                $("#events #server-answer").empty();
+                var selectedRowId = $("#events-table").jqGrid ("getGridParam", "selrow");
+                var eventId = $("#events-table").jqGrid ("getCell", selectedRowId, "id");
+                reqUtils.postRequest(
+                    {},
+                    function(response) {
+                        if (response["result"] == "ok") {
+                            location.href = "/handler/getrequest/" + eventId;
+                        } else if (response["result"] == "regExists") {
+                            if (response["regId"] == undefined) {
+                                alert("Ошибка при загрузке анкеты: id регистрации НЕ найден.")
+                                console.log("Ошибка при загрузке анкеты: id регистрации НЕ найден.")
+                                return
+                            }
+                            blank.ShowPersonBlank("dialog-person-request", response["regId"]);
+                        } else {
+                            blank.ShowServerAns(eventId, response, "events #server-answer");
+                        }
+                    },
+                    "/handler/checkenableofuser/"+eventId
+                );
+            }
+        }
+    );
+});
 </script>
 
-<div id="wrap">
-    <div id="content">
-        {{template "login"}}
+<div id="container">
+    <div id="wrap">
+        <div id="content">
+            {{template "login"}}
+        </div>
+        <div id="server-answer"></div>
     </div>
 
-    <div id="server-answer"></div>
-</div>
-
-<div id="events">
-    <div id="list-events"></div>
+    <div id="events">
+        <div id="server-answer"></div>
+        <div hidden="true" id="dialog-person-request" title="Анкета"></div>
+        <table id="events-table"></table>
+        <div id="events-table-pager"></div>
+    </div>
 </div>
 
 {{template "footer"}}
