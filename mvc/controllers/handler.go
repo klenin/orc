@@ -162,7 +162,7 @@ func (this *Handler) ShowCabinet() {
             ColNames:     groupRegs.GetColNames(),
             ColModel:     groupRegs.GetColModel(),
             Caption:      groupRegs.GetCaption(),
-            Sub:          groups.GetSub(),
+            Sub:          groupRegs.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
             SubColModel:  persons.GetColModelForUser(user_id.(int)),
