@@ -3,7 +3,7 @@ function(utils) {
 
     function loginCallback(data) {
         if (data.result === "ok") {
-            //$("#content, #navigation").css("display", "none");
+            $("#events #server-answer").empty();
             $("#server-answer").text("Авторизация прошла успешно.").css("color", "green");
             $("#logout-btn, #cabinet-btn").css("visibility", "visible");
             $("#password, #username").val("");
