@@ -14,12 +14,12 @@ import (
 )
 
 func (this *GridHandler) Load(tableName string) {
-    if !sessions.CheackSession(this.Response, this.Request) {
+    if tableName != "events" && !sessions.CheackSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
-    if !this.isAdmin() {
+    if tableName != "events" && !this.isAdmin() {
         utils.SendJSReply(map[string]interface{}{"result": errors.New("Forbidden")}, this.Response)
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return

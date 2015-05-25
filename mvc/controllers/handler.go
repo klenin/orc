@@ -251,3 +251,42 @@ func (this *Handler) Login(user_id string) {
 
     http.Redirect(this.Response, this.Request, "/handler/showcabinet/users", 200)
 }
+
+func (this *Handler) CheckEnableOfUser(eventId string) {
+    event_id, err := strconv.Atoi(eventId)
+    if utils.HandleErr("[Handler::CheckEnableOfUser] event_id Atoi: ", err, this.Response) {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    if event_id == 1 {
+        if sessions.CheackSession(this.Response, this.Request) {
+            utils.SendJSReply(map[string]interface{}{"result": "authorized"}, this.Response)
+            return
+        }
+        utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
+        return
+    }
+
+    user_id := sessions.GetValue("id", this.Request)
+
+    if (!sessions.CheackSession(this.Response, this.Request) || user_id == nil) && event_id != 1 {
+        utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
+        return
+    }
+
+    query := `SELECT registrations.id
+        FROM registrations
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1 AND events.id = $2;`
+
+    var reg_id int
+    err = db.QueryRow(query, []interface{}{user_id, event_id}).Scan(&reg_id)
+    if err != sql.ErrNoRows {
+        utils.SendJSReply(map[string]interface{}{"result": "regExists", "regId": strconv.Itoa(reg_id)}, this.Response)
+    } else {
+        utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
+    }
+}

@@ -177,13 +177,13 @@ func (this *Handler) RegPerson(token string) {
 }
 
 func (this *Handler) GetRequest(tableName, id, token string) {
-    if !sessions.CheackSession(this.Response, this.Request) && id != "1" {
-        this.Render([]string{"mvc/views/loginpage.html", "mvc/views/login.html"}, "loginpage", nil)
+    event_id, err := strconv.Atoi(id)
+    if utils.HandleErr("[Handler::GetRequestGetRequest] event_id Atoi: ", err, this.Response) {
         return
     }
 
-    event_id, err := strconv.Atoi(id)
-    if utils.HandleErr("[Handler::GetRequestGetRequest] event_id Atoi: ", err, this.Response) {
+    if !sessions.CheackSession(this.Response, this.Request) && event_id != 1 {
+        this.Render([]string{"mvc/views/loginpage.html", "mvc/views/login.html"}, "loginpage", nil)
         return
     }
 

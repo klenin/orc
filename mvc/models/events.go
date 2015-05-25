@@ -42,12 +42,14 @@ func (this *EventsModel) GetColModel() []map[string]interface{} {
             "index": "id",
             "name": "id",
             "editable": false,
+            "width": 20,
         },
         1: map[string]interface{} {
             "index": "name",
             "name": "name",
             "editable": true,
             "editrules": map[string]interface{}{"required": true},
+            "width": 300,
         },
         2: map[string]interface{} {
             "index": "date_start",
@@ -59,6 +61,7 @@ func (this *EventsModel) GetColModel() []map[string]interface{} {
             "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
             "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
             "type": "date",
+            "width": 100,
         },
         3: map[string]interface{} {
             "index": "date_finish",
@@ -70,6 +73,7 @@ func (this *EventsModel) GetColModel() []map[string]interface{} {
             "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
             "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
             "type": "date",
+            "width": 100,
         },
         4: map[string]interface{} {
             "index": "time",
@@ -81,6 +85,7 @@ func (this *EventsModel) GetColModel() []map[string]interface{} {
             "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
             "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
             "type": "time",
+            "width": 100,
         },
         5: map[string]interface{} {
             "index": "url",
@@ -88,6 +93,7 @@ func (this *EventsModel) GetColModel() []map[string]interface{} {
             "editable": true,
             "formatter": "link",
             "editrules": map[string]interface{}{"url": true, "required": false},
+            "width": 250,
         },
     }
 }

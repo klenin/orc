@@ -86,7 +86,7 @@ func (this *GridHandler) GetPersonRequest() {
         INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
         INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
             AND events.id = registrations.event_id
-        WHERE registrations.id=$1 ORDER BY forms.id, params.id;`
+        WHERE registrations.id = $1 ORDER BY forms.id, params.id;`
 
     utils.SendJSReply(
         map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{reg_id})},

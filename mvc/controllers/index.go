@@ -21,7 +21,12 @@ type IndexController struct {
 
 func (this *IndexController) Index() {
     this.Response.Header().Set("Content-Type", "text/html; charset=utf-8")
-    this.Render([]string{"mvc/views/login.html", "mvc/views/index.html"}, "index", nil)
+    model := this.GetModel("events")
+    this.Render([]string{"mvc/views/login.html", "mvc/views/index.html"}, "index", map[string]interface{}{"events": Model{
+        ColModel:  model.GetColModel(),
+        TableName: model.GetTableName(),
+        ColNames:  model.GetColNames(),
+        Caption:   model.GetCaption()}})
 }
 
 func (this *IndexController) Init(runTest bool) {
