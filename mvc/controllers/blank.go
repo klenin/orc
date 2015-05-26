@@ -33,6 +33,13 @@ func (this *GridHandler) GetPersonRequestFromGroup() {
         return
     }
 
+    q := `SELECT users.id FROM users
+        INNER JOIN faces ON faces.user_id = users.id
+        INNER JOIN persons ON persons.face_id = faces.id
+        WHERE persons.id = $1;`
+
+    user_id := db.Query(q, []interface{}{person_id})[0].(map[string]interface{})["id"].(int)
+
     query := `SELECT forms.id as form_id, forms.name as form_name, params.id as param_id,
         events.name as event_name, events.id as event_id, params.name as param_name,
         param_types.name as type, param_values.id as param_val_id, param_values.value
@@ -45,14 +52,14 @@ func (this *GridHandler) GetPersonRequestFromGroup() {
         INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
         INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
         INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN persons ON persons.face_id = faces.id
-        INNER JOIN groups ON groups.id = persons.group_id
-        INNER JOIN group_registrations ON group_registrations.group_id = groups.id
-            AND group_registrations.event_id = events.id
-        WHERE group_registrations.id = $1 AND persons.id = $2 ORDER BY forms.id, params.id;`
+        INNER JOIN users ON users.id = faces.user_id
+        INNER JOIN group_registrations ON group_registrations.event_id = events.id
+        INNER JOIN groups ON group_registrations.group_id = groups.id
+        INNER JOIN regs_groupregs ON regs_groupregs.reg_id = registrations.id AND regs_groupregs.groupreg_id = group_registrations.id
+        WHERE group_registrations.id = $1 AND users.id = $2 ORDER BY forms.id, params.id;`
 
     utils.SendJSReply(
-        map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{group_reg_id, person_id})},
+        map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{group_reg_id, user_id})},
         this.Response)
 }
 

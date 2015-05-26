@@ -54,13 +54,15 @@ func (this *GridHandler) RegGroup() {
         return
     }
 
+    var groupreg_id int
     group_reg := this.GetModel("group_registrations")
     group_reg.LoadModelData(map[string]interface{}{"event_id": event_id, "group_id": group_id})
-    db.QueryInsert_(group_reg, "").Scan()
+    db.QueryInsert_(group_reg, "RETURNING id").Scan(&groupreg_id)
 
-    query = `SELECT persons.name, persons.email, persons.face_id, persons.status FROM persons
+    query = `SELECT persons.name, persons.email, persons.status, users.id as user_id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = persons.face_id
+        INNER JOIN users ON users.id = faces.user_id
         WHERE groups.id = $1;`
     data := db.Query(query, []interface{}{group_id})
 
@@ -72,12 +74,17 @@ func (this *GridHandler) RegGroup() {
     params := db.Query(query, []interface{}{event_id})
 
     for _, v := range data {
-        face_id := int(v.(map[string]interface{})["face_id"].(int))
         status := v.(map[string]interface{})["status"].(bool)
+        p_user_id := v.(map[string]interface{})["user_id"].(int)
 
         if !status {
             continue
         }
+
+        var face_id int
+        face := this.GetModel("faces")
+        face.LoadModelData(map[string]interface{}{"user_id": p_user_id})
+        db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
 
         var reg_id int
         regs := this.GetModel("registrations")
@@ -89,6 +96,10 @@ func (this *GridHandler) RegGroup() {
         if !mailer.AttendAnEvent(to, address, eventName, groupName) {
             utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с уведомлением не отправлено."}, this.Response)
         }
+        regs_groupregs := this.GetModel("regs_groupregs")
+        regs_groupregs.LoadModelData(map[string]interface{}{"groupreg_id": groupreg_id, "reg_id": reg_id})
+        db.QueryInsert_(regs_groupregs, "").Scan()
+
 
         for _, p := range params {
             param_id := int(p.(map[string]interface{})["id"].(int))
@@ -128,7 +139,28 @@ func (this *Handler) ConfirmInvitationToGroup(token string) {
     db.QueryRow(query, []interface{}{user_id, 1}).Scan(&face_id)
 
     person := this.GetModel("persons")
-    person.LoadModelData(map[string]interface{}{"face_id": face_id, "status": true})
+    person.LoadWherePart(map[string]interface{}{"token": token})
+
+    var group_id int
+    err := db.SelectRow(person, []string{"group_id",}).Scan(&group_id)
+
+    if err != nil {
+        if this.Response != nil {
+            this.Render([]string{"mvc/views/msg.html"}, "msg", "Неверный токен.")
+        }
+        return
+    }
+
+
+    if db.IsExists_("persons", []string{"face_id", "group_id"}, []interface{}{face_id, group_id}) {
+        if this.Response != nil {
+            this.Render([]string{"mvc/views/msg.html"}, "msg", "Вы уже состоите в группе.")
+        }
+        return
+    }
+
+    person = this.GetModel("persons")
+    person.LoadModelData(map[string]interface{}{"face_id": face_id, "status": true, "token": " "})
     person.LoadWherePart(map[string]interface{}{"token": token})
     db.QueryUpdate_(person).Scan()
 

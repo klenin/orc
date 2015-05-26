@@ -20,6 +20,7 @@ var Tables = []string{
     "reg_param_vals",
     "groups",
     "group_registrations",
+    "regs_groupregs",
     "docs",
     "events_docs",
 }
@@ -40,6 +41,7 @@ var TableNames = []string{
     "Регистрации - Значения параметров",
     "Группы",
     "Регистрации групп",
+    "Регистрации групп - Регистрации",
     "Документы",
     "Мероприятие - Документы",
 }

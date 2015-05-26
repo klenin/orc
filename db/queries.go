@@ -170,7 +170,7 @@ func IsExists_(tableName string, fields []string, params []interface{}) bool {
     row := QueryRow(fmt.Sprintf(query, f, tableName, p), params)
     err := row.Scan(&result)
 
-    return err != sql.ErrNoRows && result != ""
+    return err != sql.ErrNoRows
 }
 
 func MakeParams(n int) []string {
