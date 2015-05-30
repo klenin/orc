@@ -13,6 +13,7 @@ type ParamValues struct {
     Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     ParamId int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
     Value   string `name:"value" type:"text" null:"NULL" extra:""`
+    Date    string `name:"date" type:"timestamp" null:"NOT NULL" extra:""`
 }
 
 func (c *ModelManager) ParamValues() *ParamValuesModel {
@@ -21,8 +22,8 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
     model.TableName = "param_values"
     model.Caption = "Значение параметров"
 
-    model.Columns = []string{"id", "param_id", "value"}
-    model.ColNames = []string{"ID", "Параметр", "Значение"}
+    model.Columns = []string{"id", "param_id", "value", "date"}
+    model.ColNames = []string{"ID", "Параметр", "Значение", "Дата"}
 
     model.Fields = new(ParamValues)
     model.WherePart = make(map[string]interface{}, 0)
@@ -55,6 +56,9 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
             break
         case "value":
             query += "param_values.value, "
+            break
+        case "date":
+            query += "param_values.date, "
             break
         }
     }
@@ -94,7 +98,7 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
 
 func (this *ParamValuesModel) GetColModel() []map[string]interface{} {
     query := `SELECT array_to_string(
-        array(SELECT params.id || ':' || forms.name || ': ' || params.name
+        array(SELECT params.id || ': ' || forms.name || ' - ' || params.name
         FROM params
         INNER JOIN forms ON forms.id = params.form_id GROUP BY params.id, forms.name ORDER BY params.id), ';') as name;`
     params := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
@@ -104,6 +108,7 @@ func (this *ParamValuesModel) GetColModel() []map[string]interface{} {
             "index": "id",
             "name": "id",
             "editable": false,
+            "width": 20,
         },
         1: map[string]interface{} {
             "index": "param_id",
@@ -122,6 +127,17 @@ func (this *ParamValuesModel) GetColModel() []map[string]interface{} {
             "name": "value",
             "editable": true,
             "editrules": map[string]interface{}{"required": true},
+        },
+        3: map[string]interface{} {
+            "index": "date",
+            "name": "date",
+            "editable": true,
+            "formatter": nil,
+            "editrules": map[string]interface{}{"date": true, "required": true},
+            "editoptions": map[string]interface{}{"dataInit": nil},
+            "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
+            "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
+            "type": "date",
         },
     }
 }

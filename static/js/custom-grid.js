@@ -19,7 +19,7 @@ function(utils, datepicker, blank) {
     }
 
     function dateFormat(cellvalue, options, rowObject) {
-        return cellvalue.slice(0, 10);
+        return cellvalue != undefined ? cellvalue.slice(0, 10) : "";
     }
 
     function SetPrimitive(colModel) {

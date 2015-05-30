@@ -73,7 +73,7 @@ func ConvertTypeModel(type_ string, value reflect.Value) (interface{}, bool) {
     case "int":
         println("val: ", strconv.Itoa(int(value.Int())))
         return value.Int(), value.Int() != 0
-    case "text", "date", "time":
+    case "text", "date", "time", "timestamp":
         println("val: ", value.String())
         return value.String(), value.String() != ""
     case "boolean":
@@ -106,7 +106,7 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
             }
             println("ConvertTypeForModel-int: ", strconv.Itoa(v))
             return v
-        case "text", "date", "time":
+        case "text", "date", "time", "timestamp":
             println("ConvertTypeForModel-text-date-time: ", value.(string))
             return value
         case "boolean":
@@ -124,7 +124,7 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
         case "int":
             println("__ConvertTypeForModel-int: ", strconv.Itoa(value.(int)))
             return value.(int)
-        case "text", "date", "time":
+        case "text", "date", "time", "timestamp":
             println("__ConvertTypeForModel-text-date-time: ", value.(string))
             return value.(string)
         case "boolean":
