@@ -134,7 +134,7 @@ function(utils, datepicker, blank) {
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        blank.ShowPersonBlankFromGroup(row_id, event_id, "dialog-group-person-request", subTId);
+                        blank.ShowPersonBlankFromGroup(row_id, "dialog-group-person-request", subTId);
                     }
                 }
             );
