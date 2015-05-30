@@ -130,7 +130,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
             return false;
         }
         reqUtils.postRequest(
-            { "pass1": $("#password-1").val(), "pass2": $("#password-2").val() },
+            { "pass": $("#password-1").val() },
             function(data) { utils.showServerPromtInDialog($("#dialog-reset-pass"), data["result"]); },
             "/handler/resetpassword"
         );

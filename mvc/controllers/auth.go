@@ -188,14 +188,10 @@ func (this *Handler) ResetPassword() {
         return
     }
 
-    pass1 := request["pass1"].(string)
-    pass2 := request["pass2"].(string)
+    pass := request["pass"].(string)
 
-    if !utils.MatchRegexp("^.{6,36}$", pass1) || !utils.MatchRegexp("^.{6,36}$", pass2) {
+    if !utils.MatchRegexp("^.{6,36}$", pass) {
         utils.SendJSReply(map[string]interface{}{"result": "badPassword"}, this.Response)
-        return
-    } else if pass1 != pass2 {
-        utils.SendJSReply(map[string]interface{}{"result": "differentPasswords"}, this.Response)
         return
     }
 
@@ -220,7 +216,7 @@ func (this *Handler) ResetPassword() {
 
     user.GetFields().(*models.User).Enabled = enabled
 
-    user.LoadModelData(map[string]interface{}{"pass": utils.GetMD5Hash(pass1 + salt)})
+    user.LoadModelData(map[string]interface{}{"pass": utils.GetMD5Hash(pass + salt)})
     db.QueryUpdate_(user).Scan()
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
