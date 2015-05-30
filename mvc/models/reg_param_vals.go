@@ -37,11 +37,14 @@ func (c *ModelManager) RegParamVals() *RegParamValsModel {
 
 func (this *RegParamValsModel) GetColModel() []map[string]interface{} {
     query := `SELECT array_to_string(
-        array(SELECT registrations.id || ':' || registrations.id FROM registrations GROUP BY registrations.id ORDER BY registrations.id), ';') as name;`
+        array(SELECT registrations.id || ':' || registrations.id || ' - ' || events.name FROM registrations
+        INNER JOIN events ON events.id = registrations.event_id
+        GROUP BY registrations.id, events.name ORDER BY registrations.id), ';') as name;`
     regs := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
     query = `SELECT array_to_string(
-        array(SELECT param_values.id || ':' || param_values.id FROM param_values GROUP BY param_values.id ORDER BY param_values.id), ';') as name;`
+        array(SELECT param_values.id || ':' || param_values.id || ' - ' || param_values.value
+        FROM param_values GROUP BY param_values.id ORDER BY param_values.id), ';') as name;`
     param_vals := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
     return []map[string]interface{} {
