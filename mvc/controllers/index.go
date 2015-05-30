@@ -242,10 +242,17 @@ func (this *IndexController) CreateRegistrationEvent() {
     db.QueryInsert_(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
+        "name":          "Квартира",
+        "form_id":       form_id4,
+        "param_type_id": param_building_type_id,
+        "identifier":    13})
+    db.QueryInsert_(params, "").Scan()
+
+    params.LoadModelData(map[string]interface{}{
         "name":          "Контактный телефон",
         "form_id":       form_id4,
         "param_type_id": param_phon_type_id,
-        "identifier":    13})
+        "identifier":    14})
     db.QueryInsert_(params, "").Scan()
 
     var form_id5 int
@@ -259,14 +266,14 @@ func (this *IndexController) CreateRegistrationEvent() {
         "name":          "Учебное заведение",
         "form_id":       form_id5,
         "param_type_id": param_text_type_id,
-        "identifier":    14})
+        "identifier":    15})
     db.QueryInsert_(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Класс",
         "form_id":       form_id5,
         "param_type_id": param_text_type_id,
-        "identifier":    15})
+        "identifier":    16})
     db.QueryInsert_(params, "").Scan()
 
     var form_id6 int
@@ -280,6 +287,34 @@ func (this *IndexController) CreateRegistrationEvent() {
         "name":          "Тип участия (очное/дистанционное)",
         "form_id":       form_id6,
         "param_type_id": param_text_type_id,
-        "identifier":    16})
+        "identifier":    17})
+    db.QueryInsert_(params, "").Scan()
+
+    var form_id7 int
+    forms.LoadModelData(map[string]interface{}{"name": "Руководитель"})
+    db.QueryInsert_(forms, "RETURNING id").Scan(&form_id7)
+
+    eventsForms.LoadModelData(map[string]interface{}{"form_id": form_id7, "event_id": event_id})
+    db.QueryInsert_(eventsForms, "").Scan()
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Фамилия",
+        "form_id":       form_id7,
+        "param_type_id": param_text_type_id,
+        "identifier":    18})
+    db.QueryInsert_(params, "").Scan()
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Имя",
+        "form_id":       form_id7,
+        "param_type_id": param_text_type_id,
+        "identifier":    19})
+    db.QueryInsert_(params, "").Scan()
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Отчество",
+        "form_id":       form_id7,
+        "param_type_id": param_text_type_id,
+        "identifier":    20})
     db.QueryInsert_(params, "").Scan()
 }
