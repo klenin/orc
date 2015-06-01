@@ -20,7 +20,7 @@ func (c *ModelManager) Faces() *FaceModel {
     model := new(FaceModel)
 
     model.TableName = "faces"
-    model.Caption = "Лица"
+    model.Caption = "Физические лица"
 
     model.Columns = []string{"id", "user_id"}
     model.ColNames = []string{"ID", "Пользователь"}

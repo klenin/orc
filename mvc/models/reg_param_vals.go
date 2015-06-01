@@ -52,6 +52,7 @@ func (this *RegParamValsModel) GetColModel() []map[string]interface{} {
             "index": "id",
             "name": "id",
             "editable": false,
+            "width": 20,
         },
         1: map[string]interface{} {
             "index": "reg_id",

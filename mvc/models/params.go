@@ -114,6 +114,7 @@ func (this *ParamsModel) GetColModel() []map[string]interface{} {
             "index": "id",
             "name": "id",
             "editable": false,
+            "width": 20,
         },
         1: map[string]interface{} {
             "index": "name",

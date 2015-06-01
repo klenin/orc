@@ -23,10 +23,10 @@ func (c *ModelManager) Persons() *PersonsModel {
     model := new(PersonsModel)
 
     model.TableName = "persons"
-    model.Caption = "Персоны"
+    model.Caption = "Участники"
 
     model.Columns = []string{"id", "name", "email", "group_id", "status", "face_id"}
-    model.ColNames = []string{"ID", "ФИО", "Почта", "Группа", "Статус", "Лицо"}
+    model.ColNames = []string{"ID", "ФИО", "Почта", "Группа", "Статус", "Физическое лицо"}
 
     model.Fields = new(Person)
     model.WherePart = make(map[string]interface{}, 0)
@@ -133,6 +133,7 @@ func (this *PersonsModel) GetColModel() []map[string]interface{} {
             "index": "id",
             "name": "id",
             "editable": false,
+            "width": 20,
         },
         1: map[string]interface{} {
             "index": "name",

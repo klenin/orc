@@ -86,6 +86,7 @@ func (this *EventsModel) GetColModel() []map[string]interface{} {
             "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
             "type": "time",
             "width": 100,
+            "fixed": true,
         },
         5: map[string]interface{} {
             "index": "url",
