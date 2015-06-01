@@ -3,13 +3,14 @@ package controllers
 import (
     "database/sql"
     "github.com/orc/db"
-    "github.com/orc/sessions"
+    "github.com/orc/mailer"
     "github.com/orc/mvc/models"
+    "github.com/orc/sessions"
     "github.com/orc/utils"
     "net/http"
     "strconv"
     "strings"
-    "github.com/orc/mailer"
+
 )
 
 func (c *BaseController) Handler() *Handler {
@@ -54,14 +55,14 @@ func (this *Handler) Index() {
         var userHash string
         var result interface{}
 
-        hash := sessions.GetValue("hash", this.Request)
-
-        if hash == nil {
+        sid := sessions.GetValue("sid", this.Request)
+        if sid == nil {
             result = map[string]interface{}{"result": "no"}
+
         } else {
             user := this.GetModel("users")
-            user.LoadWherePart(map[string]interface{}{"hash": hash})
-            err := db.SelectRow(user, []string{"hash"}).Scan(&userHash)
+            user.LoadWherePart(map[string]interface{}{"sid": sid})
+            err := db.SelectRow(user, []string{"sid"}).Scan(&userHash)
             if err != sql.ErrNoRows {
                 result = map[string]interface{}{"result": "ok"}
             } else {
@@ -71,12 +72,14 @@ func (this *Handler) Index() {
 
         utils.SendJSReply(result, this.Response)
         break
+
     case "sendEmailWellcomeToProfile":
-        user_id, err := strconv.Atoi(data["user_id"].(string))
+        userId, err := strconv.Atoi(data["user_id"].(string))
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
+
         query := `SELECT param_values.value
             FROM reg_param_vals
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
@@ -86,8 +89,7 @@ func (this *Handler) Index() {
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN users ON users.id = faces.user_id
             WHERE params.id in (4, 5, 6, 7) AND users.id = $1 ORDER BY params.id;`
-
-        data := db.Query(query, []interface{}{user_id})
+        data := db.Query(query, []interface{}{userId})
 
         if len(data) < 4 {
             utils.SendJSReply(map[string]interface{}{"result": "Нет регистрационных данных пользователя."}, this.Response)
@@ -104,29 +106,30 @@ func (this *Handler) Index() {
             utils.SendJSReply(map[string]interface{}{"result": "Проверьте правильность email."}, this.Response)
             break
         }
+
         user := this.GetModel("users")
-        user.LoadModelData(map[string]interface{}{"token": token})
+        user.GetFields().(*models.User).Token = token
         user.GetFields().(*models.User).Enabled = true
-        user.LoadWherePart(map[string]interface{}{"id": user_id})
+        user.LoadWherePart(map[string]interface{}{"id": userId})
         db.QueryUpdate_(user).Scan()
+
         utils.SendJSReply(map[string]interface{}{"result": "Письмо отправлено"}, this.Response)
         break
     }
 }
 
 func (this *Handler) ShowCabinet() {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
     user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": user_id})
+    user.LoadWherePart(map[string]interface{}{"id": userId})
 
     var role string
-    err := db.SelectRow(user, []string{"role"}).Scan(&role)
+    err = db.SelectRow(user, []string{"role"}).Scan(&role)
     if err != nil {
         utils.HandleErr("[Handle::ShowCabinet]: ", err, this.Response)
         return
@@ -135,6 +138,7 @@ func (this *Handler) ShowCabinet() {
     if role == "admin" {
         model := Model{Columns: db.Tables, ColNames: db.TableNames}
         this.Render([]string{"mvc/views/"+role+".html"}, role, model)
+
     } else {
         groups := this.GetModel("groups")
         persons := this.GetModel("persons")
@@ -146,7 +150,7 @@ func (this *Handler) ShowCabinet() {
             Sub:          groups.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
-            SubColModel:  persons.GetColModelForUser(user_id.(int)),
+            SubColModel:  persons.GetColModelForUser(userId),
             SubColNames:  persons.GetColNames()}
 
         regs := this.GetModel("registrations")
@@ -165,7 +169,7 @@ func (this *Handler) ShowCabinet() {
             Sub:          groupRegs.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
-            SubColModel:  persons.GetColModelForUser(user_id.(int)),
+            SubColModel:  persons.GetColModelForUser(userId),
             SubColNames:  persons.GetColNames()}
 
         query := `SELECT params.name, param_values.value, users.login
@@ -178,7 +182,7 @@ func (this *Handler) ShowCabinet() {
             INNER JOIN users ON users.id = faces.user_id
             WHERE params.id = 4 AND users.id = $1;`
 
-        data := db.Query(query, []interface{}{user_id})
+        data := db.Query(query, []interface{}{userId})
 
         this.Render(
             []string{"mvc/views/"+role+".html"},
@@ -188,7 +192,6 @@ func (this *Handler) ShowCabinet() {
 }
 
 func WellcomeToProfile(w http.ResponseWriter, r *http.Request) {
-
     newContreoller := new(BaseController).Handler()
     newContreoller.Request = r
     newContreoller.Response = w
@@ -205,21 +208,20 @@ func WellcomeToProfile(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    hash := utils.GetRandSeq(HASH_SIZE)
-
+    sid := utils.GetRandSeq(HASH_SIZE)
     user = newContreoller.GetModel("users")
-    user.LoadModelData(map[string]interface{}{"hash": hash})
+    user.GetFields().(*models.User).Sid = sid
     user.GetFields().(*models.User).Enabled = true
     user.LoadWherePart(map[string]interface{}{"id": id})
     db.QueryUpdate_(user).Scan()
 
-    sessions.SetSession(newContreoller.Response, map[string]interface{}{"id": id, "hash": hash})
+    sessions.SetSession(newContreoller.Response, map[string]interface{}{"sid": sid})
 
     http.Redirect(newContreoller.Response, newContreoller.Request, "/handler/showcabinet/users", 200)
 }
 
-func (this *Handler) Login(user_id string) {
-    if !sessions.CheackSession(this.Response, this.Request) {
+func (this *Handler) Login(userId string) {
+    if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -229,7 +231,7 @@ func (this *Handler) Login(user_id string) {
         return
     }
 
-    id, err := strconv.Atoi(user_id)
+    id, err := strconv.Atoi(userId)
     if utils.HandleErr("[GridHandler::login] user_id Atoi: ", err, this.Response) {
         return
     }
@@ -239,28 +241,28 @@ func (this *Handler) Login(user_id string) {
         return
     }
 
-    hash := utils.GetRandSeq(HASH_SIZE)
+    sid := utils.GetRandSeq(HASH_SIZE)
 
     user := this.GetModel("users")
-    user.LoadModelData(map[string]interface{}{"hash": hash})
+    user.GetFields().(*models.User).Sid = sid
     user.GetFields().(*models.User).Enabled = true
     user.LoadWherePart(map[string]interface{}{"id": id})
     db.QueryUpdate_(user).Scan()
 
-    sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
+    sessions.SetSession(this.Response, map[string]interface{}{"sid": sid})
 
     http.Redirect(this.Response, this.Request, "/handler/showcabinet/users", 200)
 }
 
-func (this *Handler) CheckEnableOfUser(eventId string) {
-    event_id, err := strconv.Atoi(eventId)
+func (this *Handler) CheckEnableOfUser(id string) {
+    eventId, err := strconv.Atoi(id)
     if utils.HandleErr("[Handler::CheckEnableOfUser] event_id Atoi: ", err, this.Response) {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
-    if event_id == 1 {
-        if sessions.CheackSession(this.Response, this.Request) {
+    if eventId == 1 {
+        if sessions.CheckSession(this.Response, this.Request) {
             utils.SendJSReply(map[string]interface{}{"result": "authorized"}, this.Response)
             return
         }
@@ -268,9 +270,8 @@ func (this *Handler) CheckEnableOfUser(eventId string) {
         return
     }
 
-    user_id := sessions.GetValue("id", this.Request)
-
-    if (!sessions.CheackSession(this.Response, this.Request) || user_id == nil) && event_id != 1 {
+    userId, err := this.CheckSid()
+    if err != nil && eventId != 1 {
         utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
         return
     }
@@ -282,10 +283,10 @@ func (this *Handler) CheckEnableOfUser(eventId string) {
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 AND events.id = $2;`
 
-    var reg_id int
-    err = db.QueryRow(query, []interface{}{user_id, event_id}).Scan(&reg_id)
+    var regId int
+    err = db.QueryRow(query, []interface{}{userId, eventId}).Scan(&regId)
     if err != sql.ErrNoRows {
-        utils.SendJSReply(map[string]interface{}{"result": "regExists", "regId": strconv.Itoa(reg_id)}, this.Response)
+        utils.SendJSReply(map[string]interface{}{"result": "regExists", "regId": strconv.Itoa(regId)}, this.Response)
     } else {
         utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
     }

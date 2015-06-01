@@ -33,44 +33,40 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
     } else {
         result["result"] = "ok"
 
-        hash := utils.GetRandSeq(HASH_SIZE)
+        sid := utils.GetRandSeq(HASH_SIZE)
 
         user := this.GetModel("users")
-        user.LoadModelData(map[string]interface{}{"hash": hash})
         user.GetFields().(*models.User).Enabled = true
+        user.GetFields().(*models.User).Sid = sid
         user.LoadWherePart(map[string]interface{}{"id": id})
         db.QueryUpdate_(user).Scan()
 
-        sessions.SetSession(this.Response, map[string]interface{}{"id": id, "hash": hash})
+        sessions.SetSession(this.Response, map[string]interface{}{"sid": sid})
     }
 
     return result
 }
 
 func (this *Handler) HandleLogout() interface{} {
-    user_id := sessions.GetValue("id", this.Request)
-    user_hash := sessions.GetValue("hash", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil || user_hash == nil || user_hash == " " {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return map[string]string{"result": "badSid"}
     }
 
-    user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": user_id, "hash": user_hash})
-
-    var id string
     var enabled bool
-    err := db.SelectRow(user, []string{"id", "enabled"}).Scan(&id, &enabled)
+    user := this.GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"id": userId})
+    err = db.SelectRow(user, []string{"enabled"}).Scan(&enabled)
     if err != nil {
         utils.HandleErr("[Handle::HandleLogout]: ", err, this.Response)
-        return map[string]string{"result": "badSid"}
+        return map[string]string{"result": err.Error()}
     }
 
     user = this.GetModel("users")
-    user.LoadModelData(map[string]interface{}{"hash": " "})
     user.GetFields().(*models.User).Enabled = enabled
-    user.LoadWherePart(map[string]interface{}{"id": id})
+    user.GetFields().(*models.User).Sid = " "
+    user.LoadWherePart(map[string]interface{}{"id": userId})
     db.QueryUpdate_(user).Scan()
 
     sessions.ClearSession(this.Response)
@@ -78,7 +74,7 @@ func (this *Handler) HandleLogout() interface{} {
     return map[string]string{"result": "ok"}
 }
 
-func (this *Handler) HandleRegister_(login, password, email, role string) (result string, reg_id int) {
+func (this *Handler) HandleRegister_(login, password, email, role string) (result string, regId int) {
     result = "ok"
     salt := strconv.Itoa(int(time.Now().Unix()))
     pass := utils.GetMD5Hash(password + salt)
@@ -93,11 +89,15 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
 
     if db.IsExists_("users", []string{"login"}, []interface{}{login}) == true {
         result = "loginExists"
+
     } else if !utils.MatchRegexp("^[a-zA-Z0-9]{2,36}$", login) {
         result = "badLogin"
+
     } else if !utils.MatchRegexp("^.{6,36}$", password) || passHasInvalidChars {
         result = "badPassword"
+
     // } else if bad email {
+
     } else {
         token := utils.GetRandSeq(HASH_SIZE)
 
@@ -105,22 +105,27 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
         //     return "badEmail", -1
         // }
 
-        var user_id int
+        var userId int
         user := this.GetModel("users")
-        user.LoadModelData(map[string]interface{}{"login": login, "pass": pass, "salt": salt, "role": role, "token": token, "enabled": false})
+        user.LoadModelData(map[string]interface{}{
+            "login": login,
+            "pass": pass,
+            "salt": salt,
+            "role": role,
+            "token": token})
         user.GetFields().(*models.User).Enabled = false
-        db.QueryInsert_(user, "RETURNING id").Scan(&user_id)
+        db.QueryInsert_(user, "RETURNING id").Scan(&userId)
 
-        var face_id int
+        var faceId int
         face := this.GetModel("faces")
-        face.LoadModelData(map[string]interface{}{"user_id": user_id})
-        db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
+        face.LoadModelData(map[string]interface{}{"user_id": userId})
+        db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
 
         registration := this.GetModel("registrations")
-        registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": 1})
-        db.QueryInsert_(registration, "RETURNING id").Scan(&reg_id)
+        registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1})
+        db.QueryInsert_(registration, "RETURNING id").Scan(&regId)
 
-        return result, reg_id
+        return result, regId
     }
 
     return result, -1
@@ -133,12 +138,15 @@ func (this *Handler) ConfirmUser(token string) {
     var id int
     err := db.SelectRow(user, []string{"id"}).Scan(&id)
     if utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response) {
+        if this.Response != nil {
+            this.Render([]string{"mvc/views/msg.html"}, "msg", err.Error())
+        }
         return
     }
 
     user = this.GetModel("users")
-    user.LoadModelData(map[string]interface{}{"token": " ", "enabled": true})
     user.GetFields().(*models.User).Enabled = true
+    user.GetFields().(*models.User).Token = " "
     user.LoadWherePart(map[string]interface{}{"id": id})
     db.QueryUpdate_(user).Scan()
 
@@ -148,17 +156,19 @@ func (this *Handler) ConfirmUser(token string) {
 }
 
 func (this *Handler) RejectUser(token string) {
+    var userId int
     user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"token": token})
-
-    var id string
-    err := db.SelectRow(user, []string{"id"}).Scan(&id)
+    user.GetFields().(*models.User).Token = token
+    err := db.SelectRow(user, []string{"id"}).Scan(&userId)
     if err != nil {
         utils.HandleErr("[Handle::RejectUser]: ", err, this.Response)
+        if this.Response != nil {
+            this.Render([]string{"mvc/views/msg.html"}, "msg", err.Error())
+        }
         return
     }
 
-    db.QueryDeleteByIds("users", id)
+    db.QueryDeleteByIds("users", strconv.Itoa(userId))
 
     if this.Response != nil {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Вы успешно отписаны от рассылок Secret Oasis.")
@@ -166,9 +176,8 @@ func (this *Handler) RejectUser(token string) {
 }
 
 func (this *Handler) ResetPassword() {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -189,34 +198,31 @@ func (this *Handler) ResetPassword() {
     }
 
     pass := request["pass"].(string)
-
     if !utils.MatchRegexp("^.{6,36}$", pass) {
         utils.SendJSReply(map[string]interface{}{"result": "badPassword"}, this.Response)
         return
     }
 
     var id int
-
     if request["id"] == nil {
-        id = user_id.(int)
+        id = userId
 
     } else {
         id, err =  strconv.Atoi(request["id"].(string))
         if utils.HandleErr("[Grid-Handler::ResetPassword] strconv.Atoi: ", err, this.Response) {
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
     }
 
+    var enabled bool
+    salt := strconv.Itoa(int(time.Now().Unix()))
     user := this.GetModel("users")
     user.LoadWherePart(map[string]interface{}{"id": id})
-
-    var salt string
-    var enabled bool
-    db.SelectRow(user, []string{"salt", "enabled"}).Scan(&salt, &enabled)
-
+    db.SelectRow(user, []string{"enabled"}).Scan(&enabled)
     user.GetFields().(*models.User).Enabled = enabled
-
-    user.LoadModelData(map[string]interface{}{"pass": utils.GetMD5Hash(pass + salt)})
+    user.GetFields().(*models.User).Salt = salt
+    user.GetFields().(*models.User).Pass = utils.GetMD5Hash(pass + salt)
     db.QueryUpdate_(user).Scan()
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)

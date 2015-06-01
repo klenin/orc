@@ -47,12 +47,14 @@ func (this Route) GetRoute() {
 
 
 func Generate() {
+
     /* js css img */
+
     fmt.Println(prefix+"/js"+" "+host+"/js")
     fmt.Println(prefix+"/css"+" "+host+"/css")
     fmt.Println(prefix+"/img"+" "+host+"/img")
 
-	/* Routes of User*/
+    /* Routes of User*/
 
     route := Route{Controller: "handler", Method: "gethistoryrequest", Args: nil}
     route.GetRoute()

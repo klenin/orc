@@ -65,7 +65,7 @@ func ClearSession(response http.ResponseWriter) {
     http.SetCookie(response, cookie)
 }
 
-func CheackSession(response http.ResponseWriter, request *http.Request) bool {
+func CheckSession(response http.ResponseWriter, request *http.Request) bool {
     oldTime := GetValue("time", request)
     if oldTime == nil {
         return false

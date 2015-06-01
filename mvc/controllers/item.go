@@ -9,9 +9,8 @@ import (
 )
 
 func (this *Handler) GetHistoryRequest() {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
         return
     }
@@ -22,7 +21,7 @@ func (this *Handler) GetHistoryRequest() {
         return
     }
 
-    event_id, err := strconv.Atoi(data["event_id"].(string))
+    eventId, err := strconv.Atoi(data["event_id"].(string))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
@@ -43,13 +42,12 @@ func (this *Handler) GetHistoryRequest() {
             INNER JOIN param_values ON param_values.param_id = params.id AND reg_param_vals.param_val_id = param_values.id
             WHERE users.id = $1 AND events.id = $2;`
 
-    utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{user_id, event_id})}, this.Response)
+    utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{userId, eventId})}, this.Response)
 }
 
 func (this *Handler) GetListHistoryEvents() {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
         return
     }
@@ -90,7 +88,7 @@ func (this *Handler) GetListHistoryEvents() {
         WHERE users.id=$1 AND events.id IN (`
 
     var i int
-    params := []interface{}{user_id}
+    params := []interface{}{userId}
 
     for i = 2; i < len(events); i++ {
         query += "$" + strconv.Itoa(i) + ", "
@@ -103,9 +101,9 @@ func (this *Handler) GetListHistoryEvents() {
 }
 
 func (this *Handler) RegPerson() {
-    var param_val_ids []interface{}
+    var paramValIds []interface{}
     var result string
-    var reg_id int
+    var regId int
 
     data, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
@@ -113,37 +111,37 @@ func (this *Handler) RegPerson() {
         return
     }
 
-    event_id := int(data["event_id"].(float64))
+    eventId := int(data["event_id"].(float64))
 
-    if event_id == 1 && sessions.CheackSession(this.Response, this.Request) {
+    if eventId == 1 && sessions.CheckSession(this.Response, this.Request) {
         utils.SendJSReply(map[string]interface{}{"result": "authorized"}, this.Response)
         return
     }
 
-    if sessions.CheackSession(this.Response, this.Request) {
-        user_id := sessions.GetValue("id", this.Request)
-        if user_id == nil {
+    if sessions.CheckSession(this.Response, this.Request) {
+        userId, err := this.CheckSid()
+        if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
             return
         }
 
-        var face_id int
+        var faceId int
         face := this.GetModel("faces")
-        face.LoadModelData(map[string]interface{}{"user_id": user_id})
-        db.QueryInsert_(face, "RETURNING id").Scan(&face_id)
+        face.LoadModelData(map[string]interface{}{"user_id": userId})
+        db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
 
         registration := this.GetModel("registrations")
-        registration.LoadModelData(map[string]interface{}{"face_id": face_id, "event_id": event_id})
-        db.QueryInsert_(registration, "RETURNING id").Scan(&reg_id)
+        registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId})
+        db.QueryInsert_(registration, "RETURNING id").Scan(&regId)
 
-        param_val_ids, _, _, _ = this.InsertUserParams(data["data"].([]interface{}))
+        paramValIds, _, _, _ = this.InsertUserParams(data["data"].([]interface{}))
 
-    } else if event_id == 1 {
+    } else if eventId == 1 {
         var userLogin, userPass, email string
-        param_val_ids, userLogin, userPass, email = this.InsertUserParams(data["data"].([]interface{}))
+        paramValIds, userLogin, userPass, email = this.InsertUserParams(data["data"].([]interface{}))
 
-        result, reg_id = this.HandleRegister_(userLogin, userPass, email, "user")
-        if result != "ok" && reg_id == -1 {
+        result, regId = this.HandleRegister_(userLogin, userPass, email, "user")
+        if result != "ok" && regId == -1 {
             utils.SendJSReply(map[string]interface{}{"result": result}, this.Response)
             return
         }
@@ -153,10 +151,10 @@ func (this *Handler) RegPerson() {
         return
     }
 
-    for _, v := range param_val_ids {
+    for _, v := range paramValIds {
         regParamValue := this.GetModel("reg_param_vals")
         regParamValue.LoadModelData(map[string]interface{}{
-            "reg_id":        reg_id,
+            "reg_id":        regId,
             "param_val_id":  v.(map[string]int)["param_val_id"]})
         db.QueryInsert_(regParamValue, "").Scan()
     }
@@ -164,13 +162,13 @@ func (this *Handler) RegPerson() {
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
 
-func (this *Handler) GetRequest(eventId string) {
-    event_id, err := strconv.Atoi(eventId)
+func (this *Handler) GetRequest(id string) {
+    eventId, err := strconv.Atoi(id)
     if utils.HandleErr("[Handler::GetRequestGetRequest] event_id Atoi: ", err, this.Response) {
         return
     }
 
-    if !sessions.CheackSession(this.Response, this.Request) && event_id != 1 {
+    if !sessions.CheckSession(this.Response, this.Request) && eventId != 1 {
         this.Render([]string{"mvc/views/loginpage.html", "mvc/views/login.html"}, "loginpage", nil)
         return
     }
@@ -184,42 +182,41 @@ func (this *Handler) GetRequest(eventId string) {
         INNER JOIN params ON forms.id = params.form_id
         INNER JOIN param_types ON param_types.id = params.param_type_id
         WHERE events.id = $1 ORDER BY forms.id, params.id;`
-
-    res := db.Query(query, []interface{}{event_id})
+    res := db.Query(query, []interface{}{eventId})
 
     this.Render([]string{"mvc/views/item.html"}, "item", map[string]interface{}{"data": res})
 }
 
 func (this *Handler) InsertUserParams(data []interface{}) ([]interface{}, string, string, string) {
-    param_val_ids := make([]interface{}, 0)
+    paramValIds := make([]interface{}, 0)
     userLogin := ""
     userPass := ""
     email := ""
 
     for _, element := range data {
-        param_id, err := strconv.Atoi(element.(map[string]interface{})["id"].(string))
+        paramId, err := strconv.Atoi(element.(map[string]interface{})["id"].(string))
         if err != nil {
             continue
         }
 
         value := element.(map[string]interface{})["value"].(string)
 
-        if param_id == 1 {
+        if paramId == 1 {
             userLogin = value
             continue
-        } else if param_id == 2 || param_id == 3 {
+        } else if paramId == 2 || paramId == 3 {
             userPass = value
             continue
-        } else if param_id == 4 {
+        } else if paramId == 4 {
             email = value
         }
 
-        var param_val_id int
+        var paramValId int
         paramValues := this.GetModel("param_values")
-        paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": value})
-        db.QueryInsert_(paramValues, "RETURNING id").Scan(&param_val_id)
-        param_val_ids = append(param_val_ids, map[string]int{"param_val_id": param_val_id})
+        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value})
+        db.QueryInsert_(paramValues, "RETURNING id").Scan(&paramValId)
+        paramValIds = append(paramValIds, map[string]int{"param_val_id": paramValId})
     }
 
-    return param_val_ids, userLogin, userPass, email
+    return paramValIds, userLogin, userPass, email
 }

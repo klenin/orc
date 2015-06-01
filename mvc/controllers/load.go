@@ -1,6 +1,8 @@
 package controllers
 
 import (
+    "encoding/json"
+    "errors"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
@@ -8,13 +10,11 @@ import (
     "log"
     "net/http"
     "strconv"
-    "encoding/json"
     "strings"
-    "errors"
 )
 
 func (this *GridHandler) Load(tableName string) {
-    if tableName != "events" && !sessions.CheackSession(this.Response, this.Request) {
+    if tableName != "events" && !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -26,7 +26,6 @@ func (this *GridHandler) Load(tableName string) {
     }
 
     var filters map[string]interface{}
-
     if this.Request.PostFormValue("_search") == "true" {
         err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
         if err != nil {
@@ -55,7 +54,6 @@ func (this *GridHandler) Load(tableName string) {
         model := this.GetModel("faces")
 
         var filters map[string]interface{}
-
         err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
@@ -73,12 +71,11 @@ func (this *GridHandler) Load(tableName string) {
 
         where, params, _ := model.WhereByParams(filters, 1)
         if where != "" {
-            where = " WHERE " + where
+            where = " WHERE "+where
         }
         log.Println("WHERE: ", where)
 
-        query += where + ` ORDER BY faces.id ` + sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
-
+        query += where+ ` ORDER BY faces.id `+sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
         rows := db.Query(query, append(params, []interface{}{limit, start}...))
 
         query = `SELECT COUNT(*)
@@ -88,8 +85,7 @@ func (this *GridHandler) Load(tableName string) {
             INNER JOIN events ON events.id = registrations.event_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
-            INNER JOIN users ON users.id = faces.user_id` + where + `;`
-
+            INNER JOIN users ON users.id = faces.user_id`+where+`;`
         count := int(db.Query(query, params)[0].(map[string]interface{})["count"].(int))
 
         var totalPages int
@@ -106,16 +102,15 @@ func (this *GridHandler) Load(tableName string) {
         result["records"] = count
 
         utils.SendJSReply(result, this.Response)
-
         return
     }
 
     model := this.GetModel(tableName)
     where, params, _ := model.Where(filters, 1)
     if where != "" {
-        where = " WHERE " + where
+        where = " WHERE "+where
     }
-    query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+where+` ORDER BY `+sidx+` `+ sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
+    query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+where+` ORDER BY `+sidx+` `+sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
     rows := db.Query(query, append(params, []interface{}{limit, start}...))
     count := db.SelectCount(tableName)
 
@@ -136,9 +131,8 @@ func (this *GridHandler) Load(tableName string) {
 }
 
 func (this *Handler) UserGroupsLoad() {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -156,19 +150,19 @@ func (this *Handler) UserGroupsLoad() {
     }
 
     sidx := this.Request.FormValue("sidx")
-    start := limit*page - limit
+    start := limit * page - limit
 
     query := `SELECT groups.id, groups.name FROM groups
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
-    rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
+    rows := db.Query(query, []interface{}{userId, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM groups
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
+    count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -187,9 +181,8 @@ func (this *Handler) UserGroupsLoad() {
 }
 
 func (this *Handler) GroupsLoad() {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -207,21 +200,21 @@ func (this *Handler) GroupsLoad() {
     }
 
     sidx := this.Request.FormValue("sidx")
-    start := limit*page - limit
+    start := limit * page - limit
 
     query := `SELECT groups.id, groups.name FROM groups
         INNER JOIN persons ON persons.group_id = groups.id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
-    rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
+    rows := db.Query(query, []interface{}{userId, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM groups
         INNER JOIN persons ON persons.group_id = groups.id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
+    count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -239,10 +232,9 @@ func (this *Handler) GroupsLoad() {
     utils.SendJSReply(result, this.Response)
 }
 
-func (this *Handler) RegistrationsLoad(userId string) {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+func (this *Handler) RegistrationsLoad(userId_ string) {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -260,29 +252,32 @@ func (this *Handler) RegistrationsLoad(userId string) {
     }
 
     sidx := this.Request.FormValue("sidx")
-    start := limit*page - limit
+    start := limit * page - limit
 
+    var id int
     if this.isAdmin() {
-        user_id, err = strconv.Atoi(userId)
+        id, err = strconv.Atoi(userId_)
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
-
+    } else {
+        id = userId
     }
+
     query := `SELECT registrations.id, registrations.event_id, registrations.status FROM registrations
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
-    rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
+    rows := db.Query(query, []interface{}{id, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM registrations
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
+    count := int(db.Query(query, []interface{}{id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -301,9 +296,8 @@ func (this *Handler) RegistrationsLoad(userId string) {
 }
 
 func (this *Handler) GroupRegistrationsLoad() {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -321,7 +315,7 @@ func (this *Handler) GroupRegistrationsLoad() {
     }
 
     sidx := this.Request.FormValue("sidx")
-    start := limit*page - limit
+    start := limit * page - limit
 
     query := `SELECT group_registrations.id, group_registrations.event_id, group_registrations.group_id FROM group_registrations
         INNER JOIN events ON events.id = group_registrations.event_id
@@ -329,7 +323,7 @@ func (this *Handler) GroupRegistrationsLoad() {
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
-    rows := db.Query(query, []interface{}{user_id, sidx, limit, start})
+    rows := db.Query(query, []interface{}{userId, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM group_registrations
         INNER JOIN events ON events.id = group_registrations.event_id
@@ -337,7 +331,7 @@ func (this *Handler) GroupRegistrationsLoad() {
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1;`
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
+    count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -355,10 +349,9 @@ func (this *Handler) GroupRegistrationsLoad() {
     utils.SendJSReply(result, this.Response)
 }
 
-func (this *Handler) PersonsLoad(group_id string) {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+func (this *Handler) PersonsLoad(groupId string) {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -375,14 +368,14 @@ func (this *Handler) PersonsLoad(group_id string) {
         return
     }
 
-    id, err := strconv.Atoi(group_id)
+    id, err := strconv.Atoi(groupId)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
 
     sidx := this.Request.FormValue("sidx")
-    start := limit*page - limit
+    start := limit * page - limit
 
     var rows []interface{}
 
@@ -401,14 +394,14 @@ func (this *Handler) PersonsLoad(group_id string) {
             INNER JOIN faces ON faces.id = groups.face_id
             INNER JOIN users ON users.id = faces.user_id
             WHERE users.id = $1 AND groups.id = $2 ORDER BY $3 LIMIT $4 OFFSET $5;`
-        rows = db.Query(query, []interface{}{user_id, id, sidx, limit, start})
+        rows = db.Query(query, []interface{}{userId, id, sidx, limit, start})
     }
 
     query := `SELECT COUNT(*) FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = groups.face_id
         WHERE groups.id = $1;`
-    count := int(db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["count"].(int))
+    count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {

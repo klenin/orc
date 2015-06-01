@@ -11,7 +11,7 @@ import (
 )
 
 func (this *GridHandler) GetPersonsByEventId() {
-    if !sessions.CheackSession(this.Response, this.Request) {
+    if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -25,7 +25,7 @@ func (this *GridHandler) GetPersonsByEventId() {
         return
     }
 
-    event_id, err := strconv.Atoi(this.Request.URL.Query().Get("event"))
+    eventId, err := strconv.Atoi(this.Request.URL.Query().Get("event"))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
@@ -69,13 +69,13 @@ func (this *GridHandler) GetPersonsByEventId() {
         WHERE params.id in (` + strings.Join(db.MakeParams(len(queryParams)), ", ")
     query += ") AND events.id = $" + strconv.Itoa(len(queryParams)+1) + " GROUP BY reg_param_vals.reg_id ORDER BY reg_param_vals.reg_id;"
 
-    data := db.Query(query, append(queryParams, event_id))
+    data := db.Query(query, append(queryParams, eventId))
 
     this.Render([]string{"mvc/views/list.html"}, "list", append(result, data...))
 }
 
 func (this *GridHandler) GetParamsByEventId() {
-    if !sessions.CheackSession(this.Response, this.Request) {
+    if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -92,7 +92,7 @@ func (this *GridHandler) GetParamsByEventId() {
         return
     }
 
-    event_id, err := strconv.Atoi(request["event_id"].(string))
+    eventId, err := strconv.Atoi(request["event_id"].(string))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
@@ -104,7 +104,7 @@ func (this *GridHandler) GetParamsByEventId() {
         INNER JOIN params ON params.form_id = forms.id
         INNER JOIN events ON events.id = events_forms.event_id
         WHERE events.id = $1 ORDER BY params.id;`
-    result := db.Query(query, []interface{}{event_id})
+    result := db.Query(query, []interface{}{eventId})
 
     utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
 }

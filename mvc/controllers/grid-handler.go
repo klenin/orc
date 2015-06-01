@@ -24,7 +24,7 @@ type GridHandler struct {
 }
 
 func (this *GridHandler) GetSubTable() {
-    if !sessions.CheackSession(this.Response, this.Request) {
+    if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -54,7 +54,7 @@ func (this *GridHandler) GetSubTable() {
 }
 
 func (this *GridHandler) CreateGrid(tableName string) {
-    if !sessions.CheackSession(this.Response, this.Request) {
+    if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -99,9 +99,8 @@ func (this *GridHandler) CreateGrid(tableName string) {
 }
 
 func (this *GridHandler) EditGridRow(tableName string) {
-    user_id := sessions.GetValue("id", this.Request)
-
-    if !sessions.CheackSession(this.Response, this.Request) || user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil{
         http.Redirect(this.Response, this.Request, "", http.StatusUnauthorized)
         return
     }
@@ -118,9 +117,7 @@ func (this *GridHandler) EditGridRow(tableName string) {
         params[model.GetColumnByIdx(i)] = this.Request.PostFormValue(model.GetColumnByIdx(i))
     }
 
-    oper := this.Request.PostFormValue("oper")
-
-    switch oper {
+    switch this.Request.PostFormValue("oper") {
     case "edit":
         id, err := strconv.Atoi(this.Request.PostFormValue("id"))
         if err != nil {
@@ -129,12 +126,12 @@ func (this *GridHandler) EditGridRow(tableName string) {
         }
 
         if tableName == "groups" && !this.isAdmin() {
-            face_id, err := db.IsUserGroup(user_id.(int), id)
+            faceId, err := db.IsUserGroup(userId, id)
             if err != nil {
                 http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
                 return
             }
-            params["face_id"] = face_id
+            params["face_id"] = faceId
         }
 
         model.LoadModelData(params)
@@ -144,15 +141,15 @@ func (this *GridHandler) EditGridRow(tableName string) {
 
     case "add":
         if tableName == "groups" {
-            var face_id int
+            var faceId int
             query := `SELECT faces.id
                 FROM registrations
                 INNER JOIN faces ON faces.id = registrations.face_id
                 INNER JOIN events ON events.id = registrations.event_id
                 INNER JOIN users ON faces.user_id = users.id
                 WHERE users.id = $1 AND events.id = $2;`
-            db.QueryRow(query, []interface{}{user_id, 1}).Scan(&face_id)
-            params["face_id"] = face_id
+            db.QueryRow(query, []interface{}{userId, 1}).Scan(&faceId)
+            params["face_id"] = faceId
 
         } else if tableName == "persons" {
             to := params["name"].(string)
@@ -174,14 +171,14 @@ func (this *GridHandler) EditGridRow(tableName string) {
             headName += " " + data[1].(map[string]interface{})["value"].(string)
             headName += " " + data[2].(map[string]interface{})["value"].(string)
 
-            group_id, err := strconv.Atoi(params["group_id"].(string))
+            groupId, err := strconv.Atoi(params["group_id"].(string))
             if utils.HandleErr("[GridHandler::Edit] group_id Atoi: ", err, this.Response) {
                 http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
                 return
             }
 
             var groupName string
-            db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{group_id}).Scan(&groupName)
+            db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{groupId}).Scan(&groupName)
 
             if !mailer.InviteToGroup(to, address, token, headName, groupName) {
                 http.Error(this.Response, fmt.Sprintf("Проверьте правильность введенного Вами email"), 400)
@@ -199,7 +196,7 @@ func (this *GridHandler) EditGridRow(tableName string) {
 }
 
 func (this *GridHandler) JsonToExcel(tableName string) {
-    if !sessions.CheackSession(this.Response, this.Request) {
+    if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -223,8 +220,8 @@ func (this *GridHandler) JsonToExcel(tableName string) {
     data := this.GetModel(tableName).Select(fields, filters, -1, -1, sord, sidx)
 
     this.Response.Header().Set("Content-type", "text/csv")
-
     w := csv.NewWriter(this.Response)
+
     for _, obj := range data {
         var record []string
 

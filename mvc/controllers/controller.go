@@ -1,6 +1,7 @@
 package controllers
 
 import (
+    "errors"
     "github.com/orc/db"
     "github.com/orc/mvc/models"
     "github.com/orc/sessions"
@@ -51,17 +52,16 @@ func (this *Controller) Render(filenames []string, tmpname string, data interfac
 }
 
 func (this *Controller) isAdmin() bool {
-    var role string
-
-    user_id := sessions.GetValue("id", this.Request)
-    if user_id == nil {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return false
     }
 
+    var role string
     user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": user_id})
-    err := db.SelectRow(user, []string{"role"}).Scan(&role)
+    user.LoadWherePart(map[string]interface{}{"id": userId})
+    err = db.SelectRow(user, []string{"role"}).Scan(&role)
     if err != nil || role == "user" {
         return false
     }
@@ -69,8 +69,26 @@ func (this *Controller) isAdmin() bool {
     return role == "admin"
 }
 
+func (this *Controller) CheckSid() (id int, result error)  {
+    userSid := sessions.GetValue("sid", this.Request)
+    if !sessions.CheckSession(this.Response, this.Request) || userSid == nil {
+        return -1, errors.New("Данные в куках отсутствуют.")
+    }
+
+    user := this.GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"sid": userSid})
+
+    err := db.SelectRow(user, []string{"id"}).Scan(&id)
+    if err != nil {
+        return -1, errors.New("Данные в куках отсутствуют.")
+    }
+
+    return id, nil
+}
+
 type VirtController interface {
     GetModel(tableName string) models.VirtEntity
     Render(filename string, data interface{})
     isAdmin() bool
+    CheckSid() (id int, result bool)
 }
