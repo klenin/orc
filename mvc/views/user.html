@@ -83,6 +83,7 @@ require(["grid-utils", "custom-grid", "reg-group", "blank", "utils", "reset-pass
 function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
 
     var valid = false;
+    console.log({{.}});
 
     $("#password-1").blur(function() {
         var pattern = /^.{6,36}$/;

@@ -18,8 +18,13 @@
 require(["utils", "kladr/kladr", "blank", "grid-utils"],
 function(utils, kladr, blank, gridUtils) {
     var valid = false;
+    var forms = blank.ShowBlank({{.}}.data, "form-event", {{.}}.role);
+    if (!forms) {
+        $("#server-answer").text("Данные отсутсвуют.").css("color", "red");
+        return false;
+    }
 
-    blank.getListHistoryEvents("history", blank.ShowBlank({{.}}.data, "form-event"));
+    blank.getListHistoryEvents("history", forms);
     kladr.kladr();
     $("#now").append($("<input/>", {
         type: "button",
@@ -86,8 +91,8 @@ function(utils, kladr, blank, gridUtils) {
         }
 
         var data = blank.getFormData("now form div");
-        if (data == false) {
-            alert("Не все поля заполнены.");
+        if (!data) {
+            console.log("Не все поля заполнены.");
             return;
         }
 

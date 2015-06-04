@@ -1,6 +1,6 @@
 define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function(utils, gridUtils, datepicker, kladr) {
 
-    function drawParam(data, for_saving) {
+    function drawParam(data, for_saving, admin) {
         console.log("drawParam");
 
         var block;
@@ -15,27 +15,35 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
             || data["type"] === "password"
             || data["type"] === "phon") {
             block = $("<input/>", {type: data["type"]});
-            block.attr("id", data["param_id"]);
-            if (data["value"]) { block.val(data["value"]); block.attr("param_val_id", data["param_val_id"]); }
-            block.attr("for-saving", for_saving);
 
         } else if (data["type"] === "textarea") {
             block = $("<textarea/>", {});
-            block.attr("id", data["param_id"]);
-            if (data["value"]) { block.val(data["value"]); block.attr("param_val_id", data["param_val_id"]); }
-            block.attr("for-saving", for_saving);
 
         } else if (data["type"] === "date") {
             block = $("<input/>", {type: "date"});
-            block.attr("id", data["param_id"]);
-            block.attr("for-saving", for_saving);
-            if (data["value"]) { block.val(data["value"]); block.attr("param_val_id", data["param_val_id"]); }
             datepicker.initDatePicker(block);
         }
 
+        block.attr("id", data["param_id"]);
+        block.attr("for-saving", for_saving);
+        block.attr("name", data["param_name"]);
+
+        if (data["value"]) {
+            block.val(data["value"]);
+            block.attr("param_val_id", data["param_val_id"]);
+        }
+
+        if (data["required"]) {
+            block.attr("required", true);
+        }
+
         var lable = $("<label/>", {
-            text: data["param_name"]
+            text: data["param_name"],
         });
+
+        if (!data["editable"] && !admin) {
+            block.attr("readonly", true);
+        }
 
         return $("<p/>").append(lable).append(block);
     }
@@ -45,18 +53,23 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
 
         var values = [];
         var empty = false;
+        var data = $("#"+name+" [for-saving=true]");
+        console.log(data);
 
-        $("#"+name+" [for-saving=true]").each(function() {
-            if ($(this).val() == "") {
+        for (var i = 0; i < data.length; ++i) {
+            var elem = $("#"+name+" [for-saving=true]")[i];
+            if ($(elem).val() === "" && $(elem).attr("required")) {
+                alert("Поле '" + $(elem).attr("name") + "' обязательное к заполнению.");
                 empty = true;
+                break;
             }
 
             values.push({
-                "value": $(this).val(),
-                "param_val_id": $(this).attr("param_val_id"),
-                "id": $(this).attr("id"),
+                "value": $(elem).val(),
+                "param_val_id": $(elem).attr("param_val_id"),
+                "id": $(elem).attr("id"),
             });
-        });
+        };
 
         return empty ? false : values;
     }
@@ -98,7 +111,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         utils.postRequest(
             data,
             function(data) {
-                ShowBlank(data["data"], dialogId);
+                ShowBlank(data["data"], dialogId, data["role"]);
                 $("#"+dialogId+" #history").hide();
             },
             "/gridhandler/getpersonrequestfromgroup"
@@ -112,9 +125,9 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
             buttons: {
                 "Сохранить изменения": function() {
                     var values = getFormData(dialogId+" div");
-                    if (values == false) {
-                        alert("Не все поля заполнены.");
-                        return;
+                    if (!values) {
+                        console.log("Не все поля заполнены.");
+                        return false;
                     }
 
                     utils.postRequest(
@@ -129,14 +142,16 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                 },
             }
         });
+
+        return true;
     }
 
-    function ShowBlank(d, dialogId) {
+    function ShowBlank(d, dialogId, role) {
         console.log("ShowBlank data: ", d);
+        console.log("ShowBlank role: ", role);
 
         if (d.length == 0) {
-            alert("Нет данных.");
-            return;
+            return false;
         }
 
         var history = $("<p/>", {id: "history"})
@@ -181,7 +196,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
 
             var tr = $("<tr/>").appendTo($("#" + dialogId +" div#form-" + d[i]["form_id"] + " table"));
             var td_1 = $("<td/>").appendTo(tr);
-            $(td_1).append(drawParam(d[i], true));
+            $(td_1).append(drawParam(d[i], true, role));
             tr.append($("<td/>", {id: "export-param-"+d[i]["param_id"]}));
             tr.append($("<td/>", {id: "export-val-"+d[i]["param_id"]}));
         }
@@ -198,7 +213,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                 function(response) {
                     if (response["result"] !== "ok") {
                         ShowServerAns(-1, response, "now #server-answer");
-                        return;
+                        return false;
                     }
                     ExportDataLoad(response["data"], dialogId);
                 },
@@ -215,11 +230,11 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         console.log("ShowServerAns");
 
         if (data.result === "ok") {
-            var msg = "Запрос успешно выполнен.";
+            var msg = "Запрос успешно выполнен. ";
             if (event_id != 1) {
-                msg += " Ваша заявка на участие будет рассмотрена.";
+                msg += "Ваша заявка на участие будет рассмотрена.";
             } else {
-                msg += " На вашу электронную почту было отправлено письмо, содержащее ссылку для подтверждения регистрации. "
+                msg += "На вашу электронную почту было отправлено письмо, содержащее ссылку для подтверждения регистрации. "
                 + "Воспользуйтесь этой ссылкой, для продолжения работы.";
             }
             $("#"+responseId).text(msg).css("color", "green");
@@ -259,7 +274,10 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         utils.postRequest(
             { "reg_id": regId },
             function(data) {
-                var f_ids = ShowBlank(data["data"], dialogId);
+                var f_ids = ShowBlank(data["data"], dialogId, data["role"]);
+                if (!f_ids) {
+                    return false;
+                }
                 getListHistoryEvents(dialogId+" #history", f_ids);
             },
             "/gridhandler/getpersonrequest"
@@ -274,8 +292,8 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                 "Сохранить изменения": function() {
                     var values = getFormData(dialogId+" div");
                     if (values == false) {
-                        alert("Не все поля заполнены.");
-                        return;
+                        console.log("Не все поля заполнены.");
+                        return false;
                     }
 
                     utils.postRequest(
@@ -291,6 +309,8 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                 },
             }
         });
+
+        return true;
     }
 
     function ExportDataLoad(data, dialogId) {
@@ -305,11 +325,11 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
             $("#"+dialogId+" #params-"+f_id +" table #export-val-"+p_id+" p").remove();
             if (data[i]["value"] != "") {
                 $("#"+dialogId+" #params-"+f_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
-
+                $("<br/>").appendTo("#"+dialogId+" #params-"+f_id+" table #export-param-"+p_id);
                 $("<input/>", {
                     "id": "export-btn-"+f_id+"-"+p_id,
                     "type": "button",
-                    "value": "экспорт",
+                    "value": "←",
                     "data-event-type-id": f_id,
                     "data-param-id": p_id,
                     "data-param-val": p_v,

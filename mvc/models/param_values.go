@@ -133,11 +133,11 @@ func (this *ParamValuesModel) GetColModel() []map[string]interface{} {
             "name": "date",
             "editable": true,
             "formatter": nil,
-            "editrules": map[string]interface{}{"date": true, "required": true},
+            "editrules": map[string]interface{}{"required": true},
             "editoptions": map[string]interface{}{"dataInit": nil},
             "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
             "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
-            "type": "date",
+            "type": "timestamp",
         },
     }
 }

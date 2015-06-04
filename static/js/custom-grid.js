@@ -6,7 +6,7 @@ function(utils, datepicker, blank) {
     }
 
     function timeFormat(cellvalue, options, rowObject) {
-        return cellvalue.slice(11, 19);
+        return cellvalue != undefined ? cellvalue.slice(11, 19) : "";
     }
 
     function timeValidator(e) {
@@ -22,17 +22,31 @@ function(utils, datepicker, blank) {
         return cellvalue != undefined ? cellvalue.slice(0, 10) : "";
     }
 
+    function timeStampFormat(cellvalue, options, rowObject) {
+        console.log(cellvalue)
+        return cellvalue != undefined ?
+                cellvalue.slice(0, 10)+" "
+                +cellvalue.slice(11, 19)
+            :
+                "";
+    }
+
     function SetPrimitive(colModel) {
         for (i = 0; i < colModel.length; ++i) {
-            if (colModel[i].type != undefined && colModel[i].type.indexOf("date") > -1) {
+            if (colModel[i].type != undefined && colModel[i].type === "date") {
                 colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
                 colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
                 colModel[i]["formatter"] = dateFormat;
-            } else if (colModel[i].type != undefined && colModel[i].type.indexOf("time") > -1) {
+            } else if (colModel[i].type != undefined && colModel[i].type === "time") {
                 colModel[i]["editrules"]["custom_func"] = timeValidator;
                 colModel[i]["editoptions"]["dataInit"] = timePicker;
                 colModel[i]["searchoptions"]["dataInit"] = timePicker;
                 colModel[i]["formatter"] = timeFormat;
+            } else if (colModel[i].type != undefined && colModel[i].type === "timestamp") {
+                // datetimepicker
+                colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
+                colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
+                colModel[i]["formatter"] = timeStampFormat;
             }
             continue;
         }

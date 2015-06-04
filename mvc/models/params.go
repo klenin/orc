@@ -15,6 +15,9 @@ type Param struct {
     FormId      int    `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
     ParamTypeId int    `name:"param_type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"param_types" refField:"id" refFieldShow:"name"`
     Identifier  int    `name:"identifier" type:"int" null:"NOT NULL" extra:"UNIQUE"`
+    Required    bool   `name:"required" type:"boolean" null:"NOT NULL" extra:""`
+    Editable    bool   `name:"editable" type:"boolean" null:"NOT NULL" extra:""`
+
 }
 
 func (c *ModelManager) Params() *ParamsModel {
@@ -23,8 +26,8 @@ func (c *ModelManager) Params() *ParamsModel {
     model.TableName = "params"
     model.Caption = "Параметры"
 
-    model.Columns = []string{"id", "name", "param_type_id", "form_id", "identifier"}
-    model.ColNames = []string{"ID", "Название", "Тип", "Форма", "Идентификатор"}
+    model.Columns = []string{"id", "name", "param_type_id", "form_id", "identifier", "required", "editable"}
+    model.ColNames = []string{"ID", "Название", "Тип", "Форма", "Идентификатор", "Требование", "Редактирование"}
 
     model.Fields = new(Param)
     model.WherePart = make(map[string]interface{}, 0)
@@ -63,6 +66,9 @@ func (this *ParamsModel) Select(fields []string, filters map[string]interface{},
             break
         case "identifier":
             query += "params.identifier, "
+            break
+        case "required":
+            query += "params.required, "
             break
         }
     }
@@ -151,6 +157,26 @@ func (this *ParamsModel) GetColModel() []map[string]interface{} {
             "name": "identifier",
             "editable": true,
             "editrules": map[string]interface{}{"required": true},
+        },
+        5: map[string]interface{} {
+            "index": "required",
+            "name": "required",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+            "formatter": "checkbox",
+            "formatoptions": map[string]interface{}{"disabled": true},
+            "edittype": "checkbox",
+            "editoptions": map[string]interface{}{"value": "true:false"},
+        },
+        6: map[string]interface{} {
+            "index": "editable",
+            "name": "editable",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+            "formatter": "checkbox",
+            "formatoptions": map[string]interface{}{"disabled": true},
+            "edittype": "checkbox",
+            "editoptions": map[string]interface{}{"value": "true:false"},
         },
     }
 }

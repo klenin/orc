@@ -7,6 +7,7 @@ import (
     "github.com/orc/utils"
     "net/http"
     "strconv"
+    "time"
 )
 
 func (this *GridHandler) GetPersonRequestFromGroup() {
@@ -39,8 +40,9 @@ func (this *GridHandler) GetPersonRequestFromGroup() {
 
     userId := db.Query(query, []interface{}{personId})[0].(map[string]interface{})["id"].(int)
 
-    query = `SELECT forms.id as form_id, forms.name as form_name, params.id as param_id,
-            events.name as event_name, events.id as event_id, params.name as param_name,
+    query = `SELECT forms.id as form_id, forms.name as form_name,
+            params.id as param_id, params.name as param_name, params.required, params.editable,
+            events.name as event_name, events.id as event_id,
             param_types.name as type, param_values.id as param_val_id, param_values.value
         FROM events_forms
         INNER JOIN events ON events.id = events_forms.event_id
@@ -59,7 +61,10 @@ func (this *GridHandler) GetPersonRequestFromGroup() {
         WHERE group_registrations.id = $1 AND users.id = $2 ORDER BY forms.id, params.id;`
 
     utils.SendJSReply(
-        map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{groupRegId, userId})},
+        map[string]interface{}{
+            "result": "ok",
+            "data": db.Query(query, []interface{}{groupRegId, userId}),
+            "role": this.isAdmin()},
         this.Response)
 }
 
@@ -81,8 +86,9 @@ func (this *GridHandler) GetPersonRequest() {
         return
     }
 
-    query := `SELECT forms.id as form_id, forms.name as form_name, params.id as param_id,
-            events.name as event_name, events.id as event_id, params.name as param_name,
+    query := `SELECT forms.id as form_id, forms.name as form_name,
+            params.id as param_id, params.name as param_name, params.required, params.editable,
+            events.name as event_name, events.id as event_id,
             param_types.name as type, param_values.id as param_val_id, param_values.value
         FROM events_forms
         INNER JOIN events ON events.id = events_forms.event_id
@@ -96,7 +102,10 @@ func (this *GridHandler) GetPersonRequest() {
         WHERE registrations.id = $1 ORDER BY forms.id, params.id;`
 
     utils.SendJSReply(
-        map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{regId})},
+        map[string]interface{}{
+            "result": "ok",
+            "data": db.Query(query, []interface{}{regId}),
+            "role": this.isAdmin()},
         this.Response)
 }
 
@@ -207,23 +216,41 @@ func (this *GridHandler) EditParams() {
         return
     }
 
-    for _, v := range request["data"].([]interface{}) {
+    date := time.Now().Format("2006-01-02T15:04:05Z00:00")
 
+    for _, v := range request["data"].([]interface{}) {
         paramValId, err := strconv.Atoi(v.(map[string]interface{})["param_val_id"].(string))
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
 
+        query := `SELECT params.name, params.required, params.editable
+            FROM params
+            INNER JOIN param_values ON param_values.param_id = params.id
+            WHERE param_values.id = $1;`
+        result := db.Query(query, []interface{}{paramValId})
+
+        name := result[0].(map[string]interface{})["name"].(string)
+        required := result[0].(map[string]interface{})["required"].(bool)
+        editable := result[0].(map[string]interface{})["editable"].(bool)
         value := v.(map[string]interface{})["value"].(string)
 
-        // !!!
+        if required && utils.MatchRegexp("^.[ \t\v\r\n\f]$", value) {
+            utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр '"+name+"'"}, this.Response)
+            return
+        }
+
+        if !this.isAdmin() && !editable {
+            continue
+        }
+
         if value == "" {
             value = " "
         }
 
         paramValue := this.GetModel("param_values")
-        paramValue.LoadModelData(map[string]interface{}{"value": value})
+        paramValue.LoadModelData(map[string]interface{}{"value": value, "date": date})
         paramValue.LoadWherePart(map[string]interface{}{"id": paramValId})
         db.QueryUpdate_(paramValue).Scan()
     }

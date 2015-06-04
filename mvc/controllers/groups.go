@@ -6,6 +6,7 @@ import (
     "github.com/orc/utils"
     "net/http"
     "strconv"
+    "time"
     "github.com/orc/mailer"
 )
 
@@ -62,7 +63,9 @@ func (this *GridHandler) RegGroup() {
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE groups.id = $1;`
+        INNER JOIN registrations ON registrations.face_id = faces.id
+        INNER JOIN events ON events.id = registrations.event_id
+        WHERE groups.id = $1 AND events.id = 1;`
     data := db.Query(query, []interface{}{groupId})
 
     query = `SELECT params.id FROM events_forms
@@ -72,6 +75,7 @@ func (this *GridHandler) RegGroup() {
         WHERE events.id = $1 ORDER BY forms.id;`
     params := db.Query(query, []interface{}{eventId})
 
+    date := time.Now().Format("2006-01-02T15:04:05Z00:00")
     for _, v := range data {
         status := v.(map[string]interface{})["status"].(bool)
         personUserId := v.(map[string]interface{})["user_id"].(int)
@@ -105,7 +109,7 @@ func (this *GridHandler) RegGroup() {
 
             var paramValId int
             paramValues := this.GetModel("param_values")
-            paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " "})
+            paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date})
             db.QueryInsert_(paramValues, "RETURNING id").Scan(&paramValId)
 
             regParamValue := this.GetModel("reg_param_vals")
