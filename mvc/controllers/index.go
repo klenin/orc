@@ -39,6 +39,8 @@ func (this *IndexController) Init(runTest bool) {
         db.Exec(fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v), nil)
         db.QueryCreateTable_(this.GetModel(db.Tables[k]))
     }
+
+    this.CreateRegistrationEvent()
 }
 
 func (this *IndexController) LoadContestsFromCats() {
@@ -89,7 +91,11 @@ func (this *IndexController) LoadContestsFromCats() {
 func (this *IndexController) CreateRegistrationEvent() {
     var eventId int
     events := this.GetModel("events")
-    events.LoadModelData(map[string]interface{}{"name": "Регистрация для входа в систему", "date_start": "2006-01-02", "date_finish": "2006-01-02", "time": "00:00:00"})
+    events.LoadModelData(map[string]interface{}{
+        "name": "Регистрация для входа в систему",
+        "date_start": "2006-01-02",
+        "date_finish": "2006-01-02",
+        "time": "00:00:00"})
     db.QueryInsert_(events, "RETURNING id").Scan(&eventId)
 
     var formId1 int
@@ -143,176 +149,31 @@ func (this *IndexController) CreateRegistrationEvent() {
         "identifier":    5})
     db.QueryInsert_(params, "").Scan()
 
-    var formId3 int
+    var formId2 int
     forms.LoadModelData(map[string]interface{}{"name": "Общие сведения"})
-    db.QueryInsert_(forms, "RETURNING id").Scan(&formId3)
+    db.QueryInsert_(forms, "RETURNING id").Scan(&formId2)
+
+    eventsForms.LoadModelData(map[string]interface{}{"form_id": formId2, "event_id": eventId})
+    db.QueryInsert_(eventsForms, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Фамилия",
-        "form_id":       formId3,
+        "form_id":       formId2,
         "param_type_id": paramTextTypeId,
         "identifier":    6})
     db.QueryInsert_(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Имя",
-        "form_id":       formId3,
+        "form_id":       formId2,
         "param_type_id": paramTextTypeId,
         "identifier":    7})
     db.QueryInsert_(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Отчество",
-        "form_id":       formId3,
+        "form_id":       formId2,
         "param_type_id": paramTextTypeId,
         "identifier":    8})
-    db.QueryInsert_(params, "").Scan()
-
-    eventsForms.LoadModelData(map[string]interface{}{"form_id": formId3, "event_id": eventId})
-    db.QueryInsert_(eventsForms, "").Scan()
-
-    /* Турнир юных программистов */
-
-    events.LoadModelData(map[string]interface{}{
-        "name": "Турнир юных программистов",
-        "date_start": "2015-04-25",
-        "date_finish": "2015-04-25",
-        "time": "10:00:00",
-        "url": "http://imcs.dvfu.ru/cats/main.pl?f=problems;cid=990998"})
-    db.QueryInsert_(events, "RETURNING id").Scan(&eventId)
-
-    eventsForms.LoadModelData(map[string]interface{}{"form_id": formId3, "event_id": eventId})
-    db.QueryInsert_(eventsForms, "").Scan()
-
-    var formId4 int
-    forms.LoadModelData(map[string]interface{}{"name": "Домашний адрес и телефоны"})
-    db.QueryInsert_(forms, "RETURNING id").Scan(&formId4)
-
-    eventsForms.LoadModelData(map[string]interface{}{"form_id": formId4, "event_id": eventId})
-    db.QueryInsert_(eventsForms, "").Scan()
-
-    var param_region_type_id int
-    paramTypes.LoadModelData(map[string]interface{}{"name": "region"})
-    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_region_type_id)
-
-    var param_city_type_id int
-    paramTypes.LoadModelData(map[string]interface{}{"name": "city"})
-    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_city_type_id)
-
-    var param_street_type_id int
-    paramTypes.LoadModelData(map[string]interface{}{"name": "street"})
-    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_street_type_id)
-
-    var param_building_type_id int
-    paramTypes.LoadModelData(map[string]interface{}{"name": "building"})
-    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_building_type_id)
-
-    var param_phon_type_id int
-    paramTypes.LoadModelData(map[string]interface{}{"name": "phon"})
-    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&param_phon_type_id)
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Регион",
-        "form_id":       formId4,
-        "param_type_id": param_region_type_id,
-        "identifier":    9})
-    db.QueryInsert_(params, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Город",
-        "form_id":       formId4,
-        "param_type_id": param_city_type_id,
-        "identifier":    10})
-    db.QueryInsert_(params, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Улица",
-        "form_id":       formId4,
-        "param_type_id": param_street_type_id,
-        "identifier":    11})
-    db.QueryInsert_(params, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Дом",
-        "form_id":       formId4,
-        "param_type_id": param_building_type_id,
-        "identifier":    12})
-    db.QueryInsert_(params, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Квартира",
-        "form_id":       formId4,
-        "param_type_id": param_building_type_id,
-        "identifier":    13})
-    db.QueryInsert_(params, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Контактный телефон",
-        "form_id":       formId4,
-        "param_type_id": param_phon_type_id,
-        "identifier":    14})
-    db.QueryInsert_(params, "").Scan()
-
-    var formId5 int
-    forms.LoadModelData(map[string]interface{}{"name": "Образование"})
-    db.QueryInsert_(forms, "RETURNING id").Scan(&formId5)
-
-    eventsForms.LoadModelData(map[string]interface{}{"form_id": formId5, "event_id": eventId})
-    db.QueryInsert_(eventsForms, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Учебное заведение",
-        "form_id":       formId5,
-        "param_type_id": paramTextTypeId,
-        "identifier":    15})
-    db.QueryInsert_(params, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Класс",
-        "form_id":       formId5,
-        "param_type_id": paramTextTypeId,
-        "identifier":    16})
-    db.QueryInsert_(params, "").Scan()
-
-    var formId6 int
-    forms.LoadModelData(map[string]interface{}{"name": "Участие в мероприятии"})
-    db.QueryInsert_(forms, "RETURNING id").Scan(&formId6)
-
-    eventsForms.LoadModelData(map[string]interface{}{"form_id": formId6, "event_id": eventId})
-    db.QueryInsert_(eventsForms, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Тип участия (очное/дистанционное)",
-        "form_id":       formId6,
-        "param_type_id": paramTextTypeId,
-        "identifier":    17})
-    db.QueryInsert_(params, "").Scan()
-
-    var formId7 int
-    forms.LoadModelData(map[string]interface{}{"name": "Руководитель"})
-    db.QueryInsert_(forms, "RETURNING id").Scan(&formId7)
-
-    eventsForms.LoadModelData(map[string]interface{}{"form_id": formId7, "event_id": eventId})
-    db.QueryInsert_(eventsForms, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Фамилия",
-        "form_id":       formId7,
-        "param_type_id": paramTextTypeId,
-        "identifier":    18})
-    db.QueryInsert_(params, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Имя",
-        "form_id":       formId7,
-        "param_type_id": paramTextTypeId,
-        "identifier":    19})
-    db.QueryInsert_(params, "").Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Отчество",
-        "form_id":       formId7,
-        "param_type_id": paramTextTypeId,
-        "identifier":    20})
     db.QueryInsert_(params, "").Scan()
 }

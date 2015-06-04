@@ -30,9 +30,7 @@ func main() {
     testData := flag.Bool("test-data", false, "to load test data")
     flag.Parse()
 
-    baseController := new(controllers.BaseController).Index()
-    baseController.Init(false)
-    baseController.CreateRegistrationEvent()
+    new(controllers.BaseController).Index().Init(false)
     resources.LoadAdmin()
 
     if *testData == true {
