@@ -359,6 +359,22 @@ func (this *Entity) Where(filters map[string]interface{}, num int) (where string
     return where, params, i
 }
 
+func (this *Entity) Delete(id int) {
+    query := `DELETE FROM ` + this.GetTableName() + ` WHERE id = $1;`
+    db.Exec(query, []interface{}{id})
+}
+
+func (this *Entity) Update(userId, rowId int, params map[string]interface{}) {
+    this.LoadModelData(params)
+    this.LoadWherePart(map[string]interface{}{"id": rowId})
+    db.QueryUpdate_(this).Scan()
+}
+
+func (this *Entity) Add(userId int, params map[string]interface{}) {
+    this.LoadModelData(params)
+    db.QueryInsert_(this, "").Scan()
+}
+
 func (this *Entity) GetColModel() []map[string]interface{} {
     return nil
 }
@@ -400,6 +416,9 @@ type VirtEntity interface {
     Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{})
+    Delete(id int)
+    Add(userId int, params map[string]interface{})
+    Update(userId, rowId int, params map[string]interface{})
 
     GetColModel() ([]map[string]interface{})
     GetColModelForUser(user_id int) ([]map[string]interface{})

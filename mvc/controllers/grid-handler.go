@@ -1,17 +1,16 @@
 package controllers
 
 import (
-    "encoding/json"
+    "errors"
     "encoding/csv"
+    "encoding/json"
     "fmt"
-    "github.com/orc/db"
-    "github.com/orc/mailer"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "net/http"
-    "strconv"
-    "errors"
     "reflect"
+    "strconv"
+    "strings"
     "time"
 )
 
@@ -119,78 +118,27 @@ func (this *GridHandler) EditGridRow(tableName string) {
 
     switch this.Request.PostFormValue("oper") {
     case "edit":
-        id, err := strconv.Atoi(this.Request.PostFormValue("id"))
+        rowId, err := strconv.Atoi(this.Request.PostFormValue("id"))
         if err != nil {
             http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
             return
         }
-
-        if tableName == "groups" && !this.isAdmin() {
-            faceId, err := db.IsUserGroup(userId, id)
-            if err != nil {
-                http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
-                return
-            }
-            params["face_id"] = faceId
-        }
-
-        model.LoadModelData(params)
-        model.LoadWherePart(map[string]interface{}{"id": id})
-        db.QueryUpdate_(model).Scan()
+        model.Update(userId, rowId, params)
         break
 
     case "add":
-        if tableName == "groups" {
-            var faceId int
-            query := `SELECT faces.id
-                FROM registrations
-                INNER JOIN faces ON faces.id = registrations.face_id
-                INNER JOIN events ON events.id = registrations.event_id
-                INNER JOIN users ON faces.user_id = users.id
-                WHERE users.id = $1 AND events.id = $2;`
-            db.QueryRow(query, []interface{}{userId, 1}).Scan(&faceId)
-            params["face_id"] = faceId
-
-        } else if tableName == "persons" {
-            to := params["name"].(string)
-            address := params["email"].(string)
-            token := utils.GetRandSeq(HASH_SIZE)
-            params["token"] = token
-
-            query := `SELECT param_values.value
-                FROM reg_param_vals
-                INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-                INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
-                INNER JOIN params ON params.id = param_values.param_id
-                INNER JOIN events ON events.id = registrations.event_id
-                INNER JOIN faces ON faces.id = registrations.face_id
-                INNER JOIN users ON users.id = faces.user_id
-                WHERE params.id in (5, 6, 7) AND users.id = $1 AND events.id = 1 ORDER BY params.id;`
-            data := db.Query(query, []interface{}{user_id})
-            headName := data[0].(map[string]interface{})["value"].(string)
-            headName += " " + data[1].(map[string]interface{})["value"].(string)
-            headName += " " + data[2].(map[string]interface{})["value"].(string)
-
-            groupId, err := strconv.Atoi(params["group_id"].(string))
-            if utils.HandleErr("[GridHandler::Edit] group_id Atoi: ", err, this.Response) {
-                http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
-                return
-            }
-
-            var groupName string
-            db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{groupId}).Scan(&groupName)
-
-            if !mailer.InviteToGroup(to, address, token, headName, groupName) {
-                http.Error(this.Response, fmt.Sprintf("Проверьте правильность введенного Вами email"), 400)
-                return
-            }
-        }
-        model.LoadModelData(params)
-        db.QueryInsert_(model, "").Scan()
+        model.Add(userId, params)
         break
 
     case "del":
-        db.QueryDeleteByIds(tableName, this.Request.PostFormValue("id"))
+        for _, v := range strings.Split(this.Request.PostFormValue("id"), ",") {
+            id, err := strconv.Atoi(v)
+            if err != nil {
+                utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+                return
+            }
+            model.Delete(id)
+        }
         break
     }
 }

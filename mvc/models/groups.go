@@ -2,6 +2,7 @@ package models
 
 import (
     "github.com/orc/db"
+    "log"
     "strconv"
 )
 
@@ -36,6 +37,43 @@ func (c *ModelManager) Groups() *GroupsModel {
     model.SubField = "group_id"
 
     return model
+}
+
+func (this *GroupsModel) Update(userId, rowId int, params map[string]interface{}) {
+    faceId := -1
+    query := `SELECT groups.face_id FROM groups
+        INNER JOIN faces ON faces.id = groups.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1 AND groups.id = $2;`
+    err := db.QueryRow(query, []interface{}{userId, rowId}).Scan(&faceId)
+
+    if err != nil {
+        log.Println(err.Error())
+        return
+
+    } else if faceId == -1 {
+        log.Println("Нет прав редактировать эту группу")
+        return
+    }
+
+    params["face_id"] = faceId
+    this.LoadModelData(params)
+    this.LoadWherePart(map[string]interface{}{"id": rowId})
+    db.QueryUpdate_(this).Scan()
+}
+
+func (this *GroupsModel) Add(userId int, params map[string]interface{}) {
+    var faceId int
+    query := `SELECT faces.id
+        FROM registrations
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN users ON faces.user_id = users.id
+        WHERE users.id = $1 AND events.id = $2;`
+    db.QueryRow(query, []interface{}{userId, 1}).Scan(&faceId)
+    params["face_id"] = faceId
+    this.LoadModelData(params)
+    db.QueryInsert_(this, "").Scan()
 }
 
 func (this *GroupsModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {

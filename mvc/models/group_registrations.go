@@ -39,6 +39,36 @@ func (c *ModelManager) GroupRegistrations() *GroupRegistrationModel {
     return model
 }
 
+func (this *GroupRegistrationModel) Delete(id int) {
+    query := `DELETE
+        FROM param_values
+        WHERE param_values.id in
+            (SELECT reg_param_vals.param_val_id
+                FROM reg_param_vals WHERE reg_param_vals.reg_id in
+                (SELECT regs_groupregs.reg_id
+                    FROM regs_groupregs WHERE regs_groupregs.groupreg_id = $1));`
+    db.Query(query, []interface{}{id})
+
+    query = `DELETE
+        FROM faces
+        WHERE faces.id in
+            (SELECT registrations.face_id
+                FROM registrations WHERE registrations.id in
+                    (SELECT regs_groupregs.reg_id
+                        FROM regs_groupregs WHERE regs_groupregs.groupreg_id = $1));`
+    db.Query(query, []interface{}{id})
+
+    query = `DELETE
+        FROM registrations
+        WHERE registrations.id in
+            (SELECT regs_groupregs.reg_id
+                FROM regs_groupregs WHERE regs_groupregs.groupreg_id = $1);`
+    db.Query(query, []interface{}{id})
+
+    query = `DELETE FROM group_registrations WHERE id = $1;`
+    db.Query(query, []interface{}{id})
+}
+
 func (this *GroupRegistrationModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
     if len(fields) == 0 {
         return nil
@@ -108,7 +138,6 @@ func (this *GroupRegistrationModel) GetColModel() []map[string]interface{} {
             "index": "id",
             "name": "id",
             "editable": false,
-            "width": 20,
         },
         1: map[string]interface{} {
             "index": "event_id",
@@ -143,6 +172,7 @@ func (this *GroupRegistrationModel) GetColModel() []map[string]interface{} {
             "formatoptions": map[string]interface{}{"disabled": true},
             "edittype": "checkbox",
             "editoptions": map[string]interface{}{"value": "true:false"},
+            // "width": 20,
         },
     }
 }

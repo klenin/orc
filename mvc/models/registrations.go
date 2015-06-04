@@ -39,6 +39,25 @@ func (c *ModelManager) Registrations() *RegistrationModel {
     return model
 }
 
+func (this *RegistrationModel) Delete(id int) {
+    query := `DELETE
+        FROM param_values
+        WHERE param_values.id in
+            (SELECT reg_param_vals.param_val_id
+                FROM reg_param_vals WHERE reg_param_vals.reg_id = $1);`
+    db.Query(query, []interface{}{id})
+
+    query = `DELETE
+        FROM faces
+        WHERE faces.id in
+        (SELECT registrations.face_id
+            FROM registrations WHERE registrations.id = $1);`
+    db.Query(query, []interface{}{id})
+
+    query = `DELETE FROM registrations WHERE id = $1;`
+    db.Query(query, []interface{}{id})
+}
+
 func (this *RegistrationModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
     if len(fields) == 0 {
         return nil

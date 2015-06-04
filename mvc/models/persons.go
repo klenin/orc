@@ -2,6 +2,9 @@ package models
 
 import (
     "github.com/orc/db"
+    // "github.com/orc/mailer"
+    "github.com/orc/utils"
+    "log"
     "strconv"
 )
 
@@ -40,6 +43,50 @@ func (c *ModelManager) Persons() *PersonsModel {
     model.SubField = ""
 
     return model
+}
+
+const HASH_SIZE = 32
+
+func (this *PersonsModel) Add(userId int, params map[string]interface{}) {
+    // to := params["name"].(string)
+    // address := params["email"].(string)
+    token := utils.GetRandSeq(HASH_SIZE)
+    params["token"] = token
+
+    query := `SELECT param_values.value
+        FROM reg_param_vals
+        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        INNER JOIN params ON params.id = param_values.param_id
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE params.id in (5, 6, 7) AND users.id = $1 AND events.id = 1 ORDER BY params.id;`
+    data := db.Query(query, []interface{}{userId})
+    headName := ""
+    if len(data) < 3 {
+
+    } else {
+        headName = data[0].(map[string]interface{})["value"].(string)
+        headName += " " + data[1].(map[string]interface{})["value"].(string)
+        headName += " " + data[2].(map[string]interface{})["value"].(string)
+    }
+
+    groupId, err := strconv.Atoi(params["group_id"].(string))
+    if err != nil {
+        log.Println(err.Error())
+        return
+    }
+
+    var groupName string
+    db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{groupId}).Scan(&groupName)
+
+    // if !mailer.InviteToGroup(to, address, token, headName, groupName) {
+    //     http.Error(this.Response, fmt.Sprintf("Проверьте правильность введенного Вами email"), 400)
+    //     return
+    // }
+    this.LoadModelData(params)
+    db.QueryInsert_(this, "").Scan()
 }
 
 func (this *PersonsModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
