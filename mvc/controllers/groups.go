@@ -182,3 +182,24 @@ func (this *Handler) RejectInvitationToGroup(token string) {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Запрос о присоединении к группе успешно отклонен.")
     }
 }
+
+func (this *GridHandler) IsRegGroup() {
+    _, err := this.CheckSid()
+    if err != nil {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+    }
+
+    groupId, err := strconv.Atoi(request["group_id"].(string))
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+    }
+
+    addDelFlag := !db.IsExists_("group_registrations", []string{"group_id"}, []interface{}{groupId})
+    utils.SendJSReply(map[string]interface{}{"result": "ok", "addDelFlag": addDelFlag}, this.Response)
+}
