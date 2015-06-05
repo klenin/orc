@@ -876,6 +876,10 @@ body .ui-tooltip {
 	background: #fbec88 url("images/ui-bg_flat_55_fbec88_40x100.png") 50% 50% repeat-x;
 	color: #363636;
 }
+.row-green {
+	border: 1px solid limegreen;
+	background: lightgreen url("images/ui-bg_flat_55_fbec88_40x100 - green.png") 50% 50% repeat-x;
+}
 .ui-state-highlight a,
 .ui-widget-content .ui-state-highlight a,
 .ui-widget-header .ui-state-highlight a {

@@ -20,6 +20,10 @@ hr {
     display: block;
 }
 
+textarea {
+    width: 100%;
+}
+
 .tables {
     display: block;
     padding-top: 5px;
@@ -60,12 +64,6 @@ input, label, button, textarea {
 
 input, button, textarea {
     border: 1px solid #4c9ac3;
-}
-
-textarea {
-    background: #BBD9FA;
-    height: 36px;
-    width: 480px;
 }
 
 #error {

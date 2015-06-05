@@ -213,6 +213,16 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                         + 'errorThrown: ' + errorThrown);
                     alert('HTTP message body: ' + jqXHR.responseText);
                 },
+                gridComplete: function() {
+                    var rows = $("#"+subgrid_id + "_t").getDataIDs();
+                    for (var i = 0; i < rows.length; i++) {
+                        var status = $("#"+subgrid_id + "_t").getCell(rows[i], "status");
+                        console.log(status)
+                        if (status === "true") {
+                            $("#"+subgrid_id + "_t").jqGrid('setRowData', rows[i], false, "row-green");
+                        }
+                    }
+                },
             });
 
             $("#"+subgrid_id + "_t").navGrid(
