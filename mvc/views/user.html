@@ -219,11 +219,9 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                 "#"+subgrid_id + "_p",
                 {   //buttons
                     edit: true,
-                    add: true,
-                    del: true,
-                    refresh: false,
-                    view: false,
-                    search: false
+                    add: addDelFlag,
+                    del: addDelFlag,
+                    view: true,
                 },
                 {   //edit
                     width: "100%",
