@@ -25,6 +25,11 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
         if (id == -1) return false;
 
         $("#"+dialogId).empty();
+        $("#"+dialogId).append("<p style=\"color:red;\"><strong>Внимание!<br/>После регистрации группы в мероприятии,<br/>"
+                +"Вы не сможете удалять или добавлять участников группы<br/>во избежание "
+                +"потери информации.<br/>"
+                +"Участники, которые не подтвердили запрос для присоединение к группе,<br/>"
+                +"не будут зарегестриорванны в мепроприятии.</string></p>");
 
         utils.postRequest(
             { "table": "events", "fields": ["id", "name"] },
@@ -43,7 +48,12 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
 
                     utils.postRequest(
                         { "group_id": id, "event_id": event_id },
-                        function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
+                        function(data) {
+                            gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]);
+                            if (data["result"] === "ok") {
+                                window.location.reload();
+                            }
+                        },
                         "/gridhandler/reggroup"
                     );
                 },

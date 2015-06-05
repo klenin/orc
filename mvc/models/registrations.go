@@ -126,7 +126,7 @@ func (this *RegistrationModel) GetColModel() []map[string]interface{} {
     events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
     query = `SELECT array_to_string(
-        array(SELECT faces.id || ':' || array_to_string(array_agg(param_values.value), ' ')
+        array(SELECT faces.id || ':' || faces.id || '-' || array_to_string(array_agg(param_values.value), ' ')
         FROM reg_param_vals
         INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
         INNER JOIN faces ON faces.id = registrations.face_id

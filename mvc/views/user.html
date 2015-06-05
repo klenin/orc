@@ -181,6 +181,17 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
             $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
                 + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
 
+            var addDelFlag = false;
+            reqUtils.postRequest(
+                { "group_id": group_id },
+                function(data) {
+                    console.log("Is Reg Group?");
+                    console.log(data["result"]);
+                    addDelFlag = data["addDelFlag"];
+                },
+                "/gridhandler/isreggroup"
+            );
+
             $("#" + subgrid_id + "_t").jqGrid({
                 url: "/handler/"+{{.group.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",

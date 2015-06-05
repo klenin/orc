@@ -161,7 +161,10 @@ func (this *PersonsModel) Select(fields []string, filters map[string]interface{}
 
 func (this *PersonsModel) GetColModel() []map[string]interface{} {
     query := `SELECT array_to_string(
-        array(SELECT groups.id || ':' || groups.name FROM groups GROUP BY groups.id ORDER BY groups), ';') as name;`
+        array(SELECT groups.id || ':' || groups.name
+        FROM groups
+        WHERE groups.id NOT IN (SELECT group_registrations.group_id FROM group_registrations)
+        GROUP BY groups.id ORDER BY groups), ';') as name;`
     groups := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
     query = `SELECT array_to_string(
@@ -235,7 +238,7 @@ func (this *PersonsModel) GetColModelForUser(user_id int) []map[string]interface
         array(SELECT groups.id || ':' || groups.name FROM groups
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1
+        WHERE users.id = $1 AND groups.id NOT IN (SELECT group_registrations.group_id FROM group_registrations)
         GROUP BY groups.id ORDER BY groups), ';') as name;`
     groups := db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["name"].(string)
 
