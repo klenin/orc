@@ -1,5 +1,17 @@
 define(["utils"], function(utils) {
 
+    function resizeSelectWidth(form) {
+        var maxWidth = 0, newMaxWidth = 0, i,
+            elems = form.find('tr.FormData > td.DataTD > .FormElement');
+        for (i = 0; i < elems.length; i++) {
+            $(elems[i]).attr("size", $(elems[i]).val().length+10);
+            maxWidth = Math.max(maxWidth, $(elems[i]).width());
+        }
+        for (i = 0; i < elems.length; i++) {
+            $(elems[i]).width(maxWidth+"px");
+        }
+    };
+
     function showServerPromtInGrid(gridId, prompt) {
         console.log("showServerPromtInGrid");
 
@@ -141,6 +153,7 @@ define(["utils"], function(utils) {
         errTextFormat: errTextFormat,
         showServerPromtInGrid: showServerPromtInGrid,
         showServerPromtInDialog: showServerPromtInDialog,
+        resizeSelectWidth: resizeSelectWidth,
         ConfirmOrRejectPersonRequest: ConfirmOrRejectPersonRequest,
     };
 

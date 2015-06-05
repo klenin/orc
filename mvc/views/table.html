@@ -104,6 +104,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             recreateForm: true,
             afterSubmit: function(data) { return utils.errTextFormat(data, "grid-table"); },
             errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
+            afterShowForm: utils.resizeSelectWidth,
             beforeShowForm: function() {
                 if ({{.TableName}} == "registrations") {
                     var id = utils.getCurrRowId("grid-table");
@@ -129,6 +130,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             addedrow: "last",
             afterSubmit: function(data) { return utils.errTextFormat(data, "grid-table"); },
             errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
+            afterShowForm: utils.resizeSelectWidth,
         },
         {   // del
             closeAfterAdd: true,
