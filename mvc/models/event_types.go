@@ -39,19 +39,20 @@ func (this *EventTypesModel) GetColModel() []map[string]interface{} {
             "index": "id",
             "name": "id",
             "editable": false,
-            "width": 20,
         },
         1: map[string]interface{} {
             "index": "name",
             "name": "name",
             "editable": true,
             "editrules": map[string]interface{}{"required": true},
+            "edittype": "text",
         },
         2: map[string]interface{} {
             "index": "description",
             "name": "description",
             "editable": true,
             "editrules": map[string]interface{}{"required": true},
+            "edittype": "textarea",
         },
     }
 }
