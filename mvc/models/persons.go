@@ -163,7 +163,6 @@ func (this *PersonsModel) GetColModel() []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT groups.id || ':' || groups.name
         FROM groups
-        WHERE groups.id NOT IN (SELECT group_registrations.group_id FROM group_registrations)
         GROUP BY groups.id ORDER BY groups), ';') as name;`
     groups := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
