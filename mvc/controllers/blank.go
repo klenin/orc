@@ -236,7 +236,7 @@ func (this *GridHandler) EditParams() {
         editable := result[0].(map[string]interface{})["editable"].(bool)
         value := v.(map[string]interface{})["value"].(string)
 
-        if required && utils.MatchRegexp("^.[ \t\v\r\n\f]$", value) {
+        if required && utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
             utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр '"+name+"'"}, this.Response)
             return
         }

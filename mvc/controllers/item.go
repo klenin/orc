@@ -154,7 +154,7 @@ func (this *Handler) RegPerson() {
             value := element.(map[string]interface{})["value"].(string)
 
             if paramId == 1 {
-                if utils.MatchRegexp("^.[ \t\v\r\n\f]$", value) {
+                if utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
                     utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр 'Логин'."}, this.Response)
                     return
                 }
@@ -163,7 +163,7 @@ func (this *Handler) RegPerson() {
                 continue
 
             } else if paramId == 2 || paramId == 3 {
-                if utils.MatchRegexp("^.[ \t\v\r\n\f]$", value) {
+                if utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
                     utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр 'Пароль/Подтвердите пароль'."}, this.Response)
                     return
                 }
@@ -172,7 +172,7 @@ func (this *Handler) RegPerson() {
                 continue
 
             } else if paramId == 4 {
-                if utils.MatchRegexp("^.[ \t\v\r\n\f]$", value) {
+                if utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
                     utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр 'Email'."}, this.Response)
                     return
                 }
@@ -262,7 +262,7 @@ func (this *Handler) InsertUserParams(regId int, data []interface{}) (err error)
         editable := result[0].(map[string]interface{})["editable"].(bool)
         value := element.(map[string]interface{})["value"].(string)
 
-        if required && utils.MatchRegexp("^.[ \t\v\r\n\f]$", value) {
+        if required && utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
             db.QueryDeleteByIds("param_vals", strings.Join(paramValueIds, ", "))
             db.QueryDeleteByIds("registrations", strconv.Itoa(regId))
             return errors.New("Заполните параметр '"+name+"'.")
