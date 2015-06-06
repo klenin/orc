@@ -131,7 +131,7 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
             println("__ConvertTypeForModel-boolean: ", value.(bool))
             return value.(bool)
         }
-        break
+        panic("utils.ConvertTypeForModel: unknown type: " + type_)
     }
     panic("utils.ConvertTypeForModel: unknown type: " + type_)
 }
