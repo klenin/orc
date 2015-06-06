@@ -76,6 +76,16 @@ func (this *GroupsModel) Add(userId int, params map[string]interface{}) {
     db.QueryInsert_(this, "").Scan()
 }
 
+func (this *GroupsModel) Delete(id int) {
+    query := `DELETE
+        FROM persons
+        WHERE persons.group_id = $1;`
+    db.Query(query, []interface{}{id})
+
+    query = `DELETE FROM groups WHERE id = $1;`
+    db.Query(query, []interface{}{id})
+}
+
 func (this *GroupsModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
     if len(fields) == 0 {
         return nil
