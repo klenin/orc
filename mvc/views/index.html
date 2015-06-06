@@ -67,7 +67,7 @@ function(reqUtils, grid, utils, blank) {
             caption: "", buttonicon: "ui-icon-contact", title: "Заполнить анкету",
             onClickButton: function() {
                 $("#events #server-answer").empty();
-                var selectedRowId = $("#events-table").jqGrid ("getGridParam", "selrow");
+                var selectedRowId = $("#events-table").jqGrid("getGridParam", "selrow");
                 var eventId = $("#events-table").jqGrid ("getCell", selectedRowId, "id");
                 reqUtils.postRequest(
                     {},

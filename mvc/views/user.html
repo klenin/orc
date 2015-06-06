@@ -232,6 +232,8 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                     add: addDelFlag,
                     del: addDelFlag,
                     view: true,
+                    search: false,
+                    refresh: false,
                 },
                 {   //edit
                     width: "100%",
@@ -260,7 +262,13 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                     closeAfterAdd: true,
                 }
             );
+
             $("#"+subgrid_id + "_t").jqGrid("hideCol", ["face_id"]);
+            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["group_id"]);
+
+            $(window).bind("resize", function() {
+                $("#"+subgrid_id + "_t").setGridWidth($("#my-group-table").width(), true);
+            }).trigger("resize");
         }
     });
 
@@ -272,9 +280,9 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
             edit: true,
             add: true,
             del: true,
-            refresh: true,
             view: true,
-            search: false
+            search: false,
+            refresh: false,
         },
         {
             width: "100%",
@@ -290,9 +298,18 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
             afterSubmit: function(data) { return utils.errTextFormat(data, "my-group-table"); },
             errorTextFormat: function(data) { return utils.errTextFormat(data, "my-group-table"); },
             afterShowForm: utils.resizeSelectWidth,
+            afterSubmit: function(data) {
+                var ans = utils.errTextFormat(data, "my-group-table");
+                window.location.reload();
+                return ans;
+            },
         },
         {
-            closeAfterAdd: true,
+            afterSubmit: function(data) {
+                var ans = utils.errTextFormat(data, "my-group-table");
+                window.location.reload();
+                return ans;
+            },
         }
     );
 
@@ -380,7 +397,12 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                     search: false
                 }
             );
+
             $("#"+subgrid_id + "_t").jqGrid("hideCol", ["face_id"]);
+
+            $(window).bind("resize", function() {
+                $("#"+subgrid_id + "_t").setGridWidth($("#group-table").width(), true);
+            }).trigger("resize");
         }
     });
 
@@ -509,7 +531,6 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                 height: "100%",
                 width: $("#groupreg-table").width()-65,
                 editurl: "/gridhandler/editgridrow/"+{{.groupreg.SubTableName}},
-                multiselect: true,
                 loadError: function (jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: ' + jqXHR.status + '\n'
                         + 'textStatus: ' + textStatus + '\n'
@@ -543,7 +564,12 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
             );
 
             $("#"+subgrid_id + "_t").jqGrid("hideCol", ["face_id"]);
+            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["group_id"]);
             $("#"+subgrid_id + "_t").jqGrid("hideCol", ["status"]);
+
+            $(window).bind("resize", function() {
+                $("#"+subgrid_id + "_t").setGridWidth($("#groupreg-table").width(), true);
+            }).trigger("resize");
         }
     });
 
