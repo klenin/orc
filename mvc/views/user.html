@@ -536,7 +536,8 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        blank.ShowPersonBlankFromGroup(row_id, "dialog-group-person-request", subgrid_id + "_t");
+                        var person_id = $("#"+subgrid_id + "_t").jqGrid("getGridParam", "selrow");
+                        blank.ShowPersonBlankFromGroup(row_id, person_id, "dialog-group-person-request");
                     }
                 }
             );

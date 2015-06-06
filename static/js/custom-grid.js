@@ -1,5 +1,5 @@
-define(["utils", "datepicker/datepicker", "blank"],
-function(utils, datepicker, blank) {
+define(["utils", "datepicker/datepicker", "blank", "grid-utils"],
+function(utils, datepicker, blank, gridUtils) {
 
     function timePicker(e) {
         $(e).timepicker({"timeFormat": "HH:mm:ss"});
@@ -109,7 +109,9 @@ function(utils, datepicker, blank) {
             height:      "100%",
             width:       $("#"+gridId).width()-65,
             multiselect: true,
-            editurl:     "/gridhandler/edit/" + subTableName,
+            multiselectWidth: 20,
+            multiboxonly: true,
+            editurl:     "/gridhandler/editgridrow/" + subTableName,
         });
 
         $("#" + subTId).navGrid(
@@ -141,14 +143,14 @@ function(utils, datepicker, blank) {
         );
 
         if (tableName == "group_registrations" && subTableName == "persons") {
-            var event_id = $("#"+gridId).jqGrid("getCell", row_id, "event_id");
             $("#" + subTId).jqGrid(
                 "navButtonAdd",
                 "#" + subPId,
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        blank.ShowPersonBlankFromGroup(row_id, "dialog-group-person-request", subTId);
+                        var person_id = gridUtils.getCurrRowId(subTId);
+                        blank.ShowPersonBlankFromGroup(row_id, person_id, "dialog-group-person-request");
                     }
                 }
             );

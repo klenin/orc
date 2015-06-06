@@ -97,11 +97,8 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         );
     }
 
-    function ShowPersonBlankFromGroup(group_reg_id, dialogId, gridId) {
+    function ShowPersonBlankFromGroup(group_reg_id, person_id, dialogId) {
         console.log("ShowPersonBlankFromGroup");
-
-        var person_id = gridUtils.getCurrRowId(gridId);
-        if (person_id == -1) return false;
 
         var data = { "group_reg_id": group_reg_id, "person_id": person_id };
         console.log("ShowPersonBlankFromGroup: ", data);
