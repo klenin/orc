@@ -174,7 +174,7 @@ func (this *Handler) UserGroupsLoad() {
     query = `SELECT COUNT(*) FROM (SELECT groups.id FROM groups
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1);`
+        WHERE users.id = $1) as count;`
     count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -222,12 +222,11 @@ func (this *Handler) GroupsLoad() {
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
     rows := db.Query(query, []interface{}{userId, sidx, limit, start})
 
-    // проверит эту бурду
     query = `SELECT COUNT(*) FROM (SELECT groups.id FROM groups
         INNER JOIN persons ON persons.group_id = groups.id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1);`
+        WHERE users.id = $1) as count;`
     count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -290,7 +289,7 @@ func (this *Handler) RegistrationsLoad(userId_ string) {
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1;`
+        WHERE users.id = $1) as count;`
     count := int(db.Query(query, []interface{}{id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -344,7 +343,7 @@ func (this *Handler) GroupRegistrationsLoad() {
         INNER JOIN groups ON groups.id = group_registrations.group_id
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1);`
+        WHERE users.id = $1) as count;`
     count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -414,7 +413,7 @@ func (this *Handler) PersonsLoad(groupId string) {
     query := `SELECT COUNT(*) FROM (SELECT persons.id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = groups.face_id
-        WHERE groups.id = $1);`
+        WHERE groups.id = $1) as count;`
     count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int

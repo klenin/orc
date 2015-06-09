@@ -38,7 +38,7 @@ func (this *FormsModel) GetColModel(isAdmin bool, userId int) []map[string]inter
             "index": "id",
             "name": "id",
             "editable": false,
-            "width": 20,
+            "width": "20",
         },
         1: map[string]interface{} {
             "index": "name",
