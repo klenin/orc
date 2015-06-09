@@ -68,7 +68,7 @@ function(reqUtils, grid, utils, blank) {
             onClickButton: function() {
                 $("#events #server-answer").empty();
                 var selectedRowId = $("#events-table").jqGrid("getGridParam", "selrow");
-                var eventId = $("#events-table").jqGrid ("getCell", selectedRowId, "id");
+                var eventId = $("#events-table").jqGrid("getCell", selectedRowId, "id");
                 reqUtils.postRequest(
                     {},
                     function(response) {

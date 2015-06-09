@@ -145,31 +145,31 @@ func (this *Handler) ShowCabinet() {
         groupsModel := Model{
             TableName:    groups.GetTableName(),
             ColNames:     groups.GetColNames(),
-            ColModel:     groups.GetColModel(),
+            ColModel:     groups.GetColModel(false, userId),
             Caption:      groups.GetCaption(),
             Sub:          groups.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
-            SubColModel:  persons.GetColModelForUser(userId),
+            SubColModel:  persons.GetColModel(false, userId),
             SubColNames:  persons.GetColNames()}
 
         regs := this.GetModel("registrations")
         regsModel := Model{
             TableName: regs.GetTableName(),
             ColNames:  regs.GetColNames(),
-            ColModel:  regs.GetColModel(),
+            ColModel:  regs.GetColModel(false, userId),
             Caption:   regs.GetCaption()}
 
         groupRegs := this.GetModel("group_registrations")
         groupRegsModel := Model{
             TableName:    groupRegs.GetTableName(),
             ColNames:     groupRegs.GetColNames(),
-            ColModel:     groupRegs.GetColModel(),
+            ColModel:     groupRegs.GetColModel(false, userId),
             Caption:      groupRegs.GetCaption(),
             Sub:          groupRegs.GetSub(),
             SubTableName: persons.GetTableName(),
             SubCaption:   persons.GetCaption(),
-            SubColModel:  persons.GetColModelForUser(userId),
+            SubColModel:  persons.GetColModel(false, userId),
             SubColNames:  persons.GetColNames()}
 
         query := `SELECT params.name, param_values.value, users.login
@@ -184,10 +184,30 @@ func (this *Handler) ShowCabinet() {
 
         data := db.Query(query, []interface{}{userId})
 
+        faces := this.GetModel("faces")
+        facesModel := Model{
+            ColModel:     faces.GetColModel(false, userId),
+            TableName:    faces.GetTableName(),
+            ColNames:     faces.GetColNames(),
+            Caption:      faces.GetCaption()}
+
+        params := this.GetModel("param_values")
+        paramsModel := Model{
+            ColModel:  params.GetColModel(false, userId),
+            TableName: params.GetTableName(),
+            ColNames:  params.GetColNames(),
+            Caption:   params.GetCaption()}
+
         this.Render(
             []string{"mvc/views/"+role+".html"},
             role,
-            map[string]interface{}{"group": groupsModel, "reg": regsModel, "groupreg": groupRegsModel, "userData": data})
+            map[string]interface{}{
+                "group": groupsModel,
+                "reg": regsModel,
+                "groupreg": groupRegsModel,
+                "faces": facesModel,
+                "params": paramsModel,
+                "userData": data})
     }
 }
 

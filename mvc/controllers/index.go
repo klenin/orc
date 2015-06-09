@@ -23,7 +23,7 @@ func (this *IndexController) Index() {
     this.Response.Header().Set("Content-Type", "text/html; charset=utf-8")
     model := this.GetModel("events")
     this.Render([]string{"mvc/views/login.html", "mvc/views/index.html"}, "index", map[string]interface{}{"events": Model{
-        ColModel:  model.GetColModel(),
+        ColModel:  model.GetColModel(false, -1),
         TableName: model.GetTableName(),
         ColNames:  model.GetColNames(),
         Caption:   model.GetCaption()}})

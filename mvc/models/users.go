@@ -38,7 +38,7 @@ func (c *ModelManager) Users() *UsersModel {
     return model
 }
 
-func (this *UsersModel) GetColModel() []map[string]interface{} {
+func (this *UsersModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

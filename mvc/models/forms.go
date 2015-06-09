@@ -32,7 +32,7 @@ func (c *ModelManager) Forms() *FormsModel {
     return model
 }
 
-func (this *FormsModel) GetColModel() []map[string]interface{} {
+func (this *FormsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

@@ -106,7 +106,7 @@ func (this *ParamsModel) Select(fields []string, filters map[string]interface{},
     return db.Query(query, params)
 }
 
-func (this *ParamsModel) GetColModel() []map[string]interface{} {
+func (this *ParamsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT param_types.id || ':' || param_types.name FROM param_types GROUP BY param_types.id ORDER BY param_types.id), ';') as name;`
     types := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

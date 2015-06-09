@@ -92,7 +92,7 @@ func (this *EventsFormsModel) Select(fields []string, filters map[string]interfa
     return db.Query(query, params)
 }
 
-func (this *EventsFormsModel) GetColModel() []map[string]interface{} {
+func (this *EventsFormsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT events.id || ':' || events.name FROM events GROUP BY events.id ORDER BY events.id), ';') as name;`
     events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

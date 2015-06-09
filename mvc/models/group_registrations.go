@@ -124,7 +124,7 @@ func (this *GroupRegistrationModel) Select(fields []string, filters map[string]i
     return db.Query(query, params)
 }
 
-func (this *GroupRegistrationModel) GetColModel() []map[string]interface{} {
+func (this *GroupRegistrationModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT events.id || ':' || events.name FROM events GROUP BY events.id ORDER BY events.id), ';') as name;`
     events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
@@ -172,7 +172,6 @@ func (this *GroupRegistrationModel) GetColModel() []map[string]interface{} {
             "formatoptions": map[string]interface{}{"disabled": true},
             "edittype": "checkbox",
             "editoptions": map[string]interface{}{"value": "true:false"},
-            // "width": 20,
         },
     }
 }

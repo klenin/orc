@@ -2,12 +2,10 @@ package controllers
 
 import (
     "encoding/json"
-    "errors"
     "github.com/orc/db"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "math"
-    "log"
     "net/http"
     "strconv"
     "strings"
@@ -15,34 +13,30 @@ import (
 
 func (this *GridHandler) Load(tableName string) {
     if tableName != "events" && !sessions.CheckSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        http.Error(this.Response, "Unauthorized", 400)
         return
     }
 
-    if tableName != "events" && !this.isAdmin() {
-        utils.SendJSReply(map[string]interface{}{"result": errors.New("Forbidden")}, this.Response)
-        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
-        return
-    }
+    isAdmin := this.isAdmin()
 
     var filters map[string]interface{}
     if this.Request.PostFormValue("_search") == "true" {
         err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
         if err != nil {
-            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            http.Error(this.Response, err.Error(), 400)
             return
         }
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
@@ -51,15 +45,14 @@ func (this *GridHandler) Load(tableName string) {
     start := limit*page - limit
 
     if tableName == "search" {
-        model := this.GetModel("faces")
-
         var filters map[string]interface{}
         err := json.NewDecoder(strings.NewReader(this.Request.PostFormValue("filters"))).Decode(&filters)
         if err != nil {
-            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            utils.SendJSReply(nil, this.Response)
             return
         }
 
+        model := this.GetModel("faces")
         query := `SELECT DISTINCT faces.id, faces.user_id
             FROM reg_param_vals
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
@@ -70,22 +63,28 @@ func (this *GridHandler) Load(tableName string) {
             INNER JOIN users ON users.id = faces.user_id`
 
         where, params, _ := model.WhereByParams(filters, 1)
-        if where != "" {
-            where = " WHERE "+where
-        }
-        log.Println("WHERE: ", where)
 
-        query += where+ ` ORDER BY faces.id `+sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
+        if !isAdmin {
+            where = ` WHERE events.id = 1 AND `+where
+        } else {
+            if where != "" {
+                where = " WHERE "+where
+            }
+        }
+        where += ` ORDER BY faces.id `+sord
+        query += where+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
         rows := db.Query(query, append(params, []interface{}{limit, start}...))
 
         query = `SELECT COUNT(*)
+            FROM (SELECT DISTINCT faces.id, faces.user_id
             FROM reg_param_vals
             INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN events ON events.id = registrations.event_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
-            INNER JOIN users ON users.id = faces.user_id`+where+`;`
+            INNER JOIN users ON users.id = faces.user_id`
+        query += where+") as count;"
         count := int(db.Query(query, params)[0].(map[string]interface{})["count"].(int))
 
         var totalPages int
@@ -107,12 +106,26 @@ func (this *GridHandler) Load(tableName string) {
 
     model := this.GetModel(tableName)
     where, params, _ := model.Where(filters, 1)
-    if where != "" {
-        where = " WHERE "+where
+
+    if tableName == "param_values" && !isAdmin {
+        w := " WHERE param_values.param_id in (4, 5, 6, 7)"
+        if where != "" {
+            where = w+" AND "+where
+        } else {
+            where = w
+        }
+    } else {
+        if where != "" {
+            where = " WHERE "+where
+        }
     }
+
     query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+where+` ORDER BY `+sidx+` `+sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
     rows := db.Query(query, append(params, []interface{}{limit, start}...))
-    count := db.SelectCount(tableName)
+
+    query = `SELECT COUNT(*) FROM (SELECT `+model.GetTableName()+`.id FROM `+model.GetTableName()
+    query += where+`) as count;`
+    count := int(db.Query(query, params)[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -133,19 +146,19 @@ func (this *GridHandler) Load(tableName string) {
 func (this *Handler) UserGroupsLoad() {
     userId, err := this.CheckSid()
     if err != nil {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        http.Error(this.Response, "Unauthorized", 400)
         return
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
@@ -158,10 +171,10 @@ func (this *Handler) UserGroupsLoad() {
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
     rows := db.Query(query, []interface{}{userId, sidx, limit, start})
 
-    query = `SELECT COUNT(*) FROM groups
+    query = `SELECT COUNT(*) FROM (SELECT groups.id FROM groups
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1;`
+        WHERE users.id = $1);`
     count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -183,19 +196,19 @@ func (this *Handler) UserGroupsLoad() {
 func (this *Handler) GroupsLoad() {
     userId, err := this.CheckSid()
     if err != nil {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        http.Error(this.Response, "Unauthorized", 400)
         return
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
@@ -209,11 +222,12 @@ func (this *Handler) GroupsLoad() {
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
     rows := db.Query(query, []interface{}{userId, sidx, limit, start})
 
-    query = `SELECT COUNT(*) FROM groups
+    // проверит эту бурду
+    query = `SELECT COUNT(*) FROM (SELECT groups.id FROM groups
         INNER JOIN persons ON persons.group_id = groups.id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1;`
+        WHERE users.id = $1);`
     count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -235,19 +249,19 @@ func (this *Handler) GroupsLoad() {
 func (this *Handler) RegistrationsLoad(userId_ string) {
     userId, err := this.CheckSid()
     if err != nil {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        http.Error(this.Response, "Unauthorized", 400)
         return
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
@@ -258,7 +272,7 @@ func (this *Handler) RegistrationsLoad(userId_ string) {
     if this.isAdmin() {
         id, err = strconv.Atoi(userId_)
         if err != nil {
-            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            http.Error(this.Response, err.Error(), 400)
             return
         }
     } else {
@@ -272,7 +286,7 @@ func (this *Handler) RegistrationsLoad(userId_ string) {
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
     rows := db.Query(query, []interface{}{id, sidx, limit, start})
 
-    query = `SELECT COUNT(*) FROM registrations
+    query = `SELECT COUNT(*) FROM (SELECT registrations.id FROM registrations
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
@@ -298,19 +312,19 @@ func (this *Handler) RegistrationsLoad(userId_ string) {
 func (this *Handler) GroupRegistrationsLoad() {
     userId, err := this.CheckSid()
     if err != nil {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        http.Error(this.Response, "Unauthorized", 400)
         return
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
@@ -325,12 +339,12 @@ func (this *Handler) GroupRegistrationsLoad() {
         WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
     rows := db.Query(query, []interface{}{userId, sidx, limit, start})
 
-    query = `SELECT COUNT(*) FROM group_registrations
+    query = `SELECT COUNT(*) FROM (SELECT group_registrations.id FROM group_registrations
         INNER JOIN events ON events.id = group_registrations.event_id
         INNER JOIN groups ON groups.id = group_registrations.group_id
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1;`
+        WHERE users.id = $1);`
     count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
@@ -352,25 +366,25 @@ func (this *Handler) GroupRegistrationsLoad() {
 func (this *Handler) PersonsLoad(groupId string) {
     userId, err := this.CheckSid()
     if err != nil {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        http.Error(this.Response, "Unauthorized", 400)
         return
     }
 
     limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
     page, err := strconv.Atoi(this.Request.PostFormValue("page"))
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
     id, err := strconv.Atoi(groupId)
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
@@ -380,7 +394,7 @@ func (this *Handler) PersonsLoad(groupId string) {
     var rows []interface{}
 
     if this.isAdmin() {
-        query := `SELECT persons.id, persons.name, persons.email, persons.group_id, persons.face_id, persons.status
+        query := `SELECT persons.id, persons.group_id, persons.face_id, persons.status
             FROM persons
             INNER JOIN groups ON groups.id = persons.group_id
             INNER JOIN faces ON faces.id = groups.face_id
@@ -388,7 +402,7 @@ func (this *Handler) PersonsLoad(groupId string) {
         rows = db.Query(query, []interface{}{id, sidx, limit, start})
 
     } else {
-        query := `SELECT persons.id, persons.name, persons.email, persons.group_id, persons.face_id, persons.status
+        query := `SELECT persons.id, persons.group_id, persons.face_id, persons.status
         FROM persons
             INNER JOIN groups ON groups.id = persons.group_id
             INNER JOIN faces ON faces.id = groups.face_id
@@ -397,10 +411,10 @@ func (this *Handler) PersonsLoad(groupId string) {
         rows = db.Query(query, []interface{}{userId, id, sidx, limit, start})
     }
 
-    query := `SELECT COUNT(*) FROM persons
+    query := `SELECT COUNT(*) FROM (SELECT persons.id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = groups.face_id
-        WHERE groups.id = $1;`
+        WHERE groups.id = $1);`
     count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int

@@ -54,7 +54,6 @@ func (this *Controller) Render(filenames []string, tmpname string, data interfac
 func (this *Controller) isAdmin() bool {
     userId, err := this.CheckSid()
     if err != nil {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return false
     }
 

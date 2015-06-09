@@ -36,7 +36,7 @@ func (c *ModelManager) Events() *EventsModel {
     return model
 }
 
-func (this *EventsModel) GetColModel() []map[string]interface{} {
+func (this *EventsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

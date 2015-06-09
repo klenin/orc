@@ -28,7 +28,7 @@ func (c *ModelManager) Docs() *DocsModel {
     return model
 }
 
-func (this *DocsModel) GetColModel() []map[string]interface{} {
+func (this *DocsModel) GetColModel(bool, int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

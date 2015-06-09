@@ -33,7 +33,7 @@ func (c *ModelManager) EventTypes() *EventTypesModel {
     return model
 }
 
-func (this *EventTypesModel) GetColModel() []map[string]interface{} {
+func (this *EventTypesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

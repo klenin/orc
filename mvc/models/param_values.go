@@ -96,12 +96,25 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
     return db.Query(query, params)
 }
 
-func (this *ParamValuesModel) GetColModel() []map[string]interface{} {
-    query := `SELECT array_to_string(
-        array(SELECT params.id || ': ' || forms.name || ' - ' || params.name
-        FROM params
-        INNER JOIN forms ON forms.id = params.form_id GROUP BY params.id, forms.name ORDER BY params.id), ';') as name;`
-    params := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+func (this *ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+    var query, params string
+
+    if isAdmin {
+        query = `SELECT array_to_string(
+            array(SELECT params.id || ': ' || forms.name || ' - ' || params.name
+            FROM params
+            INNER JOIN forms ON forms.id = params.form_id GROUP BY params.id, forms.name ORDER BY params.id), ';') as name;`
+        params = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+    } else {
+        query = `SELECT array_to_string(
+            array(SELECT params.id || ': ' || forms.name || ' - ' || params.name
+            FROM params
+            INNER JOIN forms ON forms.id = params.form_id
+            WHERE params.id IN (4, 5, 6, 7)
+            GROUP BY params.id, forms.name
+            ORDER BY params.id), ';') as name;`
+        params = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+    }
 
     return []map[string]interface{} {
         0: map[string]interface{} {

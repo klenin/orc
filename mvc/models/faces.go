@@ -95,7 +95,7 @@ func (this *FaceModel) Select(fields []string, filters map[string]interface{}, l
     return db.Query(query, params)
 }
 
-func (this *FaceModel) GetColModel() []map[string]interface{} {
+func (this *FaceModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT users.id || ':' || users.login FROM users GROUP BY users.id ORDER BY users.id), ';') as name;`
     logins := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

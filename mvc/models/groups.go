@@ -62,7 +62,7 @@ func (this *GroupsModel) Update(userId, rowId int, params map[string]interface{}
     db.QueryUpdate_(this).Scan()
 }
 
-func (this *GroupsModel) Add(userId int, params map[string]interface{}) {
+func (this *GroupsModel) Add(userId int, params map[string]interface{}) error {
     var faceId int
     query := `SELECT faces.id
         FROM registrations
@@ -74,6 +74,7 @@ func (this *GroupsModel) Add(userId int, params map[string]interface{}) {
     params["face_id"] = faceId
     this.LoadModelData(params)
     db.QueryInsert_(this, "").Scan()
+    return nil
 }
 
 func (this *GroupsModel) Delete(id int) {
@@ -146,7 +147,7 @@ func (this *GroupsModel) Select(fields []string, filters map[string]interface{},
     return db.Query(query, params)
 }
 
-func (this *GroupsModel) GetColModel() []map[string]interface{} {
+func (this *GroupsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT faces.id || ':' || array_to_string(array_agg(param_values.value), ' ')
         FROM reg_param_vals

@@ -38,7 +38,7 @@ func (c *ModelManager) RegsGroupRegs() *RegsGroupRegsModel {
     return model
 }
 
-func (this *RegsGroupRegsModel) GetColModel() []map[string]interface{} {
+func (this *RegsGroupRegsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT group_registrations.id || ':' || group_registrations.id FROM group_registrations GROUP BY group_registrations.id ORDER BY group_registrations.id), ';') as name;`
     groupRegs := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

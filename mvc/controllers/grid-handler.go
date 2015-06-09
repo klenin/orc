@@ -23,14 +23,15 @@ type GridHandler struct {
 }
 
 func (this *GridHandler) GetSubTable() {
-    if !sessions.CheckSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+    userId, err := this.CheckSid()
+    if err != nil {
+        http.Error(this.Response, "Unauthorized", 400)
         return
     }
 
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
-        utils.SendJSReply(err.Error(), this.Response)
+        http.Error(this.Response, err.Error(), 400)
         return
     }
 
@@ -44,7 +45,7 @@ func (this *GridHandler) GetSubTable() {
         "caption":  subModel.GetCaption(),
         "colnames": subModel.GetColNames(),
         "columns":  subModel.GetColumns(),
-        "colmodel": subModel.GetColModel()})
+        "colmodel": subModel.GetColModel(this.isAdmin(), userId)})
     if utils.HandleErr("[GridHandler::GetSubTable] Marshal: ", err, this.Response) {
         return
     }
@@ -53,7 +54,8 @@ func (this *GridHandler) GetSubTable() {
 }
 
 func (this *GridHandler) CreateGrid(tableName string) {
-    if !sessions.CheckSession(this.Response, this.Request) {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -67,19 +69,19 @@ func (this *GridHandler) CreateGrid(tableName string) {
         model := this.GetModel("faces")
         regs := this.GetModel("registrations")
         faces := Model{
-            ColModel:     model.GetColModel(),
+            ColModel:     model.GetColModel(true, userId),
             TableName:    model.GetTableName(),
             ColNames:     model.GetColNames(),
             Caption:      model.GetCaption(),
             Sub:          true,
             SubTableName: regs.GetTableName(),
             SubCaption:   regs.GetCaption(),
-            SubColModel:  regs.GetColModel(),
+            SubColModel:  regs.GetColModel(true, userId),
             SubColNames:  regs.GetColNames()}
 
         model = this.GetModel("param_values")
         params := Model{
-            ColModel:  model.GetColModel(),
+            ColModel:  model.GetColModel(true, userId),
             TableName: model.GetTableName(),
             ColNames:  model.GetColNames(),
             Caption:   model.GetCaption()}
@@ -90,7 +92,7 @@ func (this *GridHandler) CreateGrid(tableName string) {
 
     model := this.GetModel(tableName)
     this.Render([]string{"mvc/views/table.html"}, "table", Model{
-        ColModel:  model.GetColModel(),
+        ColModel:  model.GetColModel(true, userId),
         TableName: model.GetTableName(),
         ColNames:  model.GetColNames(),
         Caption:   model.GetCaption(),
@@ -107,7 +109,7 @@ func (this *GridHandler) EditGridRow(tableName string) {
     model := this.GetModel(tableName)
     if model == nil {
         utils.HandleErr("[GridHandler::Edit] GetModel: ", errors.New("Unexpected table name"), this.Response)
-        http.Error(this.Response, fmt.Sprintf("Unexpected table name"), 400)
+        http.Error(this.Response, "Unexpected table name", 400)
         return
     }
 
@@ -120,21 +122,24 @@ func (this *GridHandler) EditGridRow(tableName string) {
     case "edit":
         rowId, err := strconv.Atoi(this.Request.PostFormValue("id"))
         if err != nil {
-            http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
+            http.Error(this.Response, err.Error(), 400)
             return
         }
         model.Update(userId, rowId, params)
         break
 
     case "add":
-        model.Add(userId, params)
+        err := model.Add(userId, params)
+        if err != nil {
+            http.Error(this.Response, err.Error(), 400)
+        }
         break
 
     case "del":
         for _, v := range strings.Split(this.Request.PostFormValue("id"), ",") {
             id, err := strconv.Atoi(v)
             if err != nil {
-                utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+                http.Error(this.Response, err.Error(), 400)
                 return
             }
             model.Delete(id)
@@ -151,7 +156,7 @@ func (this *GridHandler) JsonToExcel(tableName string) {
 
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
         return
     }
 

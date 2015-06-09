@@ -59,7 +59,7 @@ func (this *GridHandler) RegGroup() {
     groupReg.LoadModelData(map[string]interface{}{"event_id": eventId, "group_id": groupId})
     db.QueryInsert_(groupReg, "RETURNING id").Scan(&groupregId)
 
-    query = `SELECT persons.name, persons.email, persons.status, users.id as user_id FROM persons
+    query = `SELECT persons.status, users.id as user_id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
@@ -125,26 +125,16 @@ func (this *GridHandler) RegGroup() {
 }
 
 func (this *Handler) ConfirmInvitationToGroup(token string) {
-    userId, err := this.CheckSid()
-    if err != nil {
+    if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
 
-    var faceId int
-    query := `SELECT faces.id
-        FROM registrations
-        INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN users ON faces.user_id = users.id
-        WHERE users.id = $1 AND events.id = $2;`
-    db.QueryRow(query, []interface{}{userId, 1}).Scan(&faceId)
-
     person := this.GetModel("persons")
     person.LoadWherePart(map[string]interface{}{"token": token})
 
-    var groupId int
-    err = db.SelectRow(person, []string{"group_id",}).Scan(&groupId)
+    var faceId, groupId int
+    err = db.SelectRow(person, []string{"face_id", "group_id",}).Scan(&faceId, &groupId)
 
     if err != nil {
         if this.Response != nil {
@@ -161,7 +151,7 @@ func (this *Handler) ConfirmInvitationToGroup(token string) {
     }
 
     person = this.GetModel("persons")
-    person.LoadModelData(map[string]interface{}{"face_id": faceId, "status": true, "token": " "})
+    person.LoadModelData(map[string]interface{}{"status": true, "token": " "})
     person.LoadWherePart(map[string]interface{}{"token": token})
     db.QueryUpdate_(person).Scan()
 

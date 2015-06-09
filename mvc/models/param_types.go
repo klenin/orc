@@ -32,7 +32,7 @@ func (c *ModelManager) ParamTypes() *ParamTypesModel {
     return model
 }
 
-func (this *ParamTypesModel) GetColModel() []map[string]interface{} {
+func (this *ParamTypesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

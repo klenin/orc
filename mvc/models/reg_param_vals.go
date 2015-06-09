@@ -35,7 +35,7 @@ func (c *ModelManager) RegParamVals() *RegParamValsModel {
     return model
 }
 
-func (this *RegParamValsModel) GetColModel() []map[string]interface{} {
+func (this *RegParamValsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT registrations.id || ':' || registrations.id || ' - ' || events.name FROM registrations
         INNER JOIN events ON events.id = registrations.event_id

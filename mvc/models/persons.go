@@ -1,10 +1,10 @@
 package models
 
 import (
+    "errors"
     "github.com/orc/db"
     // "github.com/orc/mailer"
     "github.com/orc/utils"
-    "log"
     "strconv"
 )
 
@@ -14,11 +14,9 @@ type PersonsModel struct {
 
 type Person struct {
     Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    FaceId  int    `name:"face_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
+    FaceId  int    `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
     GroupId int    `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
-    Name    string `name:"name" type:"text" null:"NOT NULL" extra:""`
     Token   string `name:"token" type:"text" null:"NOT NULL" extra:""`
-    Email   string `name:"email" type:"text" null:"NOT NULL" extra:""`
     Status  bool   `name:"status" type:"boolean" null:"NOT NULL" extra:""`
 }
 
@@ -28,8 +26,8 @@ func (c *ModelManager) Persons() *PersonsModel {
     model.TableName = "persons"
     model.Caption = "Участники"
 
-    model.Columns = []string{"id", "name", "email", "group_id", "status", "face_id"}
-    model.ColNames = []string{"ID", "ФИО", "Почта", "Группа", "Статус", "Физическое лицо"}
+    model.Columns = []string{"id", "face_id", "group_id", "status"}
+    model.ColNames = []string{"ID", "Физическое лицо", "Группа", "Статус"}
 
     model.Fields = new(Person)
     model.WherePart = make(map[string]interface{}, 0)
@@ -47,9 +45,10 @@ func (c *ModelManager) Persons() *PersonsModel {
 
 const HASH_SIZE = 32
 
-func (this *PersonsModel) Add(userId int, params map[string]interface{}) {
-    // to := params["name"].(string)
-    // address := params["email"].(string)
+func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
+    // var to string
+    // var address string
+
     token := utils.GetRandSeq(HASH_SIZE)
     params["token"] = token
 
@@ -65,6 +64,7 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) {
     data := db.Query(query, []interface{}{userId})
     headName := ""
     if len(data) < 3 {
+        return errors.New("Данные о руководителе группы отсутсвуют.")
 
     } else {
         headName = data[0].(map[string]interface{})["value"].(string)
@@ -74,19 +74,39 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) {
 
     groupId, err := strconv.Atoi(params["group_id"].(string))
     if err != nil {
-        log.Println(err.Error())
-        return
+        return err
     }
 
     var groupName string
     db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{groupId}).Scan(&groupName)
 
-    // if !mailer.InviteToGroup(to, address, token, headName, groupName) {
-    //     http.Error(this.Response, fmt.Sprintf("Проверьте правильность введенного Вами email"), 400)
-    //     return
+    // query = `SELECT param_values.value
+    //     FROM reg_param_vals
+    //     INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+    //     INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+    //     INNER JOIN params ON params.id = param_values.param_id
+    //     INNER JOIN events ON events.id = registrations.event_id
+    //     INNER JOIN faces ON faces.id = registrations.face_id
+    //     INNER JOIN users ON users.id = faces.user_id
+    //     WHERE params.id in (4, 5, 6, 7) AND faces.id = $1 AND events.id = 1 ORDER BY params.id;`
+    // data = db.Query(query, []interface{}{params["face_id"]})
+    // if len(data) < 4 {
+    //     return errors.New("Данные о приглашаемом участнике отсутсвуют.")
+
+    // } else {
+    //     address = data[0].(map[string]interface{})["value"].(string)
+    //     to = data[1].(map[string]interface{})["value"].(string)
+    //     to += " " + data[2].(map[string]interface{})["value"].(string)
+    //     to += " " + data[3].(map[string]interface{})["value"].(string)
     // }
+
+    // if !mailer.InviteToGroup(to, address, token, headName, groupName) {
+    //     return errors.New("Участник скорее всего указал неправильный email, отправить письмо-приглашенине невозможно")
+    // }
+
     this.LoadModelData(params)
     db.QueryInsert_(this, "").Scan()
+    return nil
 }
 
 func (this *PersonsModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
@@ -100,12 +120,6 @@ func (this *PersonsModel) Select(fields []string, filters map[string]interface{}
         switch field {
         case "id":
             query += "persons.id, "
-            break
-        case "name":
-            query += "persons.name as person_name, "
-            break
-        case "email":
-            query += "persons.email, "
             break
         case "group_id":
             query += "groups.name as group_name, "
@@ -159,98 +173,46 @@ func (this *PersonsModel) Select(fields []string, filters map[string]interface{}
     return db.Query(query, params)
 }
 
-func (this *PersonsModel) GetColModel() []map[string]interface{} {
-    query := `SELECT array_to_string(
-        array(SELECT groups.id || ':' || groups.name
-        FROM groups
-        GROUP BY groups.id ORDER BY groups), ';') as name;`
-    groups := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+func (this *PersonsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+    var query, groups, faces string
 
-    query = `SELECT array_to_string(
-        array(SELECT faces.id || ':' || array_to_string(array_agg(param_values.value), ' ')
-        FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-        INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
-        INNER JOIN params ON params.id = param_values.param_id
-        WHERE params.id in (5, 6, 7) AND events.id = 1 GROUP BY faces.id ORDER BY faces.id), ';') as name;`
-    faces := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+    if isAdmin {
+        query = `SELECT array_to_string(
+            array(SELECT groups.id || ':' || groups.name
+            FROM groups
+            GROUP BY groups.id ORDER BY groups), ';') as name;`
+        groups = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
-    return []map[string]interface{} {
-        0: map[string]interface{} {
-            "index": "id",
-            "name": "id",
-            "editable": false,
-        },
-        1: map[string]interface{} {
-            "index": "name",
-            "name": "name",
-            "editable": true,
-            "editrules": map[string]interface{}{"required": true},
-        },
-        2: map[string]interface{} {
-            "index": "email",
-            "name": "email",
-            "editable": true,
-            "editrules": map[string]interface{}{"required": true, "email": true},
-        },
-        3: map[string]interface{} {
-            "index": "group_id",
-            "name": "group_id",
-            "editable": true,
-            "formatter": "select",
-            "edittype": "select",
-            "stype": "select",
-            "search": true,
-            "editrules": map[string]interface{}{"required": true},
-            "editoptions": map[string]string{"value": groups},
-            "searchoptions": map[string]string{"value": ":Все;"+groups},
-        },
-        4: map[string]interface{} {
-            "index": "status",
-            "name": "status",
-            "editable": true,
-            "editrules": map[string]interface{}{"required": true},
-            "formatter": "checkbox",
-            "formatoptions": map[string]interface{}{"disabled": true},
-            "edittype": "checkbox",
-            "editoptions": map[string]interface{}{"value": "true:false"},
-        },
-        5: map[string]interface{} {
-            "index": "face_id",
-            "name": "face_id",
-            "editable": true,
-            "formatter": "select",
-            "edittype": "select",
-            "stype": "select",
-            "search": true,
-            "editrules": map[string]interface{}{"required": true},
-            "editoptions": map[string]string{"value": faces},
-            "searchoptions": map[string]string{"value": ":Все;"+faces},
-        },
+        query = `SELECT array_to_string(
+            array(SELECT faces.id || ':' || array_to_string(array_agg(param_values.value), ' ')
+            FROM reg_param_vals
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params ON params.id = param_values.param_id
+            WHERE params.id in (5, 6, 7) AND events.id = 1 GROUP BY faces.id ORDER BY faces.id), ';') as name;`
+        faces = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+    } else {
+        query = `SELECT array_to_string(
+            array(SELECT groups.id || ':' || groups.name FROM groups
+            INNER JOIN faces ON faces.id = groups.face_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE users.id = $1 AND groups.id NOT IN (SELECT group_registrations.group_id FROM group_registrations)
+            GROUP BY groups.id ORDER BY groups), ';') as name;`
+        groups = db.Query(query, []interface{}{userId})[0].(map[string]interface{})["name"].(string)
+
+        query = `SELECT array_to_string(
+            array(SELECT faces.id || ':' || array_to_string(array_agg(param_values.value), ' ')
+            FROM reg_param_vals
+            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            INNER JOIN params ON params.id = param_values.param_id
+            WHERE params.id in (5, 6, 7) GROUP BY faces.id ORDER BY faces.id), ';') as name;`
+        faces = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
     }
-}
-
-func (this *PersonsModel) GetColModelForUser(user_id int) []map[string]interface{} {
-    query := `SELECT array_to_string(
-        array(SELECT groups.id || ':' || groups.name FROM groups
-        INNER JOIN faces ON faces.id = groups.face_id
-        INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1 AND groups.id NOT IN (SELECT group_registrations.group_id FROM group_registrations)
-        GROUP BY groups.id ORDER BY groups), ';') as name;`
-    groups := db.Query(query, []interface{}{user_id})[0].(map[string]interface{})["name"].(string)
-
-    query = `SELECT array_to_string(
-        array(SELECT faces.id || ':' || array_to_string(array_agg(param_values.value), ' ')
-        FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-        INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
-        INNER JOIN params ON params.id = param_values.param_id
-        WHERE params.id in (5, 6, 7) GROUP BY faces.id ORDER BY faces.id), ';') as name;`
-    faces := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
     return []map[string]interface{} {
         0: map[string]interface{} {
@@ -259,18 +221,18 @@ func (this *PersonsModel) GetColModelForUser(user_id int) []map[string]interface
             "editable": false,
         },
         1: map[string]interface{} {
-            "index": "name",
-            "name": "name",
+            "index": "face_id",
+            "name": "face_id",
             "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
             "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": faces},
+            "searchoptions": map[string]string{"value": ":Все;"+faces},
         },
         2: map[string]interface{} {
-            "index": "email",
-            "name": "email",
-            "editable": true,
-            "editrules": map[string]interface{}{"required": true, "email": true},
-        },
-        3: map[string]interface{} {
             "index": "group_id",
             "name": "group_id",
             "editable": true,
@@ -282,7 +244,7 @@ func (this *PersonsModel) GetColModelForUser(user_id int) []map[string]interface
             "editoptions": map[string]string{"value": groups},
             "searchoptions": map[string]string{"value": ":Все;"+groups},
         },
-        4: map[string]interface{} {
+        3: map[string]interface{} {
             "index": "status",
             "name": "status",
             "editable": true,
@@ -291,18 +253,6 @@ func (this *PersonsModel) GetColModelForUser(user_id int) []map[string]interface
             "formatoptions": map[string]interface{}{"disabled": true},
             "edittype": "checkbox",
             "editoptions": map[string]interface{}{"value": "true:false"},
-        },
-        5: map[string]interface{} {
-            "index": "face_id",
-            "name": "face_id",
-            "editable": true,
-            "formatter": "select",
-            "edittype": "select",
-            "stype": "select",
-            "search": true,
-            "editrules": map[string]interface{}{"required": true},
-            "editoptions": map[string]string{"value": faces},
-            "searchoptions": map[string]string{"value": ":Все;"+faces},
         },
     }
 }

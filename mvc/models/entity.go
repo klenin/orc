@@ -370,16 +370,13 @@ func (this *Entity) Update(userId, rowId int, params map[string]interface{}) {
     db.QueryUpdate_(this).Scan()
 }
 
-func (this *Entity) Add(userId int, params map[string]interface{}) {
+func (this *Entity) Add(userId int, params map[string]interface{}) error {
     this.LoadModelData(params)
     db.QueryInsert_(this, "").Scan()
-}
-
-func (this *Entity) GetColModel() []map[string]interface{} {
     return nil
 }
 
-func (this *Entity) GetColModelForUser(user_id int) []map[string]interface{} {
+func (this *Entity) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return nil
 }
 
@@ -417,11 +414,10 @@ type VirtEntity interface {
     WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{})
     Delete(id int)
-    Add(userId int, params map[string]interface{})
+    Add(userId int, params map[string]interface{}) error
     Update(userId, rowId int, params map[string]interface{})
 
-    GetColModel() ([]map[string]interface{})
-    GetColModelForUser(user_id int) ([]map[string]interface{})
+    GetColModel(isAdmin bool, userId int) ([]map[string]interface{})
 }
 
 func (this *ModelManager) GetModel(tableName string) VirtEntity {
