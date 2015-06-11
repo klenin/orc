@@ -10,6 +10,7 @@ type Event struct {
     DateStart  string `name:"date_start" type:"date" null:"NOT NULL" extra:""`
     DateFinish string `name:"date_finish" type:"date" null:"NOT NULL" extra:""`
     Time       string `name:"time" type:"time" null:"NOT NULL" extra:""`
+    Team       bool   `name:"team" type:"boolean" null:"NOT NULL" extra:""`
     Url        string `name:"url" type:"text" null:"NULL" extra:""`
 }
 
@@ -19,8 +20,8 @@ func (c *ModelManager) Events() *EventsModel {
     model.TableName = "events"
     model.Caption = "Мероприятия"
 
-    model.Columns = []string{"id", "name", "date_start", "date_finish", "time", "url"}
-    model.ColNames = []string{"ID", "Название", "Дата начала", "Дата окончания", "Время", "Сайт"}
+    model.Columns = []string{"id", "name", "date_start", "date_finish", "time", "team", "url"}
+    model.ColNames = []string{"ID", "Название", "Дата начала", "Дата окончания", "Время", "Командное", "Сайт"}
 
     model.Fields = new(Event)
     model.WherePart = make(map[string]interface{}, 0)
@@ -42,6 +43,7 @@ func (this *EventsModel) GetColModel(isAdmin bool, userId int) []map[string]inte
             "index": "id",
             "name": "id",
             "editable": false,
+            "width": 20,
         },
         1: map[string]interface{} {
             "index": "name",
@@ -88,6 +90,17 @@ func (this *EventsModel) GetColModel(isAdmin bool, userId int) []map[string]inte
             "fixed": true,
         },
         5: map[string]interface{} {
+            "index": "team",
+            "name": "team",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+            "formatter": "checkbox",
+            "formatoptions": map[string]interface{}{"disabled": true},
+            "edittype": "checkbox",
+            "editoptions": map[string]interface{}{"value": "true:false"},
+            "width": 70,
+        },
+        6: map[string]interface{} {
             "index": "url",
             "name": "url",
             "editable": true,

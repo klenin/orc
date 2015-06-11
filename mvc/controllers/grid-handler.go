@@ -91,12 +91,30 @@ func (this *GridHandler) CreateGrid(tableName string) {
     }
 
     model := this.GetModel(tableName)
-    this.Render([]string{"mvc/views/table.html"}, "table", Model{
+    obj := Model{
         ColModel:  model.GetColModel(true, userId),
         TableName: model.GetTableName(),
         ColNames:  model.GetColNames(),
         Caption:   model.GetCaption(),
-        Sub:       model.GetSub()})
+        Sub:       model.GetSub()}
+
+    if tableName == "groups" {
+        model = this.GetModel("events")
+        this.Render(
+            []string{"mvc/views/table.html"},
+            "table",
+            map[string]interface{}{"model": obj, "events": Model{
+                ColModel:  model.GetColModel(true, userId),
+                TableName: model.GetTableName(),
+                ColNames:  model.GetColNames(),
+                Caption:   model.GetCaption(),
+                Sub:       model.GetSub()}})
+    } else {
+        this.Render(
+            []string{"mvc/views/table.html"},
+            "table",
+            map[string]interface{}{"model": obj})
+    }
 }
 
 func (this *GridHandler) EditGridRow(tableName string) {

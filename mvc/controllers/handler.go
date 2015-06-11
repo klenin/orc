@@ -198,6 +198,13 @@ func (this *Handler) ShowCabinet() {
             ColNames:  params.GetColNames(),
             Caption:   params.GetCaption()}
 
+        events := this.GetModel("events")
+        eventsModel := Model{
+            ColModel:  events.GetColModel(false, userId),
+            TableName: events.GetTableName(),
+            ColNames:  events.GetColNames(),
+            Caption:   events.GetCaption()}
+
         this.Render(
             []string{"mvc/views/"+role+".html"},
             role,
@@ -207,6 +214,7 @@ func (this *Handler) ShowCabinet() {
                 "groupreg": groupRegsModel,
                 "faces": facesModel,
                 "params": paramsModel,
+                "events": eventsModel,
                 "userData": data})
     }
 }

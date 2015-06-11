@@ -26,7 +26,23 @@
 
     <div style="display:none;" id="dialog-params" title="Параметры"></div>
 
-    <div style="display:none;" id="dialog-reg-group" title="Регистрация группы"></div>
+    <div style="display:none;" id="dialog-reg-group" title="Регистрация группы">
+        <p style="color:red;">
+            <strong>
+                Внимание! После регистрации группы в мероприятии 
+                Вы не сможете удалять или добавлять участников группы
+                во избежание потери информации.<br/>
+                Участники, которые не подтвердили запрос для присоединения к группе, 
+                не будут зарегистрированны в мепроприятии.<br/>
+                Регистрируя группу в некомандном мероприятии, 
+                каждый участник группы принимает участие в мероприятии индивидуально.
+            </string>
+        </p>
+        <p>
+            <table id="events-reg-table"></table>
+            <div id="events-reg-table-pager"></div>
+        </p>
+    </div>
 
     <div style="display:none;" id="dialog-persons-request" title="Анкета участника"></div>
 
@@ -41,12 +57,12 @@ require(["utils", "custom-grid", "grid-utils", "reset-pass", "import-forms", "li
 function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
 
     $("#grid-table").jqGrid({
-        url: "/gridhandler/load/" + {{.TableName}},
+        url: "/gridhandler/load/" + {{.model.TableName}},
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
-        colNames: {{.ColNames}},
-        colModel: grid.SetPrimitive({{.ColModel}}),
+        colNames: {{.model.ColNames}},
+        colModel: grid.SetPrimitive({{.model.ColModel}}),
         pager: "#grid-table-pager",
         gridview: true,
         viewrecords: true,
@@ -56,14 +72,14 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: {{.Caption}},
+        caption: {{.model.Caption}},
         sortname: "id",
         sortorder: "asc",
         multiselect: true,
         multiselectWidth: 20,
         multiboxonly: true,
         sortable: true,
-        editurl: "/gridhandler/editgridrow/" + {{.TableName}},
+        editurl: "/gridhandler/editgridrow/" + {{.model.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code ' + jqXHR.status + '\n'
                 + 'textStatus ' + textStatus + '\n'
@@ -76,7 +92,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             $($("#grid-table tbody tr").children()[1]).css("width", "24px");
         },
 
-        subGrid: {{.Sub}},
+        subGrid: {{.model.Sub}},
         subGridOptionsfaces: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
@@ -85,7 +101,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "selectOnExpand": true
         },
         subGridRowExpanded: function(subgrid_id, row_id) {
-                                grid.AddSubTable(subgrid_id, row_id, "0", {{.TableName}}, "grid-table");
+                                grid.AddSubTable(subgrid_id, row_id, "0", {{.model.TableName}}, "grid-table");
                             }
     });
 
@@ -93,7 +109,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         "#grid-table-pager",
         {   // buttons
             edit: true,
-            add: {{.TableName}} == "users" ? false : true,
+            add: {{.model.TableName}} == "users" ? false : true,
             del: true,
             refresh: false,
             view: false,
@@ -106,7 +122,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
             afterShowForm: utils.resizeSelectWidth,
             beforeShowForm: function() {
-                if ({{.TableName}} == "registrations") {
+                if ({{.model.TableName}} == "registrations") {
                     var id = utils.getCurrRowId("grid-table");
                     var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
                     if (event_id == 1) {
@@ -166,7 +182,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
                 $.ajax({
                     method: "post",
                     type: "post",
-                    url: "/gridhandler/jsontoexcel/" + {{.TableName}},
+                    url: "/gridhandler/jsontoexcel/" + {{.model.TableName}},
                     async: false,
                     data: JSON.stringify(data),
                     ContentType: "charset=utf-8",
@@ -176,7 +192,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
                         // document.location = "data:application/octet-stream;filename=data.csv," + encodeURIComponent(data);
 
                         var link = document.createElement("a");
-                        link.download = {{.TableName}}+".csv";
+                        link.download = {{.model.TableName}}+".csv";
                         link.href = "data:application/csv;charset=utf-8," + encodeURIComponent(data);
                         link.click();
                         delete link;
@@ -216,7 +232,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         }
     );
 
-    if ({{.TableName}} == "users") {
+    if ({{.model.TableName}} == "users") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -244,7 +260,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             }
         );
 
-    } else if ({{.TableName}} == "events") {
+    } else if ({{.model.TableName}} == "events") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -263,7 +279,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             }
         );
 
-    } else if ({{.TableName}} == "registrations") {
+    } else if ({{.model.TableName}} == "registrations") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -277,13 +293,17 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             }
         );
 
-    } else if ({{.TableName}} == "groups") {
+    } else if ({{.model.TableName}} == "groups") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-script", title: "Регистрация группы",
-                onClickButton: function() { regGroup.Registration("dialog-reg-group", "grid-table"); }
+                onClickButton: function() {
+                    var groupId = $("#grid-table").jqGrid("getGridParam", "selrow");
+                    if (!groupId) return false;
+                    regGroup.Registration("dialog-reg-group", groupId, "events-reg-table");
+                }
             }
         );
     }
@@ -300,6 +320,52 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
     $(window).bind("resize", function() {
         $("#grid-table").setGridWidth($(window).width()-50, true);
     }).trigger("resize");
+
+    $("#events-reg-table").jqGrid({
+        url: "/gridhandler/load/events",
+        datatype: "json",
+        mtype: "POST",
+        treeGrid: false,
+        colNames: {{.events.ColNames}},
+        colModel: grid.SetPrimitive({{.events.ColModel}}),
+        pager: "#events-reg-table-pager",
+        gridview: true,
+        sortname: "id",
+        viewrecords: true,
+        height: "100%",
+        width: "auto",
+        rowNum: 5,
+        rownumbers: true,
+        rownumWidth: 20,
+        rowList: [5, 10, 20, 50],
+        caption: {{.events.Caption}},
+        sortname: "id",
+        sortorder: "asc",
+        loadError: function(jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: ' + jqXHR.status + '\n'
+                + 'textStatus: ' + textStatus + '\n'
+                + 'errorThrown: ' + errorThrown);
+            alert('HTTP message body: ' + jqXHR.responseText);
+        },
+    });
+
+    $("#events-reg-table").navGrid(
+        "#events-reg-table-pager",
+        {   // buttons
+            edit: false,
+            add: false,
+            del: false,
+            refresh: false,
+            view: true,
+            search: true
+        }, {}, {}, {},
+        {   // search
+            multipleGroup: true,
+            closeOnEscape: true,
+            multipleSearch: true,
+            closeAfterSearch: true,
+        }
+    );
 
 });
 </script>

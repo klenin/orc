@@ -49,7 +49,7 @@ func (this *GridHandler) RegGroup() {
         WHERE users.id = $1 AND groups.id = $2;`
     err = db.QueryRow(query, []interface{}{userId, groupId}).Scan(&faceId, &groupName)
 
-    if err != nil || faceId == -1 || groupName == "" {
+    if (err != nil || faceId == -1 || groupName == "") && !this.isAdmin() {
         utils.SendJSReply(map[string]interface{}{"result": "Вы не являетесь владельцем группы"}, this.Response)
         return
     }
