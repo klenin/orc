@@ -31,6 +31,7 @@
         </div>
         <div hidden="true" id="dialog-person-request" title="Анкета"></div>
         <div hidden="true" id="dialog-group-person-request" title="Анкета"></div>
+        <div hidden="true" id="dialog-add-person" title="Добавить участника"></div>
         <div id="error"></div>
         <p id="userData"></p>
 
@@ -103,8 +104,8 @@ $(function() {
     $("#tabs").tabs();
 });
 
-require(["grid-utils", "custom-grid", "reg-group", "blank", "utils", "reset-pass", "utils"],
-function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
+require(["grid-utils", "custom-grid", "reg-group", "blank", "reset-pass", "utils", "add-person"],
+function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
 
     var valid = false;
     console.log({{.}});
@@ -331,7 +332,7 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                                 alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
                             },
                             loadComplete: function() {
-                                $("#faces-table").trigger('reloadGrid')
+                                $("#faces-table").trigger('reloadGrid');
                             },
                             beforeRequest: function() {
                                 filter = $("#params-table").getGridParam("postData").filters;
@@ -421,6 +422,21 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                 },
                 {   //del
                     closeAfterAdd: true,
+                }
+            );
+
+            $("#"+subgrid_id + "_t").jqGrid(
+                "navButtonAdd",
+                "#"+subgrid_id + "_p",
+                {
+                    caption: "", buttonicon: "ui-icon-plusthick", title: "Добавить участника",
+                    onClickButton: function() {
+                        var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
+                        if (!groupId) return false;
+                        person.AddPerson("dialog-add-person", groupId);
+                        // !!!
+                        window.location.reload();
+                    }
                 }
             );
 
@@ -667,8 +683,9 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        var person_id = $("#"+subgrid_id + "_t").jqGrid("getGridParam", "selrow");
-                        blank.ShowPersonBlankFromGroup(row_id, person_id, "dialog-group-person-request");
+                        var personId = $("#"+subgrid_id + "_t").jqGrid("getGridParam", "selrow");
+                        var faceId = $("#"+subgrid_id + "_t").jqGrid("getCell", personId, "face_id");
+                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request");
                     }
                 }
             );
@@ -830,8 +847,9 @@ function(utils, grid, regGroup, blank, req, resetPass, reqUtils) {
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        var person_id = $("#"+subgrid_id + "_t").jqGrid("getGridParam", "selrow");
-                        blank.ShowPersonBlankFromGroup(row_id, person_id, "dialog-group-person-request");
+                        var personId = $("#"+subgrid_id + "_t").jqGrid("getGridParam", "selrow");
+                        var faceId = $("#"+subgrid_id + "_t").jqGrid("getCell", personId, "face_id");
+                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request");
                     }
                 }
             );

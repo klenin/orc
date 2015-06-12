@@ -54,18 +54,20 @@ func (this *GridHandler) RegGroup() {
         return
     }
 
+    if db.IsExists_("group_registrations", []string{"group_id", "event_id"}, []interface{}{groupId, eventId}) {
+        utils.SendJSReply(map[string]interface{}{"result": "Группа уже зарегистрированна в этом мероприятии"}, this.Response)
+        return
+    }
+
     var groupregId int
     groupReg := this.GetModel("group_registrations")
     groupReg.LoadModelData(map[string]interface{}{"event_id": eventId, "group_id": groupId})
     db.QueryInsert_(groupReg, "RETURNING id").Scan(&groupregId)
 
-    query = `SELECT persons.status, users.id as user_id FROM persons
+    query = `SELECT persons.status, faces.id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = persons.face_id
-        INNER JOIN users ON users.id = faces.user_id
-        INNER JOIN registrations ON registrations.face_id = faces.id
-        INNER JOIN events ON events.id = registrations.event_id
-        WHERE groups.id = $1 AND events.id = 1;`
+        WHERE groups.id = $1;`
     data := db.Query(query, []interface{}{groupId})
 
     query = `SELECT params.id FROM events_forms
@@ -76,22 +78,18 @@ func (this *GridHandler) RegGroup() {
     params := db.Query(query, []interface{}{eventId})
 
     date := time.Now().Format("2006-01-02T15:04:05Z00:00")
+
     for _, v := range data {
         status := v.(map[string]interface{})["status"].(bool)
-        personUserId := v.(map[string]interface{})["user_id"].(int)
+        personfaceId := v.(map[string]interface{})["id"]
 
         if !status {
             continue
         }
 
-        var faceId int
-        face := this.GetModel("faces")
-        face.LoadModelData(map[string]interface{}{"user_id": personUserId})
-        db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
-
         var regId int
         regs := this.GetModel("registrations")
-        regs.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId})
+        regs.LoadModelData(map[string]interface{}{"face_id": personfaceId, "event_id": eventId})
         db.QueryInsert_(regs, "RETURNING id").Scan(&regId)
 
         to := v.(map[string]interface{})["name"].(string)

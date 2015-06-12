@@ -13,7 +13,7 @@ type FaceModel struct {
 
 type Face struct {
     Id     int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    UserId int `name:"user_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
+    UserId int `name:"user_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
 }
 
 func (c *ModelManager) Faces() *FaceModel {

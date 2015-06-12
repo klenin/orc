@@ -149,8 +149,10 @@ function(utils, datepicker, blank, gridUtils) {
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        var person_id = gridUtils.getCurrRowId(subTId);
-                        blank.ShowPersonBlankFromGroup(row_id, person_id, "dialog-group-person-request");
+                        var personId = gridUtils.getCurrRowId(subTId);
+                        if (!personId) return false;
+                        var faceId = $("#" + subTId).jqGrid("getCell", personId, "face_id");
+                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request");
                     }
                 }
             );

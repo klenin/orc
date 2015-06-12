@@ -58,7 +58,7 @@ function(reqUtils, grid, utils, blank) {
             alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
         },
         loadComplete: function() {
-            $("#faces-table").trigger('reloadGrid')
+            $("#faces-table").trigger('reloadGrid');
         },
         beforeRequest: function() {
             filter = $("#params-table").getGridParam("postData").filters;

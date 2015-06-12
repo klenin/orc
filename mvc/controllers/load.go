@@ -59,8 +59,7 @@ func (this *GridHandler) Load(tableName string) {
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN events ON events.id = registrations.event_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
-            INNER JOIN params ON params.id = param_values.param_id
-            INNER JOIN users ON users.id = faces.user_id`
+            INNER JOIN params ON params.id = param_values.param_id`
 
         where, params, _ := model.WhereByParams(filters, 1)
 

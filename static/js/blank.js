@@ -58,7 +58,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         console.log(data);
 
         for (var i = 0; i < data.length; ++i) {
-            var elem = $("#"+name+" [for-saving=true]")[i];
+            var elem = data[i];
             if (pattern.test($(elem).val()) && $(elem).attr("required")) {
                 alert("Поле '" + $(elem).attr("name") + "' обязательное к заполнению.");
                 empty = true;
@@ -98,13 +98,13 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         );
     }
 
-    function ShowPersonBlankFromGroup(groupRegId, personId, dialogId) {
+    function ShowPersonBlankFromGroup(groupRegId, faceId, dialogId) {
         console.log("ShowPersonBlankFromGroup");
 
-        var data = { "group_reg_id": groupRegId, "person_id": personId };
+        var data = { "group_reg_id": groupRegId, "face_id": faceId };
         console.log("ShowPersonBlankFromGroup: ", data);
 
-        if (!groupRegId || !personId) {
+        if (!groupRegId || !faceId) {
             return false;
         }
 
