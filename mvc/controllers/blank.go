@@ -21,7 +21,8 @@ func (this *GridHandler) GetPersonRequestFromGroup() {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
-    personId, err := strconv.Atoi(request["person_id"].(string))
+
+    faceId, err := strconv.Atoi(request["face_id"].(string))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
@@ -33,14 +34,7 @@ func (this *GridHandler) GetPersonRequestFromGroup() {
         return
     }
 
-    query := `SELECT users.id FROM users
-        INNER JOIN faces ON faces.user_id = users.id
-        INNER JOIN persons ON persons.face_id = faces.id
-        WHERE persons.id = $1;`
-
-    userId := db.Query(query, []interface{}{personId})[0].(map[string]interface{})["id"].(int)
-
-    query = `SELECT forms.id as form_id, forms.name as form_name,
+    query := `SELECT forms.id as form_id, forms.name as form_name,
             params.id as param_id, params.name as param_name, params.required, params.editable,
             events.name as event_name, events.id as event_id,
             param_types.name as type, param_values.id as param_val_id, param_values.value
@@ -53,17 +47,16 @@ func (this *GridHandler) GetPersonRequestFromGroup() {
         INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
         INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
         INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN users ON users.id = faces.user_id
         INNER JOIN group_registrations ON group_registrations.event_id = events.id
         INNER JOIN groups ON group_registrations.group_id = groups.id
         INNER JOIN regs_groupregs ON regs_groupregs.reg_id = registrations.id
             AND regs_groupregs.groupreg_id = group_registrations.id
-        WHERE group_registrations.id = $1 AND users.id = $2 ORDER BY forms.id, params.id;`
+        WHERE group_registrations.id = $1 AND faces.id = $2 ORDER BY forms.id, params.id;`
 
     utils.SendJSReply(
         map[string]interface{}{
             "result": "ok",
-            "data": db.Query(query, []interface{}{groupRegId, userId}),
+            "data": db.Query(query, []interface{}{groupRegId, faceId}),
             "role": this.isAdmin()},
         this.Response)
 }
@@ -256,4 +249,43 @@ func (this *GridHandler) EditParams() {
     }
 
     utils.SendJSReply(map[string]interface{}{"result": "Изменения сохранены"}, this.Response)
+}
+
+func (this *Handler) AddPerson() {
+    if !sessions.CheckSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    groupId, err := strconv.Atoi(request["group_id"].(string))
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    var faceId int
+    face := this.GetModel("faces")
+    db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
+
+    persons := this.GetModel("persons")
+    persons.LoadModelData(map[string]interface{}{"face_id": faceId, "group_id": groupId, "status": true, "token": " "})
+    db.QueryInsert_(persons, "").Scan()
+
+    var regId int
+    registration := this.GetModel("registrations")
+    registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1})
+    db.QueryInsert_(registration, "RETURNING id").Scan(&regId)
+
+    if err = this.InsertUserParams(regId, request["data"].([]interface{})); err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
