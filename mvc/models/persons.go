@@ -210,7 +210,7 @@ func (this *PersonsModel) GetColModel(isAdmin bool, userId int) []map[string]int
             INNER JOIN events ON events.id = registrations.event_id
             INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
-            WHERE params.id in (5, 6, 7) GROUP BY faces.id ORDER BY faces.id), ';') as name;`
+            WHERE params.id in (5, 6, 7) AND events.id = 1 GROUP BY faces.id ORDER BY faces.id), ';') as name;`
         faces = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
     }
 
