@@ -65,32 +65,32 @@ func (this *GridHandler) CreateGrid(tableName string) {
         return
     }
 
+    model := this.GetModel("faces")
+    regs := this.GetModel("registrations")
+    faces := Model{
+        ColModel:     model.GetColModel(true, userId),
+        TableName:    model.GetTableName(),
+        ColNames:     model.GetColNames(),
+        Caption:      model.GetCaption(),
+        Sub:          true,
+        SubTableName: regs.GetTableName(),
+        SubCaption:   regs.GetCaption(),
+        SubColModel:  regs.GetColModel(true, userId),
+        SubColNames:  regs.GetColNames()}
+
+    model = this.GetModel("param_values")
+    params := Model{
+        ColModel:  model.GetColModel(true, userId),
+        TableName: model.GetTableName(),
+        ColNames:  model.GetColNames(),
+        Caption:   model.GetCaption()}
+
     if tableName == "search" {
-        model := this.GetModel("faces")
-        regs := this.GetModel("registrations")
-        faces := Model{
-            ColModel:     model.GetColModel(true, userId),
-            TableName:    model.GetTableName(),
-            ColNames:     model.GetColNames(),
-            Caption:      model.GetCaption(),
-            Sub:          true,
-            SubTableName: regs.GetTableName(),
-            SubCaption:   regs.GetCaption(),
-            SubColModel:  regs.GetColModel(true, userId),
-            SubColNames:  regs.GetColNames()}
-
-        model = this.GetModel("param_values")
-        params := Model{
-            ColModel:  model.GetColModel(true, userId),
-            TableName: model.GetTableName(),
-            ColNames:  model.GetColNames(),
-            Caption:   model.GetCaption()}
-
         this.Render([]string{"mvc/views/search.html"}, "search", map[string]interface{}{"params": params, "faces": faces})
         return
     }
 
-    model := this.GetModel(tableName)
+    model = this.GetModel(tableName)
     obj := Model{
         ColModel:  model.GetColModel(true, userId),
         TableName: model.GetTableName(),
@@ -98,17 +98,18 @@ func (this *GridHandler) CreateGrid(tableName string) {
         Caption:   model.GetCaption(),
         Sub:       model.GetSub()}
 
-    if tableName == "groups" {
+    if tableName == "groups" || tableName == "group_registrations" {
         model = this.GetModel("events")
+        events := Model{
+            ColModel:  model.GetColModel(true, userId),
+            TableName: model.GetTableName(),
+            ColNames:  model.GetColNames(),
+            Caption:   model.GetCaption(),
+            Sub:       model.GetSub()}
         this.Render(
             []string{"mvc/views/table.html"},
             "table",
-            map[string]interface{}{"model": obj, "events": Model{
-                ColModel:  model.GetColModel(true, userId),
-                TableName: model.GetTableName(),
-                ColNames:  model.GetColNames(),
-                Caption:   model.GetCaption(),
-                Sub:       model.GetSub()}})
+            map[string]interface{}{"model": obj, "events": events, "faces": faces, "params": params})
     } else {
         this.Render(
             []string{"mvc/views/table.html"},

@@ -3,8 +3,9 @@ package models
 import (
     "errors"
     "github.com/orc/db"
-    // "github.com/orc/mailer"
+    "github.com/orc/mailer"
     "github.com/orc/utils"
+    "log"
     "strconv"
 )
 
@@ -46,11 +47,19 @@ func (c *ModelManager) Persons() *PersonsModel {
 const HASH_SIZE = 32
 
 func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
-    // var to string
-    // var address string
+    var to string
+    var address string
 
     token := utils.GetRandSeq(HASH_SIZE)
     params["token"] = token
+
+    log.Println("face_id: ", params["face_id"])
+    log.Println("group_id: ", params["group_id"])
+    log.Println("status: ", params["status"])
+
+    if db.IsExists_("persons", []string{"face_id", "group_id"}, []interface{}{params["face_id"], params["group_id"]}) {
+        return errors.New("Участник уже состоит в группе")
+    }
 
     query := `SELECT param_values.value
         FROM reg_param_vals
@@ -64,7 +73,7 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
     data := db.Query(query, []interface{}{userId})
     headName := ""
     if len(data) < 3 {
-        return errors.New("Данные о руководителе группы отсутсвуют.")
+        return errors.New("Данные о руководителе группы отсутсвуют")
 
     } else {
         headName = data[0].(map[string]interface{})["value"].(string)
@@ -80,29 +89,29 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
     var groupName string
     db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{groupId}).Scan(&groupName)
 
-    // query = `SELECT param_values.value
-    //     FROM reg_param_vals
-    //     INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-    //     INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
-    //     INNER JOIN params ON params.id = param_values.param_id
-    //     INNER JOIN events ON events.id = registrations.event_id
-    //     INNER JOIN faces ON faces.id = registrations.face_id
-    //     INNER JOIN users ON users.id = faces.user_id
-    //     WHERE params.id in (4, 5, 6, 7) AND faces.id = $1 AND events.id = 1 ORDER BY params.id;`
-    // data = db.Query(query, []interface{}{params["face_id"]})
-    // if len(data) < 4 {
-    //     return errors.New("Данные о приглашаемом участнике отсутсвуют.")
+    query = `SELECT param_values.value
+        FROM reg_param_vals
+        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        INNER JOIN params ON params.id = param_values.param_id
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE params.id in (4, 5, 6, 7) AND faces.id = $1 AND events.id = 1 ORDER BY params.id;`
+    data = db.Query(query, []interface{}{params["face_id"]})
+    if len(data) < 4 {
+        return errors.New("Данные о приглашаемом участнике отсутсвуют.")
 
-    // } else {
-    //     address = data[0].(map[string]interface{})["value"].(string)
-    //     to = data[1].(map[string]interface{})["value"].(string)
-    //     to += " " + data[2].(map[string]interface{})["value"].(string)
-    //     to += " " + data[3].(map[string]interface{})["value"].(string)
-    // }
+    } else {
+        address = data[0].(map[string]interface{})["value"].(string)
+        to = data[1].(map[string]interface{})["value"].(string)
+        to += " " + data[2].(map[string]interface{})["value"].(string)
+        to += " " + data[3].(map[string]interface{})["value"].(string)
+    }
 
-    // if !mailer.InviteToGroup(to, address, token, headName, groupName) {
-    //     return errors.New("Участник скорее всего указал неправильный email, отправить письмо-приглашенине невозможно")
-    // }
+    if !mailer.InviteToGroup(to, address, token, headName, groupName) {
+        return errors.New("Участник скорее всего указал неправильный email, отправить письмо-приглашенине невозможно")
+    }
 
     this.LoadModelData(params)
     db.QueryInsert_(this, "").Scan()

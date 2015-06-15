@@ -1,12 +1,14 @@
 package controllers
 
 import (
+    "github.com/lib/pq"
     "github.com/orc/db"
     "github.com/orc/mailer"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "net/http"
     "strconv"
+    "strings"
     "time"
 )
 
@@ -252,8 +254,9 @@ func (this *GridHandler) EditParams() {
 }
 
 func (this *Handler) AddPerson() {
-    if !sessions.CheckSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+    userId, err := this.CheckSid()
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
         return
     }
 
@@ -269,12 +272,40 @@ func (this *Handler) AddPerson() {
         return
     }
 
+    var groupName string
+    db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{groupId}).Scan(&groupName)
+
+    date := time.Now().Format("2006-01-02T15:04:05Z00:00")
+    token := utils.GetRandSeq(HASH_SIZE)
+    to, address, headName := "", "", ""
+
+    query := `SELECT param_values.value
+        FROM reg_param_vals
+        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        INNER JOIN params ON params.id = param_values.param_id
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE params.id in (5, 6, 7) AND users.id = $1 AND events.id = 1 ORDER BY params.id;`
+    data := db.Query(query, []interface{}{userId})
+
+    if len(data) < 3 {
+        utils.SendJSReply(map[string]interface{}{"result": "Данные о руководителе группы отсутсвуют"}, this.Response)
+        return
+
+    } else {
+        headName = data[0].(map[string]interface{})["value"].(string)
+        headName += " " + data[1].(map[string]interface{})["value"].(string)
+        headName += " " + data[2].(map[string]interface{})["value"].(string)
+    }
+
     var faceId int
     face := this.GetModel("faces")
     db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
 
     persons := this.GetModel("persons")
-    persons.LoadModelData(map[string]interface{}{"face_id": faceId, "group_id": groupId, "status": true, "token": " "})
+    persons.LoadModelData(map[string]interface{}{"face_id": faceId, "group_id": groupId, "status": false, "token": token})
     db.QueryInsert_(persons, "").Scan()
 
     var regId int
@@ -282,8 +313,56 @@ func (this *Handler) AddPerson() {
     registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1})
     db.QueryInsert_(registration, "RETURNING id").Scan(&regId)
 
-    if err = this.InsertUserParams(regId, request["data"].([]interface{})); err != nil {
-        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+    var paramValueIds []string
+
+    for _, element := range request["data"].([]interface{}) {
+        paramId, err := strconv.Atoi(element.(map[string]interface{})["id"].(string))
+        if err != nil {
+            continue
+        }
+
+        query := `SELECT params.name FROM params WHERE params.id = $1;`
+        res := db.Query(query, []interface{}{paramId})
+
+        name := res[0].(map[string]interface{})["name"].(string)
+        value := element.(map[string]interface{})["value"].(string)
+
+        if utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
+            db.QueryDeleteByIds("param_vals", strings.Join(paramValueIds, ", "))
+            db.QueryDeleteByIds("registrations", strconv.Itoa(regId))
+            db.QueryDeleteByIds("faces", strconv.Itoa(faceId))
+            utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр '"+name+"'."}, this.Response)
+            return
+        }
+
+        var paramValId int
+        paramValues := this.GetModel("param_values")
+        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date})
+        err = db.QueryInsert_(paramValues, "RETURNING id").Scan(&paramValId)
+        if err, ok := err.(*pq.Error); ok {
+            println(err.Code.Name())
+        }
+
+        regParamValue := this.GetModel("reg_param_vals")
+        regParamValue.LoadModelData(map[string]interface{}{
+            "reg_id":       regId,
+            "param_val_id": paramValId})
+        db.QueryInsert_(regParamValue, "").Scan()
+
+        paramValueIds = append(paramValueIds, strconv.Itoa(paramValId))
+
+        if paramId == 4 {
+            address = value
+        } else if paramId == 5 || paramId == 6 || paramId == 7 {
+            to += value + " "
+        }
+    }
+
+    if !mailer.InviteToGroup(to, address, token, headName, groupName) {
+        utils.SendJSReply(
+            map[string]interface{}{
+                "result": "Вы указали неправильный email, отправить письмо-приглашенине невозможно"},
+            this.Response)
         return
     }
 

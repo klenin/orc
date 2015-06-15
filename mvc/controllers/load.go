@@ -6,6 +6,7 @@ import (
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "math"
+    "log"
     "net/http"
     "strconv"
     "strings"
@@ -65,7 +66,7 @@ func (this *GridHandler) Load(tableName string) {
         where, params, _ := model.WhereByParams(filters, 1)
 
         if !isAdmin {
-            where = ` WHERE events.id = 1 AND `+where
+            where = ` WHERE events.id = 1 AND users.enabled = true AND `+where
         } else {
             if where != "" {
                 where = " WHERE "+where
@@ -417,7 +418,9 @@ func (this *Handler) PersonsLoad(groupId string) {
     query = `SELECT COUNT(*) FROM (SELECT persons.id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         WHERE groups.id = $1) as count;`
-    count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
+    count := int(db.Query(query, []interface{}{id})[0].(map[string]interface{})["count"].(int))
+
+    log.Println("count: ", count)
 
     var totalPages int
     if count > 0 {

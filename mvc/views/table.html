@@ -101,7 +101,14 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "selectOnExpand": true
         },
         subGridRowExpanded: function(subgrid_id, row_id) {
-                                grid.AddSubTable(subgrid_id, row_id, "0", {{.model.TableName}}, "grid-table");
+                                grid.AddSubTable(
+                                    subgrid_id,
+                                    row_id,
+                                    "0",
+                                    {{.model.TableName}},
+                                    "grid-table",
+                                    {"faces": {{.faces}}, "params": {{.params}}}
+                                );
                             }
     });
 
@@ -170,7 +177,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
                 var fields = [];
                 for (i = 0; i < columns.length; ++i) {
                     if (columns[i].hidden == false && columns[i].index != undefined) {
-                        fields.push(columns[i].index)
+                        fields.push(columns[i].index);
                     }
                 }
                 var filters = $("#grid-table").getGridParam("postData").filters;

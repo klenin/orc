@@ -2,7 +2,6 @@ package controllers
 
 import (
     "github.com/orc/db"
-    "github.com/orc/sessions"
     "github.com/orc/utils"
     "net/http"
     "strconv"
@@ -123,11 +122,6 @@ func (this *GridHandler) RegGroup() {
 }
 
 func (this *Handler) ConfirmInvitationToGroup(token string) {
-    if !sessions.CheckSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
-        return
-    }
-
     person := this.GetModel("persons")
     person.LoadWherePart(map[string]interface{}{"token": token})
 
@@ -137,13 +131,6 @@ func (this *Handler) ConfirmInvitationToGroup(token string) {
     if err != nil {
         if this.Response != nil {
             this.Render([]string{"mvc/views/msg.html"}, "msg", "Неверный токен.")
-        }
-        return
-    }
-
-    if db.IsExists_("persons", []string{"face_id", "group_id"}, []interface{}{faceId, groupId}) {
-        if this.Response != nil {
-            this.Render([]string{"mvc/views/msg.html"}, "msg", "Вы уже состоите в группе.")
         }
         return
     }
@@ -159,11 +146,6 @@ func (this *Handler) ConfirmInvitationToGroup(token string) {
 }
 
 func (this *Handler) RejectInvitationToGroup(token string) {
-    if !sessions.CheckSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
-        return
-    }
-
     db.Exec("DELETE FROM persons WHERE token = $1;", []interface{}{token})
 
     if this.Response != nil {

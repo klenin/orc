@@ -187,12 +187,12 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
         caption: "Мои группы",
         sortname: "id",
         sortorder: "asc",
-        editurl: "/gridhandler/editgridrow/" + {{.group.TableName}},
+        editurl: "/gridhandler/editgridrow/"+{{.group.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
+            alert('HTTP status code: '+jqXHR.status+'\n'
+                +'textStatus: '+textStatus+'\n'
+                +'errorThrown: '+errorThrown);
+            alert('HTTP message body: '+jqXHR.responseText);
         },
 
         subGrid: {{.group.Sub}},
@@ -204,8 +204,8 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
             "selectOnExpand": true
         },
         subGridRowExpanded: function(subgrid_id, group_id) {
-            $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
-                + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
+            $("#"+subgrid_id).append("<table id='"+subgrid_id+"_t"+"' class='scroll'></table>"
+                +"<div id='"+subgrid_id+"_p"+"' class='scroll'></div></br>");
 
             var addDelFlag = false;
             reqUtils.postRequest(
@@ -218,7 +218,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 "/gridhandler/isreggroup"
             );
 
-            $("#" + subgrid_id + "_t").jqGrid({
+            $("#"+subgrid_id+"_t").jqGrid({
                 url: "/handler/"+{{.group.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
@@ -226,7 +226,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 colModel: grid.SetPrimitive({{.group.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
-                pager: "#" + subgrid_id + "_p",
+                pager: "#"+subgrid_id+"_p",
                 caption: {{.group.SubCaption}},
                 sortname: "num",
                 sortorder: "asc",
@@ -234,59 +234,49 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 width: $("#my-group-table").width()-65,
                 editurl: "/gridhandler/editgridrow/"+{{.group.SubTableName}},
                 loadError: function(jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: ' + jqXHR.status + '\n'
-                        + 'textStatus: ' + textStatus + '\n'
-                        + 'errorThrown: ' + errorThrown);
-                    alert('HTTP message body: ' + jqXHR.responseText);
+                    alert('HTTP status code: '+jqXHR.status+'\n'
+                        +'textStatus: '+textStatus+'\n'
+                        +'errorThrown: '+errorThrown);
+                    alert('HTTP message body: '+jqXHR.responseText);
                 },
                 gridComplete: function() {
-                    var rows = $("#"+subgrid_id + "_t").getDataIDs();
+                    var rows = $("#"+subgrid_id+"_t").getDataIDs();
                     for (var i = 0; i < rows.length; i++) {
-                        var status = $("#"+subgrid_id + "_t").getCell(rows[i], "status");
+                        var status = $("#"+subgrid_id+"_t").getCell(rows[i], "status");
                         console.log(status)
                         if (status === "true") {
-                            $("#"+subgrid_id + "_t").jqGrid('setRowData', rows[i], false, "row-green");
+                            $("#"+subgrid_id+"_t").jqGrid('setRowData', rows[i], false, "row-green");
                         }
                     }
                 },
             });
 
-            $("#"+subgrid_id + "_t").navGrid(
-                "#"+subgrid_id + "_p",
+            $("#"+subgrid_id+"_t").navGrid(
+                "#"+subgrid_id+"_p",
                 {   //buttons
-                    edit: true,
+                    edit: false,
                     add: addDelFlag,
                     del: addDelFlag,
                     view: true,
                     search: false,
                     refresh: false,
                 },
-                {   //edit
-                    width: "100%",
-                    recreateForm: true,
-                    afterSubmit: function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
-                    errorTextFormat: function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
-                    beforeShowForm: function(form) {
-                        $("#tr_status", form).hide();
-                        $("#" + subgrid_id + "_t").jqGrid("getColProp", "status").editable = false;
-                    },
-                    afterShowForm: utils.resizeSelectWidth,
-                },
+                {},
                 {   //add
                     width: "100%",
                     recreateForm: true,
                     addedrow: "last",
-                    afterSubmit: function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
-                    errorTextFormat: function(data) { return utils.errTextFormat(data, subgrid_id + "_t"); },
+                    afterSubmit: function(data) { return utils.errTextFormat(data, subgrid_id+"_t"); },
                     beforeShowForm: function(form) {
                         $("#tr_status", form).hide();
-                        $("#" + subgrid_id + "_t").jqGrid("getColProp", "status").editable = false;
                     },
-                    afterShowForm: utils.resizeSelectWidth,
+                    errorTextFormat: function(data) { return utils.errTextFormat(data, subgrid_id+"_t"); },
                     afterShowForm: function(formId) {
-                        var faseTd2 = $($($('#tr_face_id', formId)[0]).children()[1]);
-                        var ansSelect = $(faseTd2.find('select'));
+                        var grSelect = $($($($('#tr_group_id', formId)[0]).children()[1]).find('select'));
+                        grSelect.val($("#my-group-table").jqGrid("getGridParam", "selrow"));
 
+                        var face = $($($('#tr_face_id', formId)[0]).children()[1]);
+                        var ansSelect = $(face.find('select'));
                         ansSelect.empty();
 
                         var tr1 = $('<tr class="FormData" id="tr_AddInfoForChoosingParams">'
@@ -326,10 +316,10 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                             sortname: "id",
                             sortorder: "asc",
                             loadError: function (jqXHR, textStatus, errorThrown) {
-                                alert('HTTP status code: ' + jqXHR.status + '\n'
-                                    + 'textStatus: ' + textStatus + '\n'
-                                    + 'errorThrown: ' + errorThrown);
-                                alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
+                                alert('HTTP status code: '+jqXHR.status+'\n'
+                                    +'textStatus: '+textStatus+'\n'
+                                    +'errorThrown: '+errorThrown);
+                                alert('HTTP message body (jqXHR.responseText): '+'\n'+jqXHR.responseText);
                             },
                             loadComplete: function() {
                                 $("#faces-table").trigger('reloadGrid');
@@ -384,10 +374,10 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                             sortname: "id",
                             sortorder: "asc",
                             loadError: function (jqXHR, textStatus, errorThrown) {
-                                alert('HTTP status code: ' + jqXHR.status + '\n'
-                                    + 'textStatus: ' + textStatus + '\n'
-                                    + 'errorThrown: ' + errorThrown);
-                                alert('HTTP message body: ' + jqXHR.responseText);
+                                alert('HTTP status code: '+jqXHR.status+'\n'
+                                    +'textStatus: '+textStatus+'\n'
+                                    +'errorThrown: '+errorThrown);
+                                alert('HTTP message body: '+jqXHR.responseText);
                             },
                             beforeRequest: function() {
                                 $("#faces-table").setGridParam({ postData: {
@@ -398,7 +388,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                                 ansSelect.empty();
                                 var fio = $($($("#faces-table").find('tr#'+faceId)[0]).find('td')[1]).text();
                                 console.log("fio: ", fio);
-                                var option = $("<option/>", { value: faceId, text:  fio })
+                                var option = $("<option/>", { value: faceId, text:  fio });
                                 ansSelect.append(option);
                             }
                         });
@@ -425,11 +415,11 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 }
             );
 
-            $("#"+subgrid_id + "_t").jqGrid(
+            $("#"+subgrid_id+"_t").jqGrid(
                 "navButtonAdd",
-                "#"+subgrid_id + "_p",
+                "#"+subgrid_id+"_p",
                 {
-                    caption: "", buttonicon: "ui-icon-plusthick", title: "Добавить участника",
+                    caption: "", buttonicon: "ui-icon-plusthick", title: "Добавить участника", id: "add-person_"+subgrid_id+"_t",
                     onClickButton: function() {
                         var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                         if (!groupId) return false;
@@ -440,14 +430,19 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 }
             );
 
-            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["group_id"]);
+            $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
+
+            if (!addDelFlag) {
+                $("#add-person_"+subgrid_id+"_t").hide();
+            }
 
             $(window).bind("resize", function() {
-                $("#"+subgrid_id + "_t").setGridWidth($("#my-group-table").width(), true);
+                $("#"+subgrid_id+"_t").setGridWidth($("#my-group-table").width(), true);
             }).trigger("resize");
         }
     });
 
+    $("#my-group-table").jqGrid("hideCol", ["id"]);
     $("#my-group-table").jqGrid("hideCol", ["face_id"]);
 
     $("#my-group-table").navGrid(
@@ -471,7 +466,6 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
             width: "100%",
             recreateForm: true,
             addedrow: "last",
-            afterSubmit: function(data) { return utils.errTextFormat(data, "my-group-table"); },
             errorTextFormat: function(data) { return utils.errTextFormat(data, "my-group-table"); },
             afterShowForm: utils.resizeSelectWidth,
             afterSubmit: function(data) {
@@ -526,13 +520,14 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
         sortname: "id",
         sortorder: "asc",
         loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
+            alert('HTTP status code: '+jqXHR.status+'\n'
+                +'textStatus: '+textStatus+'\n'
+                +'errorThrown: '+errorThrown);
+            alert('HTTP message body: '+jqXHR.responseText);
         },
     });
 
+    $("#group-table").jqGrid("hideCol", ["id"]);
     $("#group-table").jqGrid("hideCol", ["face_id"]);
 
     $(window).bind("resize", function() {
@@ -560,13 +555,14 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
         sortname: "id",
         sortorder: "asc",
         loadError: function(jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
+            alert('HTTP status code: '+jqXHR.status+'\n'
+                +'textStatus: '+textStatus+'\n'
+                +'errorThrown: '+errorThrown);
+            alert('HTTP message body: '+jqXHR.responseText);
         },
     });
 
+    $("#reg-table").jqGrid("hideCol", ["id"]);
     $("#reg-table").jqGrid("hideCol", ["face_id"]);
 
     $("#reg-table").navGrid(
@@ -619,10 +615,10 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
         sortname: "id",
         sortorder: "asc",
         loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
+            alert('HTTP status code: '+jqXHR.status+'\n'
+                +'textStatus: '+textStatus+'\n'
+                +'errorThrown: '+errorThrown);
+            alert('HTTP message body: '+jqXHR.responseText);
         },
 
         subGrid: {{.groupreg.Sub}},
@@ -634,15 +630,15 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
             "selectOnExpand": true
         },
         subGridRowExpanded: function(subgrid_id, row_id) {
-            $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
-                + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
+            $("#"+subgrid_id).append("<table id='"+subgrid_id+"_t"+"' class='scroll'></table>"
+                +"<div id='"+subgrid_id+"_p"+"' class='scroll'></div></br>");
 
             var group_id = $("#groupreg-table").jqGrid("getCell", row_id, "group_id");
             var event_id = $("#groupreg-table").jqGrid("getCell", row_id, "event_id");
 
             console.log("groupreg.ColModel: ", grid.SetPrimitive({{.groupreg.ColModel}}));
 
-            $("#" + subgrid_id + "_t").jqGrid({
+            $("#"+subgrid_id+"_t").jqGrid({
                 url: "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
@@ -650,7 +646,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 colModel: grid.SetPrimitive({{.groupreg.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
-                pager: "#" + subgrid_id + "_p",
+                pager: "#"+subgrid_id+"_p",
                 caption: {{.groupreg.SubCaption}},
                 sortname: "num",
                 sortorder: "asc",
@@ -658,15 +654,15 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 width: $("#groupreg-table").width()-65,
                 editurl: "/gridhandler/editgridrow/"+{{.groupreg.SubTableName}},
                 loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: ' + jqXHR.status + '\n'
-                        + 'textStatus: ' + textStatus + '\n'
-                        + 'errorThrown: ' + errorThrown);
-                    alert('HTTP message body: ' + jqXHR.responseText);
+                    alert('HTTP status code: '+jqXHR.status+'\n'
+                        +'textStatus: '+textStatus+'\n'
+                        +'errorThrown: '+errorThrown);
+                    alert('HTTP message body: '+jqXHR.responseText);
                 },
             });
 
-            $("#"+subgrid_id + "_t").navGrid(
-                "#"+subgrid_id + "_p",
+            $("#"+subgrid_id+"_t").navGrid(
+                "#"+subgrid_id+"_p",
                 {
                     edit: false,
                     add: false,
@@ -677,24 +673,23 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 }
             );
 
-            $("#"+subgrid_id + "_t").jqGrid(
+            $("#"+subgrid_id+"_t").jqGrid(
                 "navButtonAdd",
-                "#"+subgrid_id + "_p",
+                "#"+subgrid_id+"_p",
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        var personId = $("#"+subgrid_id + "_t").jqGrid("getGridParam", "selrow");
-                        var faceId = $("#"+subgrid_id + "_t").jqGrid("getCell", personId, "face_id");
+                        var personId = $("#"+subgrid_id+"_t").jqGrid("getGridParam", "selrow");
+                        var faceId = $("#"+subgrid_id+"_t").jqGrid("getCell", personId, "face_id");
                         blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request");
                     }
                 }
             );
 
-            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["group_id"]);
-            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["status"]);
+            $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
 
             $(window).bind("resize", function() {
-                $("#"+subgrid_id + "_t").setGridWidth($("#groupreg-table").width(), true);
+                $("#"+subgrid_id+"_t").setGridWidth($("#groupreg-table").width(), true);
             }).trigger("resize");
         }
     });
@@ -738,10 +733,10 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
         sortname: "id",
         sortorder: "asc",
         loadError: function(jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
+            alert('HTTP status code: '+jqXHR.status+'\n'
+                +'textStatus: '+textStatus+'\n'
+                +'errorThrown: '+errorThrown);
+            alert('HTTP message body: '+jqXHR.responseText);
         },
     });
 
@@ -786,10 +781,10 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
         sortname: "id",
         sortorder: "asc",
         loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
+            alert('HTTP status code: '+jqXHR.status+'\n'
+                +'textStatus: '+textStatus+'\n'
+                +'errorThrown: '+errorThrown);
+            alert('HTTP message body: '+jqXHR.responseText);
         },
 
         subGrid: {{.groupreg.Sub}},
@@ -801,13 +796,13 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
             "selectOnExpand": true
         },
         subGridRowExpanded: function(subgrid_id, row_id) {
-            $("#" + subgrid_id).append("<table id='" + subgrid_id + "_t" + "' class='scroll'></table>"
-                + "<div id='" + subgrid_id + "_p" + "' class='scroll'></div></br>");
+            $("#"+subgrid_id).append("<table id='"+subgrid_id+"_t"+"' class='scroll'></table>"
+                +"<div id='"+subgrid_id+"_p"+"' class='scroll'></div></br>");
 
             var group_id = $("#teams-table").jqGrid("getCell", row_id, "group_id");
             var event_id = $("#teams-table").jqGrid("getCell", row_id, "event_id");
 
-            $("#" + subgrid_id + "_t").jqGrid({
+            $("#"+subgrid_id+"_t").jqGrid({
                 url: "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
@@ -815,22 +810,22 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 colModel: grid.SetPrimitive({{.groupreg.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
-                pager: "#" + subgrid_id + "_p",
+                pager: "#"+subgrid_id+"_p",
                 caption: {{.groupreg.SubCaption}},
                 sortname: "num",
                 sortorder: "asc",
                 height: "100%",
                 editurl: "/gridhandler/editgridrow/"+{{.groupreg.SubTableName}},
                 loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: ' + jqXHR.status + '\n'
-                        + 'textStatus: ' + textStatus + '\n'
-                        + 'errorThrown: ' + errorThrown);
-                    alert('HTTP message body: ' + jqXHR.responseText);
+                    alert('HTTP status code: '+jqXHR.status+'\n'
+                        +'textStatus: '+textStatus+'\n'
+                        +'errorThrown: '+errorThrown);
+                    alert('HTTP message body: '+jqXHR.responseText);
                 },
             });
 
-            $("#"+subgrid_id + "_t").navGrid(
-                "#"+subgrid_id + "_p",
+            $("#"+subgrid_id+"_t").navGrid(
+                "#"+subgrid_id+"_p",
                 {
                     edit: false,
                     add: false,
@@ -841,28 +836,28 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 }
             );
 
-            $("#"+subgrid_id + "_t").jqGrid(
+            $("#"+subgrid_id+"_t").jqGrid(
                 "navButtonAdd",
-                "#"+subgrid_id + "_p",
+                "#"+subgrid_id+"_p",
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        var personId = $("#"+subgrid_id + "_t").jqGrid("getGridParam", "selrow");
-                        var faceId = $("#"+subgrid_id + "_t").jqGrid("getCell", personId, "face_id");
+                        var personId = $("#"+subgrid_id+"_t").jqGrid("getGridParam", "selrow");
+                        var faceId = $("#"+subgrid_id+"_t").jqGrid("getCell", personId, "face_id");
                         blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request");
                     }
                 }
             );
 
-            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["group_id"]);
-            $("#"+subgrid_id + "_t").jqGrid("hideCol", ["status"]);
+            $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
 
             $(window).bind("resize", function() {
-                $("#"+subgrid_id + "_t").setGridWidth($("#teams-table").width(), true);
+                $("#"+subgrid_id+"_t").setGridWidth($("#teams-table").width(), true);
             }).trigger("resize");
         }
     });
 
+    $("#teams-table").jqGrid("hideCol", ["id"]);
     $("#teams-table").jqGrid("hideCol", ["face_id"]);
 
     $("#teams-table").navGrid(

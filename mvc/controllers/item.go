@@ -32,19 +32,19 @@ func (this *Handler) GetHistoryRequest() {
     }
 
     query := `SELECT params.id as param_id, params.name as param_name,
-                param_types.name as type, param_values.value, forms.id as form_id
-            FROM events
-            INNER JOIN events_forms ON events_forms.event_id = events.id
-            INNER JOIN forms ON events_forms.form_id = forms.id
-            INNER JOIN registrations ON events.id = registrations.event_id
-            INNER JOIN reg_param_vals ON reg_param_vals.reg_id = registrations.id
-            INNER JOIN faces ON faces.id = registrations.face_id
-            INNER JOIN users ON users.id = faces.user_id
-            INNER JOIN params ON params.form_id = forms.id
-            INNER JOIN param_types ON param_types.id = params.param_type_id
-            INNER JOIN param_values ON param_values.param_id = params.id
-                AND reg_param_vals.param_val_id = param_values.id
-            WHERE users.id = $1 AND events.id = $2;`
+            param_types.name as type, param_values.value, forms.id as form_id
+        FROM events
+        INNER JOIN events_forms ON events_forms.event_id = events.id
+        INNER JOIN forms ON events_forms.form_id = forms.id
+        INNER JOIN registrations ON events.id = registrations.event_id
+        INNER JOIN reg_param_vals ON reg_param_vals.reg_id = registrations.id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        INNER JOIN params ON params.form_id = forms.id
+        INNER JOIN param_types ON param_types.id = params.param_type_id
+        INNER JOIN param_values ON param_values.param_id = params.id
+            AND reg_param_vals.param_val_id = param_values.id
+        WHERE users.id = $1 AND events.id = $2;`
 
     utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{userId, eventId})}, this.Response)
 }
@@ -128,10 +128,23 @@ func (this *Handler) RegPerson() {
             return
         }
 
+        // var faceId int
+        // face := this.GetModel("faces")
+        // face.LoadModelData(map[string]interface{}{"user_id": userId})
+        // db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
+
         var faceId int
-        face := this.GetModel("faces")
-        face.LoadModelData(map[string]interface{}{"user_id": userId})
-        db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
+        query := `SELECT faces.id FROM faces
+            INNER JOIN registrations ON registrations.face_id = faces.id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE users.id = $1 AND events.id = 1;`
+        err = db.QueryRow(query, []interface{}{userId}).Scan(&faceId)
+
+        if err != nil {
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            return
+        }
 
         registration := this.GetModel("registrations")
         registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId})
