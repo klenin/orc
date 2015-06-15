@@ -200,7 +200,8 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
 }
 
 func (this *GridHandler) EditParams() {
-    if !sessions.CheckSession(this.Response, this.Request) {
+    userId, err := this.CheckSid()
+    if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
     }
@@ -245,7 +246,7 @@ func (this *GridHandler) EditParams() {
         }
 
         paramValue := this.GetModel("param_values")
-        paramValue.LoadModelData(map[string]interface{}{"value": value, "date": date})
+        paramValue.LoadModelData(map[string]interface{}{"value": value, "date": date, "user_id": userId})
         paramValue.LoadWherePart(map[string]interface{}{"id": paramValId})
         db.QueryUpdate_(paramValue).Scan()
     }
@@ -337,7 +338,7 @@ func (this *Handler) AddPerson() {
 
         var paramValId int
         paramValues := this.GetModel("param_values")
-        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date})
+        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId})
         err = db.QueryInsert_(paramValues, "RETURNING id").Scan(&paramValId)
         if err, ok := err.(*pq.Error); ok {
             println(err.Code.Name())

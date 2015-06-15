@@ -148,7 +148,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         return true;
     }
 
-    function ShowBlank(d, dialogId, role) {
+    function ShowBlank(d, dialogId, role, regId) {
         console.log("ShowBlank data: ", d);
         console.log("ShowBlank role: ", role);
 
@@ -161,7 +161,30 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
             .append($("<select/>", {}))
             .append($("<input/>", {type: "button", value: "выбрать", id: "send-btn", name: "submit"}));
 
-        $("#"+dialogId).append(history).append($("<h1/>")).append($("<div/>"));
+        $("#"+dialogId).append(history);
+
+        if (regId) {
+            $("#"+dialogId)
+                .append($("<p/>", {id: "edit-history"}))
+                .append($("<input/>", {type: "button", value: "о редактировании полей", id: "edit-history-btn", name: "submit"}));
+
+            $("#"+dialogId+" #edit-history-btn").click(function() {
+                console.log("ShowBlank: ", { "reg_id": regId });
+                utils.postRequest(
+                    { "reg_id": regId },
+                    function(response) {
+                        if (response["result"] !== "ok") {
+                            ShowServerAns(-1, response, "now #server-answer");
+                            return false;
+                        }
+                        ExportDataLoad_(response["data"], dialogId);
+                    },
+                    "/handler/getedithistorydata"
+                );
+            });
+        }
+
+        $("#"+dialogId).append($("<h1/>")).append($("<div/>"));
 
         var F_ids = {};
 
@@ -201,6 +224,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
             $(td_1).append(drawParam(d[i], true, role));
             tr.append($("<td/>", {id: "export-param-"+d[i]["param_id"]}));
             tr.append($("<td/>", {id: "export-val-"+d[i]["param_id"]}));
+            tr.append($("<td/>", {id: "export-edit-history-"+d[i]["param_id"]}));
         }
 
         $("#" + dialogId + " #" + "event-" + d[0]["event_id"]).tabs();
@@ -276,7 +300,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
         utils.postRequest(
             { "reg_id": regId },
             function(data) {
-                var f_ids = ShowBlank(data["data"], dialogId, data["role"]);
+                var f_ids = ShowBlank(data["data"], dialogId, data["role"], regId);
                 if (!f_ids) {
                     return false;
                 }
@@ -344,6 +368,20 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                     $("#"+dialogId+" #params-"+f_id+" table #"+p_id).val(p_v);
                 });
             }
+        }
+    }
+
+    function ExportDataLoad_(data, dialogId) {
+        console.log("ExportDataLoad_: ", data);
+
+        for (var i = 0; i < data.length; ++i) {
+            var f_id = data[i]["form_id"];
+            var p_id = data[i]["param_id"];
+            var p_v = data[i]["edit_date"].replace(/[T,Z]/g, " ")+" - "+data[i]["login"];
+
+            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").remove();
+            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id).append($("<br/>"));
+            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id).append($("<div/>", {text: p_v}));
         }
     }
 

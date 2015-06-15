@@ -12,6 +12,37 @@ import (
     "time"
 )
 
+func (this *Handler) GetEditHistoryData() {
+    data, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    regId, err := strconv.Atoi(data["reg_id"].(string))
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    query := `SELECT params.id as param_id, forms.id as form_id,
+            param_values.date as edit_date, users.login
+        FROM events
+        INNER JOIN events_forms ON events_forms.event_id = events.id
+        INNER JOIN forms ON events_forms.form_id = forms.id
+        INNER JOIN registrations ON events.id = registrations.event_id
+        INNER JOIN reg_param_vals ON reg_param_vals.reg_id = registrations.id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN params ON params.form_id = forms.id
+        INNER JOIN param_types ON param_types.id = params.param_type_id
+        INNER JOIN param_values ON param_values.param_id = params.id
+            AND reg_param_vals.param_val_id = param_values.id
+        INNER JOIN users ON users.id = param_values.user_id
+        WHERE registrations.id = $1;`
+
+    utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{regId})}, this.Response)
+}
+
 func (this *Handler) GetHistoryRequest() {
     userId, err := this.CheckSid()
     if err != nil {
@@ -251,6 +282,11 @@ func (this *Handler) GetRequest(id string) {
 }
 
 func (this *Handler) InsertUserParams(regId int, data []interface{}) (err error) {
+    userId, _ := this.CheckSid()
+    if userId == -1 {
+        userId = 1
+    }
+
     var paramValueIds []string
 
     date := time.Now().Format("2006-01-02T15:04:05Z00:00")
@@ -287,7 +323,7 @@ func (this *Handler) InsertUserParams(regId int, data []interface{}) (err error)
 
         var paramValId int
         paramValues := this.GetModel("param_values")
-        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date})
+        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId})
         err = db.QueryInsert_(paramValues, "RETURNING id").Scan(&paramValId)
         if err, ok := err.(*pq.Error); ok {
             println(err.Code.Name())

@@ -106,7 +106,7 @@ func (this *GridHandler) RegGroup() {
 
             var paramValId int
             paramValues := this.GetModel("param_values")
-            paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date})
+            paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date, "user_id": userId})
             db.QueryInsert_(paramValues, "RETURNING id").Scan(&paramValId)
 
             regParamValue := this.GetModel("reg_param_vals")

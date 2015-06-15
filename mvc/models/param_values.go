@@ -14,6 +14,7 @@ type ParamValues struct {
     ParamId int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
     Value   string `name:"value" type:"text" null:"NULL" extra:""`
     Date    string `name:"date" type:"timestamp" null:"NOT NULL" extra:""`
+    UserId  int    `name:"user_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
 }
 
 func (c *ModelManager) ParamValues() *ParamValuesModel {
@@ -22,8 +23,8 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
     model.TableName = "param_values"
     model.Caption = "Значение параметров"
 
-    model.Columns = []string{"id", "param_id", "value", "date"}
-    model.ColNames = []string{"ID", "Параметр", "Значение", "Дата"}
+    model.Columns = []string{"id", "param_id", "value", "date", "user_id"}
+    model.ColNames = []string{"ID", "Параметр", "Значение", "Дата", "Кто редактировал"}
 
     model.Fields = new(ParamValues)
     model.WherePart = make(map[string]interface{}, 0)
@@ -60,6 +61,9 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
         case "date":
             query += "param_values.date, "
             break
+        case "user_id":
+            query += "users.login, "
+            break
         }
     }
 
@@ -67,7 +71,8 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
 
     query += ` FROM param_values
         INNER JOIN params ON params.id = param_values.param_id
-        INNER JOIN forms ON forms.id = params.form_id`
+        INNER JOIN forms ON forms.id = params.form_id
+        INNER JOIN users ON users.id = param_values.user_id`
 
     where, params, _ := this.Where(filters, 1)
     if where != "" {
@@ -116,6 +121,10 @@ func (this *ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string
         params = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
     }
 
+    query = `SELECT array_to_string(
+        array(SELECT users.id || ':' || users.login FROM users GROUP BY users.id ORDER BY users.id), ';') as name;`
+    logins := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",
@@ -150,6 +159,18 @@ func (this *ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string
             "formatoptions": map[string]string{"srcformat": "Y-m-d", "newformat": "Y-m-d"},
             "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
             "type": "timestamp",
+        },
+        4: map[string]interface{} {
+            "index": "user_id",
+            "name": "user_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": logins},
+            "searchoptions": map[string]string{"value": ":Все;"+logins},
         },
     }
 }
