@@ -57,7 +57,7 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
     log.Println("group_id: ", params["group_id"])
     log.Println("status: ", params["status"])
 
-    if db.IsExists_("persons", []string{"face_id", "group_id"}, []interface{}{params["face_id"], params["group_id"]}) {
+    if db.IsExists("persons", []string{"face_id", "group_id"}, []interface{}{params["face_id"], params["group_id"]}) {
         return errors.New("Участник уже состоит в группе")
     }
 

@@ -87,7 +87,7 @@ func (this *Handler) HandleRegister(login, password, email, role string) (result
         }
     }
 
-    if db.IsExists_("users", []string{"login"}, []interface{}{login}) == true {
+    if db.IsExists("users", []string{"login"}, []interface{}{login}) == true {
         result = "loginExists"
 
     } else if !utils.MatchRegexp("^[a-zA-Z0-9]{2,36}$", login) {

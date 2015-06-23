@@ -17,11 +17,13 @@ var DB *sql.DB = nil
 
 func Exec(query string, params []interface{}) sql.Result {
     log.Println(query)
+
     stmt, err := DB.Prepare(query)
     utils.HandleErr("[queries.Exec] Prepare: ", err, nil)
     defer stmt.Close()
     result, err := stmt.Exec(params...)
     utils.HandleErr("[queries.Exec] Exec: ", err, nil)
+
     return result
 }
 
@@ -46,11 +48,13 @@ func Query(query string, params []interface{}) []interface{} {
 
 func QueryRow(query string, params []interface{}) *sql.Row {
     log.Println(query)
+
     stmt, err := DB.Prepare(query)
     utils.HandleErr("[queries.QueryRow] Prepare: ", err, nil)
     defer stmt.Close()
     result := stmt.QueryRow(params...)
     utils.HandleErr("[queries.QueryRow] Query: ", err, nil)
+
     return result
 }
 
@@ -161,7 +165,7 @@ func QueryDeleteByIds(tableName, ids string) {
     Exec(fmt.Sprintf(query, tableName, ids), nil)
 }
 
-func IsExists_(tableName string, fields []string, params []interface{}) bool {
+func IsExists(tableName string, fields []string, params []interface{}) bool {
     query := "SELECT %s FROM %s WHERE %s;"
     f := strings.Join(fields, ", ")
     p := strings.Join(MakePairs(fields), " AND ")

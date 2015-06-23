@@ -264,7 +264,7 @@ func (this *Handler) Login(userId string) {
         return
     }
 
-    if !db.IsExists_("users", []string{"id"}, []interface{}{id}) {
+    if !db.IsExists("users", []string{"id"}, []interface{}{id}) {
         http.Error(this.Response, "Have not such user with the id", http.StatusInternalServerError)
         return
     }

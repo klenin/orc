@@ -53,7 +53,7 @@ func (this *GridHandler) RegGroup() {
         return
     }
 
-    if db.IsExists_("group_registrations", []string{"group_id", "event_id"}, []interface{}{groupId, eventId}) {
+    if db.IsExists("group_registrations", []string{"group_id", "event_id"}, []interface{}{groupId, eventId}) {
         utils.SendJSReply(map[string]interface{}{"result": "Группа уже зарегистрированна в этом мероприятии"}, this.Response)
         return
     }
@@ -170,6 +170,6 @@ func (this *GridHandler) IsRegGroup() {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     }
 
-    addDelFlag := !db.IsExists_("group_registrations", []string{"group_id"}, []interface{}{groupId})
+    addDelFlag := !db.IsExists("group_registrations", []string{"group_id"}, []interface{}{groupId})
     utils.SendJSReply(map[string]interface{}{"result": "ok", "addDelFlag": addDelFlag}, this.Response)
 }
