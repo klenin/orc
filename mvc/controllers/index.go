@@ -37,7 +37,7 @@ func (this *IndexController) Init(runTest bool) {
     for k, v := range db.Tables {
         db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", v), nil)
         db.Exec(fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v), nil)
-        db.QueryCreateTable_(this.GetModel(db.Tables[k]))
+        db.QueryCreateTable(this.GetModel(db.Tables[k]))
     }
 
     this.CreateRegistrationEvent()

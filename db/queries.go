@@ -58,7 +58,7 @@ func QueryCreateSecuence(tableName string) {
     Exec("CREATE SEQUENCE "+tableName+"_id_seq;", nil)
 }
 
-func QueryCreateTable_(m interface{}) {
+func QueryCreateTable(m interface{}) {
     model := reflect.ValueOf(m)
     tableName := model.Elem().FieldByName("TableName").String()
 
