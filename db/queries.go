@@ -119,7 +119,7 @@ func QueryInsert(m interface{}, extra string) *sql.Row {
     return QueryRow(fmt.Sprintf(query, tableName, strings.Join(MakeParams(n-1), ", "), extra), p)
 }
 
-func QueryUpdate_(m interface{}) *sql.Row {
+func QueryUpdate(m interface{}) *sql.Row {
     model := reflect.ValueOf(m).Elem()
     tableName := model.FieldByName("TableName").String()
     i, j := 1, 1

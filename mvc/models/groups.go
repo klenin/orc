@@ -59,7 +59,7 @@ func (this *GroupsModel) Update(userId, rowId int, params map[string]interface{}
     params["face_id"] = faceId
     this.LoadModelData(params)
     this.LoadWherePart(map[string]interface{}{"id": rowId})
-    db.QueryUpdate_(this).Scan()
+    db.QueryUpdate(this).Scan()
 }
 
 func (this *GroupsModel) Add(userId int, params map[string]interface{}) error {

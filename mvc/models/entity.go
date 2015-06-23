@@ -367,7 +367,7 @@ func (this *Entity) Delete(id int) {
 func (this *Entity) Update(userId, rowId int, params map[string]interface{}) {
     this.LoadModelData(params)
     this.LoadWherePart(map[string]interface{}{"id": rowId})
-    db.QueryUpdate_(this).Scan()
+    db.QueryUpdate(this).Scan()
 }
 
 func (this *Entity) Add(userId int, params map[string]interface{}) error {

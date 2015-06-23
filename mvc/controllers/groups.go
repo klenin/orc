@@ -138,7 +138,7 @@ func (this *Handler) ConfirmInvitationToGroup(token string) {
     person = this.GetModel("persons")
     person.LoadModelData(map[string]interface{}{"status": true, "token": " "})
     person.LoadWherePart(map[string]interface{}{"token": token})
-    db.QueryUpdate_(person).Scan()
+    db.QueryUpdate(person).Scan()
 
     if this.Response != nil {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Вы успешно присоединены к группе.")

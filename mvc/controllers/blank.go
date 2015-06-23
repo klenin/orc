@@ -248,7 +248,7 @@ func (this *GridHandler) EditParams() {
         paramValue := this.GetModel("param_values")
         paramValue.LoadModelData(map[string]interface{}{"value": value, "date": date, "user_id": userId})
         paramValue.LoadWherePart(map[string]interface{}{"id": paramValId})
-        db.QueryUpdate_(paramValue).Scan()
+        db.QueryUpdate(paramValue).Scan()
     }
 
     utils.SendJSReply(map[string]interface{}{"result": "Изменения сохранены"}, this.Response)

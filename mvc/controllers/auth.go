@@ -39,7 +39,7 @@ func (this *Handler) HandleLogin(login, pass string) interface{} {
         user.GetFields().(*models.User).Enabled = true
         user.GetFields().(*models.User).Sid = sid
         user.LoadWherePart(map[string]interface{}{"id": id})
-        db.QueryUpdate_(user).Scan()
+        db.QueryUpdate(user).Scan()
 
         sessions.SetSession(this.Response, map[string]interface{}{"sid": sid})
     }
@@ -67,7 +67,7 @@ func (this *Handler) HandleLogout() interface{} {
     user.GetFields().(*models.User).Enabled = enabled
     user.GetFields().(*models.User).Sid = " "
     user.LoadWherePart(map[string]interface{}{"id": userId})
-    db.QueryUpdate_(user).Scan()
+    db.QueryUpdate(user).Scan()
 
     sessions.ClearSession(this.Response)
 
@@ -148,7 +148,7 @@ func (this *Handler) ConfirmUser(token string) {
     user.GetFields().(*models.User).Enabled = true
     user.GetFields().(*models.User).Token = " "
     user.LoadWherePart(map[string]interface{}{"id": userId})
-    db.QueryUpdate_(user).Scan()
+    db.QueryUpdate(user).Scan()
 
     if this.Response != nil {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Регистрация подтверждена.")
@@ -223,7 +223,7 @@ func (this *Handler) ResetPassword() {
     user.GetFields().(*models.User).Enabled = enabled
     user.GetFields().(*models.User).Salt = salt
     user.GetFields().(*models.User).Pass = utils.GetMD5Hash(pass + salt)
-    db.QueryUpdate_(user).Scan()
+    db.QueryUpdate(user).Scan()
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }

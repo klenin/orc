@@ -111,7 +111,7 @@ func (this *Handler) Index() {
         user.GetFields().(*models.User).Token = token
         user.GetFields().(*models.User).Enabled = true
         user.LoadWherePart(map[string]interface{}{"id": userId})
-        db.QueryUpdate_(user).Scan()
+        db.QueryUpdate(user).Scan()
 
         utils.SendJSReply(map[string]interface{}{"result": "Письмо отправлено"}, this.Response)
         break
@@ -241,7 +241,7 @@ func WellcomeToProfile(w http.ResponseWriter, r *http.Request) {
     user.GetFields().(*models.User).Sid = sid
     user.GetFields().(*models.User).Enabled = true
     user.LoadWherePart(map[string]interface{}{"id": id})
-    db.QueryUpdate_(user).Scan()
+    db.QueryUpdate(user).Scan()
 
     sessions.SetSession(newContreoller.Response, map[string]interface{}{"sid": sid})
 
@@ -275,7 +275,7 @@ func (this *Handler) Login(userId string) {
     user.GetFields().(*models.User).Sid = sid
     user.GetFields().(*models.User).Enabled = true
     user.LoadWherePart(map[string]interface{}{"id": id})
-    db.QueryUpdate_(user).Scan()
+    db.QueryUpdate(user).Scan()
 
     sessions.SetSession(this.Response, map[string]interface{}{"sid": sid})
 
