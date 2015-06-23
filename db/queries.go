@@ -236,10 +236,6 @@ func SelectRow(m interface{}, fields []string) *sql.Row {
     }
 }
 
-func SelectCount(tableName string) int {
-    return int(Query("SELECT COUNT(*) FROM "+tableName+";", nil)[0].(map[string]interface{})["count"].(int))
-}
-
 func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
     row := make([]interface{}, len(columns))
     values := make([]interface{}, len(columns))
