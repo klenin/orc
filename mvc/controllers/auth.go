@@ -74,7 +74,7 @@ func (this *Handler) HandleLogout() interface{} {
     return map[string]string{"result": "ok"}
 }
 
-func (this *Handler) HandleRegister_(login, password, email, role string) (result string, regId int) {
+func (this *Handler) HandleRegister(login, password, email, role string) (result string, regId int) {
     result = "ok"
     salt := strconv.Itoa(int(time.Now().Unix()))
     pass := utils.GetMD5Hash(password + salt)
@@ -109,9 +109,9 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
         user := this.GetModel("users")
         user.LoadModelData(map[string]interface{}{
             "login": login,
-            "pass": pass,
-            "salt": salt,
-            "role": role,
+            "pass":  pass,
+            "salt":  salt,
+            "role":  role,
             "token": token})
         user.GetFields().(*models.User).Enabled = false
         db.QueryInsert_(user, "RETURNING id").Scan(&userId)
@@ -132,11 +132,11 @@ func (this *Handler) HandleRegister_(login, password, email, role string) (resul
 }
 
 func (this *Handler) ConfirmUser(token string) {
+    var userId int
     user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"token": token})
+    user.GetFields().(*models.User).Token = token
+    err := db.SelectRow(user, []string{"id"}).Scan(&userId)
 
-    var id int
-    err := db.SelectRow(user, []string{"id"}).Scan(&id)
     if utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response) {
         if this.Response != nil {
             this.Render([]string{"mvc/views/msg.html"}, "msg", err.Error())
@@ -147,7 +147,7 @@ func (this *Handler) ConfirmUser(token string) {
     user = this.GetModel("users")
     user.GetFields().(*models.User).Enabled = true
     user.GetFields().(*models.User).Token = " "
-    user.LoadWherePart(map[string]interface{}{"id": id})
+    user.LoadWherePart(map[string]interface{}{"id": userId})
     db.QueryUpdate_(user).Scan()
 
     if this.Response != nil {

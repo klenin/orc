@@ -229,7 +229,7 @@ func (this *Handler) RegPerson() {
             }
         }
 
-        result, regId = this.HandleRegister_(userLogin, userPass, email, "user")
+        result, regId = this.HandleRegister(userLogin, userPass, email, "user")
         if result != "ok" && regId == -1 {
             utils.SendJSReply(map[string]interface{}{"result": result}, this.Response)
             return
