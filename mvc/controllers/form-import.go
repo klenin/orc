@@ -39,7 +39,6 @@ func (this *GridHandler) GetEventTypesByEventId() {
     result := db.Query(query, []interface{}{eventId})
 
     utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
-
 }
 
 func (this *GridHandler) ImportForms() {
@@ -72,18 +71,19 @@ func (this *GridHandler) ImportForms() {
             return
         }
 
+        var lastEventId int
         query := `SELECT events.id FROM events
             INNER JOIN events_types ON events_types.event_id = events.id
             INNER JOIN event_types ON event_types.id = events_types.type_id
             WHERE event_types.id = $1 AND events.id <> $2
             ORDER BY id DESC LIMIT 1;`
-        eventResult := db.Query(query, []interface{}{typeId, eventId})[0].(map[string]interface{})["id"].(int)
+        db.QueryRow(query, []interface{}{typeId, eventId}).Scan(&lastEventId)
 
         query = `SELECT forms.id FROM forms
             INNER JOIN events_forms ON events_forms.form_id = forms.id
             INNER JOIN events ON events.id = events_forms.event_id
             WHERE events.id = $1 ORDER BY forms.id;`
-        formsResult := db.Query(query, []interface{}{eventResult})
+        formsResult := db.Query(query, []interface{}{lastEventId})
 
         for i := 0; i < len(formsResult); i++ {
             formId := int(formsResult[i].(map[string]interface{})["id"].(int))
