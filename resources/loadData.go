@@ -107,7 +107,7 @@ func loadEvents() {
         params := map[string]interface{}{"name": eventName, "data_start": dateStart, "date_finish": dateFinish, "time": time, "url": ""}
         entity := base.Events()
         entity.LoadModelData(params)
-        db.QueryInsert_(entity, "").Scan()
+        db.QueryInsert(entity, "").Scan()
     }
 }
 
@@ -121,7 +121,7 @@ func loadEventTypes() {
         params := map[string]interface{}{"name": eventTypeName, "description": "", "topicality": topicality[rand.Intn(2)]}
         entity := base.EventTypes()
         entity.LoadModelData(params)
-        db.QueryInsert_(entity, "").Scan()
+        db.QueryInsert(entity, "").Scan()
     }
 }
 
@@ -132,7 +132,7 @@ func loadForms() {
         formName := strings.TrimSpace(formNamesSourse[i])
         entity := base.Forms()
         entity.LoadModelData(map[string]interface{}{"name": formName})
-        db.QueryInsert_(entity, "").Scan()
+        db.QueryInsert(entity, "").Scan()
     }
 }
 
@@ -143,6 +143,6 @@ func loadParamTypes() {
         paramType := strings.TrimSpace(paramTypesSourse[i])
         entity := base.ParamTypes()
         entity.LoadModelData(map[string]interface{}{"name": paramType})
-        db.QueryInsert_(entity, "").Scan()
+        db.QueryInsert(entity, "").Scan()
     }
 }

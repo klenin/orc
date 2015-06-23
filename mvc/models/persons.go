@@ -114,7 +114,7 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
     }
 
     this.LoadModelData(params)
-    db.QueryInsert_(this, "").Scan()
+    db.QueryInsert(this, "").Scan()
     return nil
 }
 

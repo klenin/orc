@@ -114,16 +114,16 @@ func (this *Handler) HandleRegister(login, password, email, role string) (result
             "role":  role,
             "token": token})
         user.GetFields().(*models.User).Enabled = false
-        db.QueryInsert_(user, "RETURNING id").Scan(&userId)
+        db.QueryInsert(user, "RETURNING id").Scan(&userId)
 
         var faceId int
         face := this.GetModel("faces")
         face.LoadModelData(map[string]interface{}{"user_id": userId})
-        db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
+        db.QueryInsert(face, "RETURNING id").Scan(&faceId)
 
         registration := this.GetModel("registrations")
         registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1})
-        db.QueryInsert_(registration, "RETURNING id").Scan(&regId)
+        db.QueryInsert(registration, "RETURNING id").Scan(&regId)
 
         return result, regId
     }

@@ -97,7 +97,7 @@ func (this *GridHandler) ImportForms() {
             }
 
             eventsForms.LoadModelData(map[string]interface{}{"event_id":  eventId, "form_id": formId})
-            db.QueryInsert_(eventsForms, "").Scan()
+            db.QueryInsert(eventsForms, "").Scan()
         }
     }
 

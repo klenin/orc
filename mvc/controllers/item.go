@@ -162,7 +162,7 @@ func (this *Handler) RegPerson() {
         // var faceId int
         // face := this.GetModel("faces")
         // face.LoadModelData(map[string]interface{}{"user_id": userId})
-        // db.QueryInsert_(face, "RETURNING id").Scan(&faceId)
+        // db.QueryInsert(face, "RETURNING id").Scan(&faceId)
 
         var faceId int
         query := `SELECT faces.id FROM faces
@@ -179,7 +179,7 @@ func (this *Handler) RegPerson() {
 
         registration := this.GetModel("registrations")
         registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId})
-        db.QueryInsert_(registration, "RETURNING id").Scan(&regId)
+        db.QueryInsert(registration, "RETURNING id").Scan(&regId)
 
         if err = this.InsertUserParams(regId, data["data"].([]interface{})); err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
@@ -324,7 +324,7 @@ func (this *Handler) InsertUserParams(regId int, data []interface{}) (err error)
         var paramValId int
         paramValues := this.GetModel("param_values")
         paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId})
-        err = db.QueryInsert_(paramValues, "RETURNING id").Scan(&paramValId)
+        err = db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
         if err, ok := err.(*pq.Error); ok {
             println(err.Code.Name())
         }
@@ -333,7 +333,7 @@ func (this *Handler) InsertUserParams(regId int, data []interface{}) (err error)
         regParamValue.LoadModelData(map[string]interface{}{
             "reg_id":       regId,
             "param_val_id": paramValId})
-        db.QueryInsert_(regParamValue, "").Scan()
+        db.QueryInsert(regParamValue, "").Scan()
 
         paramValueIds = append(paramValueIds, strconv.Itoa(paramValId))
     }

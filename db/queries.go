@@ -89,7 +89,7 @@ func QueryCreateTable(m interface{}) {
     Exec(fmt.Sprintf(query, tableName), nil)
 }
 
-func QueryInsert_(m interface{}, extra string) *sql.Row {
+func QueryInsert(m interface{}, extra string) *sql.Row {
     var i int
 
     query := "INSERT INTO %s ("

@@ -61,7 +61,7 @@ func (this *GridHandler) RegGroup() {
     var groupregId int
     groupReg := this.GetModel("group_registrations")
     groupReg.LoadModelData(map[string]interface{}{"event_id": eventId, "group_id": groupId})
-    db.QueryInsert_(groupReg, "RETURNING id").Scan(&groupregId)
+    db.QueryInsert(groupReg, "RETURNING id").Scan(&groupregId)
 
     query = `SELECT persons.status, faces.id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
@@ -89,7 +89,7 @@ func (this *GridHandler) RegGroup() {
         var regId int
         regs := this.GetModel("registrations")
         regs.LoadModelData(map[string]interface{}{"face_id": personfaceId, "event_id": eventId})
-        db.QueryInsert_(regs, "RETURNING id").Scan(&regId)
+        db.QueryInsert(regs, "RETURNING id").Scan(&regId)
 
         to := v.(map[string]interface{})["name"].(string)
         address := v.(map[string]interface{})["email"].(string)
@@ -98,7 +98,7 @@ func (this *GridHandler) RegGroup() {
         }
         regsGroupRegs := this.GetModel("regs_groupregs")
         regsGroupRegs.LoadModelData(map[string]interface{}{"groupreg_id": groupregId, "reg_id": regId})
-        db.QueryInsert_(regsGroupRegs, "").Scan()
+        db.QueryInsert(regsGroupRegs, "").Scan()
 
 
         for _, elem := range params {
@@ -107,13 +107,13 @@ func (this *GridHandler) RegGroup() {
             var paramValId int
             paramValues := this.GetModel("param_values")
             paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date, "user_id": userId})
-            db.QueryInsert_(paramValues, "RETURNING id").Scan(&paramValId)
+            db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
 
             regParamValue := this.GetModel("reg_param_vals")
             regParamValue.LoadModelData(map[string]interface{}{
                 "reg_id":        regId,
                 "param_val_id":  paramValId})
-            db.QueryInsert_(regParamValue, "").Scan()
+            db.QueryInsert(regParamValue, "").Scan()
         }
 
     }

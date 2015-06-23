@@ -372,7 +372,7 @@ func (this *Entity) Update(userId, rowId int, params map[string]interface{}) {
 
 func (this *Entity) Add(userId int, params map[string]interface{}) error {
     this.LoadModelData(params)
-    db.QueryInsert_(this, "").Scan()
+    db.QueryInsert(this, "").Scan()
     return nil
 }
 

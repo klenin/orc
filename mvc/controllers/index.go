@@ -84,7 +84,7 @@ func (this *IndexController) LoadContestsFromCats() {
             "time":        time_.Format("15:04:05"),
             "url":         "http://imcs.dvfu.ru/cats/main.pl?f=contests;cid="+strconv.Itoa(int(contest["id"].(float64))),
         })
-        db.QueryInsert_(event, "").Scan()
+        db.QueryInsert(event, "").Scan()
     }
 }
 
@@ -96,25 +96,25 @@ func (this *IndexController) CreateRegistrationEvent() {
         "date_start": "2006-01-02",
         "date_finish": "2006-01-02",
         "time": "00:00:00"})
-    db.QueryInsert_(events, "RETURNING id").Scan(&eventId)
+    db.QueryInsert(events, "RETURNING id").Scan(&eventId)
 
     var formId1 int
     forms := this.GetModel("forms")
     forms.LoadModelData(map[string]interface{}{"name": "Регистрационные данные"})
-    db.QueryInsert_(forms, "RETURNING id").Scan(&formId1)
+    db.QueryInsert(forms, "RETURNING id").Scan(&formId1)
 
     eventsForms := this.GetModel("events_forms")
     eventsForms.LoadModelData(map[string]interface{}{"form_id": formId1, "event_id": eventId})
-    db.QueryInsert_(eventsForms, "").Scan()
+    db.QueryInsert(eventsForms, "").Scan()
 
     var paramTextTypeId int
     paramTypes := this.GetModel("param_types")
     paramTypes.LoadModelData(map[string]interface{}{"name": "text"})
-    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&paramTextTypeId)
+    db.QueryInsert(paramTypes, "RETURNING id").Scan(&paramTextTypeId)
 
     var paramPassTypeId int
     paramTypes.LoadModelData(map[string]interface{}{"name": "password"})
-    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&paramPassTypeId)
+    db.QueryInsert(paramTypes, "RETURNING id").Scan(&paramPassTypeId)
 
     params := this.GetModel("params")
     params.LoadModelData(map[string]interface{}{
@@ -122,58 +122,58 @@ func (this *IndexController) CreateRegistrationEvent() {
         "form_id":       formId1,
         "param_type_id": paramTextTypeId,
         "identifier":    2})
-    db.QueryInsert_(params, "").Scan()
+    db.QueryInsert(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Пароль",
         "form_id":       formId1,
         "param_type_id": paramPassTypeId,
         "identifier":    3})
-    db.QueryInsert_(params, "").Scan()
+    db.QueryInsert(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Подтвердите пароль",
         "form_id":       formId1,
         "param_type_id": paramPassTypeId,
         "identifier":    4})
-    db.QueryInsert_(params, "").Scan()
+    db.QueryInsert(params, "").Scan()
 
     var paramEmailTypeId int
     paramTypes.LoadModelData(map[string]interface{}{"name": "email"})
-    db.QueryInsert_(paramTypes, "RETURNING id").Scan(&paramEmailTypeId)
+    db.QueryInsert(paramTypes, "RETURNING id").Scan(&paramEmailTypeId)
 
     params.LoadModelData(map[string]interface{}{
         "name":          "E-mail",
         "form_id":       formId1,
         "param_type_id": paramTextTypeId,
         "identifier":    5})
-    db.QueryInsert_(params, "").Scan()
+    db.QueryInsert(params, "").Scan()
 
     var formId2 int
     forms.LoadModelData(map[string]interface{}{"name": "Общие сведения"})
-    db.QueryInsert_(forms, "RETURNING id").Scan(&formId2)
+    db.QueryInsert(forms, "RETURNING id").Scan(&formId2)
 
     eventsForms.LoadModelData(map[string]interface{}{"form_id": formId2, "event_id": eventId})
-    db.QueryInsert_(eventsForms, "").Scan()
+    db.QueryInsert(eventsForms, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Фамилия",
         "form_id":       formId2,
         "param_type_id": paramTextTypeId,
         "identifier":    6})
-    db.QueryInsert_(params, "").Scan()
+    db.QueryInsert(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Имя",
         "form_id":       formId2,
         "param_type_id": paramTextTypeId,
         "identifier":    7})
-    db.QueryInsert_(params, "").Scan()
+    db.QueryInsert(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Отчество",
         "form_id":       formId2,
         "param_type_id": paramTextTypeId,
         "identifier":    8})
-    db.QueryInsert_(params, "").Scan()
+    db.QueryInsert(params, "").Scan()
 }

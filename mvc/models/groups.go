@@ -73,7 +73,7 @@ func (this *GroupsModel) Add(userId int, params map[string]interface{}) error {
     db.QueryRow(query, []interface{}{userId, 1}).Scan(&faceId)
     params["face_id"] = faceId
     this.LoadModelData(params)
-    db.QueryInsert_(this, "").Scan()
+    db.QueryInsert(this, "").Scan()
     return nil
 }
 
