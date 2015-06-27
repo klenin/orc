@@ -1,5 +1,7 @@
 # controllers
 
+![controllers][scheme-1]
+
 ## controller.go
 
 #### GetModel
@@ -156,3 +158,5 @@
 #### EditGridRow
 
 #### JsonToExcel
+
+[scheme-1]: ../docs/img/controllers.png  "controllers"
