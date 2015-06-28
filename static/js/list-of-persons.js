@@ -29,7 +29,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
         utils.postRequest(
             { "event_id": id },
             function(data) { listParams(dialogId, data); },
-            "/gridhandler/getparamsbyeventid"
+            "/gridcontroller/getparamsbyeventid"
         );
 
         $("#"+dialogId).dialog({
@@ -39,7 +39,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
             width: "auto",
             buttons: {
                 "Получить список участников": function() {
-                    var url = "/gridhandler/getpersonsbyeventid?event="+id+"&params=";
+                    var url = "/gridcontroller/getpersonsbyeventid?event="+id+"&params=";
 
                     $("#"+dialogId+" select option:selected").each(function(i, selected) {
                        url += $(selected).val() + ",";

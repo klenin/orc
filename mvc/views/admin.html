@@ -16,14 +16,14 @@
             class: "tables",
             text: {{.ColNames}}[i],
             id: {{.Columns}}[i],
-            href: "/gridhandler/creategrid/" + {{.Columns}}[i]
+            href: "/gridcontroller/creategrid/" + {{.Columns}}[i]
         }).appendTo("#cabinet");
     }
     $("<a/>", {
         class: "tables",
         text: "Поиск участников",
         id: "search",
-        href: "/gridhandler/creategrid/search"
+        href: "/gridcontroller/creategrid/search"
     }).appendTo("#cabinet");
 </script>
 

@@ -32,7 +32,7 @@ function(reqUtils, grid, utils, blank) {
     var filter = {};
 
     $("#params-table").jqGrid({
-        url: "/gridhandler/load/" + {{.params.TableName}},
+        url: "/gridcontroller/load/" + {{.params.TableName}},
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
@@ -88,7 +88,7 @@ function(reqUtils, grid, utils, blank) {
     }).trigger("resize");
 
     $("#faces-table").jqGrid({
-        url: "/gridhandler/load/search",
+        url: "/gridcontroller/load/search",
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
@@ -146,7 +146,7 @@ function(reqUtils, grid, utils, blank) {
                 sortorder: "asc",
                 height: "100%",
                 width: $("#faces-table").width()-65,
-                editurl: "/gridhandler/editgridrow/"+{{.faces.SubTableName}},
+                editurl: "/gridcontroller/editgridrow/"+{{.faces.SubTableName}},
                 multiselect: true,
                 loadError: function (jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: ' + jqXHR.status + '\n'

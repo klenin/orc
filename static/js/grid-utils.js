@@ -143,7 +143,7 @@ define(["utils"], function(utils) {
         utils.postRequest(
             { "reg_id": id, "event_id": event_id, "confirm": confirm},
             function(data) { showServerPromtInGrid(gridId, data["result"]); },
-            "/gridhandler/confirmorrejectpersonrequest"
+            "/gridcontroller/confirmorrejectpersonrequest"
         );
     }
 

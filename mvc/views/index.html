@@ -14,7 +14,7 @@ require(["utils", "custom-grid", "grid-utils", "blank"],
 function(reqUtils, grid, utils, blank) {
 
     $("#events-table").jqGrid({
-        url: "/gridhandler/load/" + {{.events.TableName}},
+        url: "/gridcontroller/load/" + {{.events.TableName}},
         datatype: "json",
         mtype: "POST",
         colNames: {{.events.ColNames}},

@@ -187,7 +187,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
         caption: "Мои группы",
         sortname: "id",
         sortorder: "asc",
-        editurl: "/gridhandler/editgridrow/"+{{.group.TableName}},
+        editurl: "/gridcontroller/editgridrow/"+{{.group.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: '+jqXHR.status+'\n'
                 +'textStatus: '+textStatus+'\n'
@@ -215,7 +215,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                     console.log(data["result"]);
                     addDelFlag = data["addDelFlag"];
                 },
-                "/gridhandler/isreggroup"
+                "/gridcontroller/isreggroup"
             );
 
             $("#"+subgrid_id+"_t").jqGrid({
@@ -232,7 +232,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 sortorder: "asc",
                 height: "100%",
                 width: $("#my-group-table").width()-65,
-                editurl: "/gridhandler/editgridrow/"+{{.group.SubTableName}},
+                editurl: "/gridcontroller/editgridrow/"+{{.group.SubTableName}},
                 loadError: function(jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: '+jqXHR.status+'\n'
                         +'textStatus: '+textStatus+'\n'
@@ -299,7 +299,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                         var filter = {};
 
                         $("#params-table").jqGrid({
-                            url: "/gridhandler/load/"+{{.params.TableName}},
+                            url: "/gridcontroller/load/"+{{.params.TableName}},
                             datatype: "json",
                             mtype: "POST",
                             treeGrid: false,
@@ -355,7 +355,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                         }).trigger("resize");
 
                         $("#faces-table").jqGrid({
-                            url: "/gridhandler/load/search",
+                            url: "/gridcontroller/load/search",
                             datatype: "json",
                             mtype: "POST",
                             treeGrid: false,
@@ -652,7 +652,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                 sortorder: "asc",
                 height: "100%",
                 width: $("#groupreg-table").width()-65,
-                editurl: "/gridhandler/editgridrow/"+{{.groupreg.SubTableName}},
+                editurl: "/gridcontroller/editgridrow/"+{{.groupreg.SubTableName}},
                 loadError: function (jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: '+jqXHR.status+'\n'
                         +'textStatus: '+textStatus+'\n'

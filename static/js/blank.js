@@ -116,7 +116,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                 ShowBlank(data["data"], dialogId, data["role"]);
                 $("#"+dialogId+" #history").hide();
             },
-            "/gridhandler/getpersonrequestfromgroup"
+            "/gridcontroller/getpersonrequestfromgroup"
         );
 
         $("#"+dialogId).dialog({
@@ -135,7 +135,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                     utils.postRequest(
                         { "data": values },
                         function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
-                        "/gridhandler/editparams"
+                        "/gridcontroller/editparams"
                     );
                 },
                 "Отмена": function() {
@@ -306,7 +306,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                 }
                 getListHistoryEvents(dialogId+" #history", f_ids);
             },
-            "/gridhandler/getpersonrequest"
+            "/gridcontroller/getpersonrequest"
         );
 
         $("#"+dialogId).dialog({
@@ -325,7 +325,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
                     utils.postRequest(
                         { "data": values },
                         function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
-                        "/gridhandler/editparams"
+                        "/gridcontroller/editparams"
                     );
 
                 },

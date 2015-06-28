@@ -81,7 +81,7 @@ function(utils, datepicker, blank, gridUtils) {
         utils.postRequest(
             { "table": tableName, "id": row_id, "index": index },
             collbackSUB,
-            "/gridhandler/getsubtable"
+            "/gridcontroller/getsubtable"
         );
 
         var url = "/handler/"+subTableName.replace(/_/g, '')+"load";
@@ -110,7 +110,7 @@ function(utils, datepicker, blank, gridUtils) {
             multiselect: true,
             multiselectWidth: 20,
             multiboxonly: true,
-            editurl:     "/gridhandler/editgridrow/" + subTableName,
+            editurl:     "/gridcontroller/editgridrow/" + subTableName,
         });
 
         $("#" + subTId).navGrid(
@@ -173,7 +173,7 @@ function(utils, datepicker, blank, gridUtils) {
                     var filter = {};
 
                     $("#params-table").jqGrid({
-                        url: "/gridhandler/load/"+data["params"].TableName,
+                        url: "/gridcontroller/load/"+data["params"].TableName,
                         datatype: "json",
                         mtype: "POST",
                         treeGrid: false,
@@ -229,7 +229,7 @@ function(utils, datepicker, blank, gridUtils) {
                     }).trigger("resize");
 
                     $("#faces-table").jqGrid({
-                        url: "/gridhandler/load/search",
+                        url: "/gridcontroller/load/search",
                         datatype: "json",
                         mtype: "POST",
                         treeGrid: false,

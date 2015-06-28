@@ -57,7 +57,7 @@ require(["utils", "custom-grid", "grid-utils", "reset-pass", "import-forms", "li
 function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
 
     $("#grid-table").jqGrid({
-        url: "/gridhandler/load/" + {{.model.TableName}},
+        url: "/gridcontroller/load/" + {{.model.TableName}},
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
@@ -79,7 +79,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         multiselectWidth: 20,
         multiboxonly: true,
         sortable: true,
-        editurl: "/gridhandler/editgridrow/" + {{.model.TableName}},
+        editurl: "/gridcontroller/editgridrow/" + {{.model.TableName}},
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code ' + jqXHR.status + '\n'
                 + 'textStatus ' + textStatus + '\n'
@@ -189,7 +189,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
                 $.ajax({
                     method: "post",
                     type: "post",
-                    url: "/gridhandler/jsontoexcel/" + {{.model.TableName}},
+                    url: "/gridcontroller/jsontoexcel/" + {{.model.TableName}},
                     async: false,
                     data: JSON.stringify(data),
                     ContentType: "charset=utf-8",
@@ -329,7 +329,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
     }).trigger("resize");
 
     $("#events-reg-table").jqGrid({
-        url: "/gridhandler/load/events",
+        url: "/gridcontroller/load/events",
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
