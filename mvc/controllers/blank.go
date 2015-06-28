@@ -12,7 +12,7 @@ import (
     "time"
 )
 
-func (this *GridHandler) GetPersonRequestFromGroup() {
+func (this *GridController) GetPersonRequestFromGroup() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
@@ -63,7 +63,7 @@ func (this *GridHandler) GetPersonRequestFromGroup() {
         this.Response)
 }
 
-func (this *GridHandler) GetPersonRequest() {
+func (this *GridController) GetPersonRequest() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
@@ -104,7 +104,7 @@ func (this *GridHandler) GetPersonRequest() {
         this.Response)
 }
 
-func (this *GridHandler) ConfirmOrRejectPersonRequest() {
+func (this *GridController) ConfirmOrRejectPersonRequest() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
@@ -199,7 +199,7 @@ func (this *GridHandler) ConfirmOrRejectPersonRequest() {
     }
 }
 
-func (this *GridHandler) EditParams() {
+func (this *GridController) EditParams() {
     userId, err := this.CheckSid()
     if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)

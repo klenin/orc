@@ -14,15 +14,15 @@ import (
     "time"
 )
 
-func (c *BaseController) GridHandler() *GridHandler {
-    return new(GridHandler)
+func (c *BaseController) GridController() *GridController {
+    return new(GridController)
 }
 
-type GridHandler struct {
+type GridController struct {
     Controller
 }
 
-func (this *GridHandler) GetSubTable() {
+func (this *GridController) GetSubTable() {
     userId, err := this.CheckSid()
     if err != nil {
         http.Error(this.Response, "Unauthorized", 400)
@@ -46,14 +46,14 @@ func (this *GridHandler) GetSubTable() {
         "colnames": subModel.GetColNames(),
         "columns":  subModel.GetColumns(),
         "colmodel": subModel.GetColModel(this.isAdmin(), userId)})
-    if utils.HandleErr("[GridHandler::GetSubTable] Marshal: ", err, this.Response) {
+    if utils.HandleErr("[GridController::GetSubTable] Marshal: ", err, this.Response) {
         return
     }
 
     fmt.Fprintf(this.Response, "%s", string(response))
 }
 
-func (this *GridHandler) CreateGrid(tableName string) {
+func (this *GridController) CreateGrid(tableName string) {
     userId, err := this.CheckSid()
     if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
@@ -118,7 +118,7 @@ func (this *GridHandler) CreateGrid(tableName string) {
     }
 }
 
-func (this *GridHandler) EditGridRow(tableName string) {
+func (this *GridController) EditGridRow(tableName string) {
     userId, err := this.CheckSid()
     if err != nil{
         http.Redirect(this.Response, this.Request, "", http.StatusUnauthorized)
@@ -127,7 +127,7 @@ func (this *GridHandler) EditGridRow(tableName string) {
 
     model := this.GetModel(tableName)
     if model == nil {
-        utils.HandleErr("[GridHandler::Edit] GetModel: ", errors.New("Unexpected table name"), this.Response)
+        utils.HandleErr("[GridController::Edit] GetModel: ", errors.New("Unexpected table name"), this.Response)
         http.Error(this.Response, "Unexpected table name", 400)
         return
     }
@@ -167,7 +167,7 @@ func (this *GridHandler) EditGridRow(tableName string) {
     }
 }
 
-func (this *GridHandler) JsonToExcel(tableName string) {
+func (this *GridController) JsonToExcel(tableName string) {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return

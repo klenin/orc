@@ -9,7 +9,7 @@ import (
     "strconv"
 )
 
-func (this *GridHandler) GetEventTypesByEventId() {
+func (this *GridController) GetEventTypesByEventId() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
@@ -41,7 +41,7 @@ func (this *GridHandler) GetEventTypesByEventId() {
     utils.SendJSReply(map[string]interface{}{"result": "ok", "data": result}, this.Response)
 }
 
-func (this *GridHandler) ImportForms() {
+func (this *GridController) ImportForms() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return

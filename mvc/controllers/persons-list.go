@@ -10,7 +10,7 @@ import (
     "strings"
 )
 
-func (this *GridHandler) GetPersonsByEventId() {
+func (this *GridController) GetPersonsByEventId() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
@@ -74,7 +74,7 @@ func (this *GridHandler) GetPersonsByEventId() {
     this.Render([]string{"mvc/views/list.html"}, "list", append(result, data...))
 }
 
-func (this *GridHandler) GetParamsByEventId() {
+func (this *GridController) GetParamsByEventId() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return

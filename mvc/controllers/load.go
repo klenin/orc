@@ -12,7 +12,7 @@ import (
     "strings"
 )
 
-func (this *GridHandler) Load(tableName string) {
+func (this *GridController) Load(tableName string) {
     if tableName != "events" && !sessions.CheckSession(this.Response, this.Request) {
         http.Error(this.Response, "Unauthorized", 400)
         return

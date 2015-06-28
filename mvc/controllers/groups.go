@@ -9,7 +9,7 @@ import (
     "github.com/orc/mailer"
 )
 
-func (this *GridHandler) RegGroup() {
+func (this *GridController) RegGroup() {
     userId, err := this.CheckSid()
     if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
@@ -153,7 +153,7 @@ func (this *Handler) RejectInvitationToGroup(token string) {
     }
 }
 
-func (this *GridHandler) IsRegGroup() {
+func (this *GridController) IsRegGroup() {
     _, err := this.CheckSid()
     if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
