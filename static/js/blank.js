@@ -1,4 +1,5 @@
-define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function(utils, gridUtils, datepicker, kladr) {
+define(["utils", "grid_lib", "datepicker/datepicker", "kladr/kladr"],
+function(utils, gridLib, datepicker, kladr) {
 
     function drawParam(data, for_saving, admin) {
         console.log("drawParam");
@@ -134,7 +135,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
 
                     utils.postRequest(
                         { "data": values },
-                        function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
+                        function(data) { gridLib.showServerPromtInDialog($("#"+dialogId), data["result"]); },
                         "/blankcontroller/editparams"
                     );
                 },
@@ -325,7 +326,7 @@ define(["utils", "grid-utils", "datepicker/datepicker", "kladr/kladr"], function
 
                     utils.postRequest(
                         { "data": values },
-                        function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
+                        function(data) { gridLib.showServerPromtInDialog($("#"+dialogId), data["result"]); },
                         "/blankcontroller/editparams"
                     );
 

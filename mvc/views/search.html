@@ -26,8 +26,8 @@
 </div>
 
 <script type="text/javascript">
-require(["utils", "custom-grid", "grid-utils", "blank"],
-function(reqUtils, grid, utils, blank) {
+require(["grid_lib", "blank"],
+function(gridLib, blank) {
 
     var filter = {};
 
@@ -37,7 +37,7 @@ function(reqUtils, grid, utils, blank) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.params.ColNames}},
-        colModel: grid.SetPrimitive({{.params.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.params.ColModel}}),
         pager: "#params-table-pager",
         gridview: true,
         viewrecords: true,
@@ -93,7 +93,7 @@ function(reqUtils, grid, utils, blank) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.faces.ColNames}},
-        colModel: grid.SetPrimitive({{.faces.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.faces.ColModel}}),
         pager: "#faces-table-pager",
         gridview: true,
         viewrecords: true,
@@ -137,7 +137,7 @@ function(reqUtils, grid, utils, blank) {
                 datatype: "json",
                 mtype: "POST",
                 colNames: {{.faces.SubColNames}},
-                colModel: grid.SetPrimitive({{.faces.SubColModel}}),
+                colModel: gridLib.SetPrimitive({{.faces.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#" + subgrid_id + "_p",
@@ -174,7 +174,7 @@ function(reqUtils, grid, utils, blank) {
                 {
                     caption: "", buttonicon: "ui-icon-script", title: "Анкета",
                     onClickButton: function() {
-                        var id = utils.getCurrRowId(subgrid_id + "_t");
+                        var id = gridLib.getCurrRowId(subgrid_id + "_t");
                         if (id == -1) return false;
                         blank.ShowPersonBlank("dialog-person-request", id);
                     }

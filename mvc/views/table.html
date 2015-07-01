@@ -53,8 +53,8 @@
 </div>
 
 <script type="text/javascript">
-require(["utils", "custom-grid", "grid-utils", "reset-pass", "import-forms", "list-of-persons", "blank", "reg-group"],
-function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
+require(["utils", "subgrid_lib", "grid_lib", "user_lib", "blank", "group_lib"],
+function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
 
     $("#grid-table").jqGrid({
         url: "/gridcontroller/load/" + {{.model.TableName}},
@@ -62,7 +62,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.model.ColNames}},
-        colModel: grid.SetPrimitive({{.model.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.model.ColModel}}),
         pager: "#grid-table-pager",
         gridview: true,
         viewrecords: true,
@@ -101,7 +101,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "selectOnExpand": true
         },
         subGridRowExpanded: function(subgrid_id, row_id) {
-                                grid.AddSubTable(
+                                subGridLib.AddSubTable(
                                     subgrid_id,
                                     row_id,
                                     "0",
@@ -125,23 +125,23 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         {   // edit
             width: "100%",
             recreateForm: true,
-            afterSubmit: function(data) { return utils.errTextFormat(data, "grid-table"); },
-            errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
-            afterShowForm: utils.resizeSelectWidth,
+            afterSubmit: function(data) { return gridLib.errTextFormat(data, "grid-table"); },
+            errorTextFormat: function(data) { return gridLib.errTextFormat(data, "grid-table"); },
+            afterShowForm: gridLib.resizeSelectWidth,
             beforeShowForm: function() {
                 if ({{.model.TableName}} == "registrations") {
-                    var id = utils.getCurrRowId("grid-table");
+                    var id = gridLib.getCurrRowId("grid-table");
                     var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
                     if (event_id == 1) {
                         return;
                     }
                     $('<a href="#">Подтвердить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
-                    .click(function() { utils.ConfirmOrRejectPersonRequest("grid-table", true); })
+                    .click(function() { gridLib.ConfirmOrRejectPersonRequest("grid-table", true); })
                     .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
                     .prependTo("#Act_Buttons>td.EditButton");
 
                     $('<a href="#">Отклонить регистрацию<span class="ui-icon ui-icon-mail-closed"></span></a>')
-                    .click(function() { utils.ConfirmOrRejectPersonRequest("grid-table", false); })
+                    .click(function() { gridLib.ConfirmOrRejectPersonRequest("grid-table", false); })
                     .addClass("fm-button ui-state-default ui-corner-all fm-button-icon-left")
                     .prependTo("#Act_Buttons>td.EditButton");
                 }
@@ -151,9 +151,9 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             width: "100%",
             recreateForm: true,
             addedrow: "last",
-            afterSubmit: function(data) { return utils.errTextFormat(data, "grid-table"); },
-            errorTextFormat: function(data) { return utils.errTextFormat(data, "grid-table"); },
-            afterShowForm: utils.resizeSelectWidth,
+            afterSubmit: function(data) { return gridLib.errTextFormat(data, "grid-table"); },
+            errorTextFormat: function(data) { return gridLib.errTextFormat(data, "grid-table"); },
+            afterShowForm: gridLib.resizeSelectWidth,
         },
         {   // del
             closeAfterAdd: true,
@@ -245,7 +245,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-key", title: "Сменить пароль",
-                onClickButton: function() { resetPass.ResetPassword("dialog-reset-pass", "grid-table", "password-1", "password-2"); }
+                onClickButton: function() { userLib.ResetPassword("dialog-reset-pass", "grid-table", "password-1", "password-2"); }
             }
         );
 
@@ -254,7 +254,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-person", title: "Войти под пользователем",
-                onClickButton: function() { reqUtils.login("grid-table"); }
+                onClickButton: function() { userLib.Login("grid-table"); }
             }
         );
 
@@ -263,7 +263,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-mail-closed", title: "Пригласить к пользованию аккаунта",
-                onClickButton: function() { reqUtils.sendEmailWellcomeToProfile("grid-table", $("#msg")); }
+                onClickButton: function() { userLib.SendEmailWellcomeToProfile("grid-table", $("#msg")); }
             }
         );
 
@@ -273,7 +273,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-pin-s", title: "Прикрепить формы",
-                onClickButton: function() { importForms.ImportForms("dialog-import-forms", "grid-table"); }
+                onClickButton: function() { gridLib.ImportForms("dialog-import-forms", "grid-table"); }
             }
         );
 
@@ -282,7 +282,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-person", title: "Список участников",
-                onClickButton: function() { list.GetPersons("dialog-params", "grid-table"); }
+                onClickButton: function() { gridLib.GetPersons("dialog-params", "grid-table"); }
             }
         );
 
@@ -293,7 +293,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
             {
                 caption: "", buttonicon: "ui-icon-contact", title: "Анкета участника",
                 onClickButton: function() {
-                    var id = utils.getCurrRowId("grid-table");
+                    var id = gridLib.getCurrRowId("grid-table");
                     if (id == -1) return false;
                     blank.ShowPersonBlank("dialog-persons-request", id);
                 }
@@ -309,7 +309,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
                 onClickButton: function() {
                     var groupId = $("#grid-table").jqGrid("getGridParam", "selrow");
                     if (!groupId) return false;
-                    regGroup.Register("dialog-reg-group", groupId, "events-reg-table");
+                    groupLib.Register("dialog-reg-group", groupId, "events-reg-table");
                 }
             }
         );
@@ -334,7 +334,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.events.ColNames}},
-        colModel: grid.SetPrimitive({{.events.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.events.ColModel}}),
         pager: "#events-reg-table-pager",
         gridview: true,
         sortname: "id",

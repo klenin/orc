@@ -309,7 +309,7 @@ func (this *UserController) SendEmailWellcomeToProfile() {
     utils.SendJSReply(map[string]interface{}{"result": "Письмо отправлено"}, this.Response)
 }
 
-func (this *GridController) ConfirmOrRejectPersonRequest() {
+func (this *UserController) ConfirmOrRejectPersonRequest() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return

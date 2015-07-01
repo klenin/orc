@@ -15,8 +15,8 @@
 </div>
 
 <script type="text/javascript">
-require(["utils", "kladr/kladr", "blank", "grid-utils"],
-function(utils, kladr, blank, gridUtils) {
+require(["utils", "kladr/kladr", "blank", "grid_lib"],
+function(utils, kladr, blank, gridLib) {
     var valid = false;
     var forms = blank.ShowBlank({{.}}.data, "form-event", {{.}}.role);
     if (!forms) {
@@ -38,7 +38,7 @@ function(utils, kladr, blank, gridUtils) {
         if (!pattern.test($(this).val())) {
             valid = false;
             $(this).css({"border": "2px solid red"});
-            gridUtils.showServerPromtInDialog( $(this).parent(), "Логин может содержать латинские буквы и/или "
+            gridLib.showServerPromtInDialog( $(this).parent(), "Логин может содержать латинские буквы и/или "
                 + "цифры и иметь длину от 2 до 36 символов.");
 
         } else {
@@ -52,7 +52,7 @@ function(utils, kladr, blank, gridUtils) {
         if (!pattern.test($(this).val())) {
             valid = false;
             $(this).css({"border": "2px solid red"});
-            gridUtils.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
+            gridLib.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
 
         } else {
             valid = true;
@@ -66,14 +66,14 @@ function(utils, kladr, blank, gridUtils) {
         if (!pattern.test($(this).val())) {
             valid = false;
             $(this).css({"border": "2px solid red"});
-            gridUtils.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
+            gridLib.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
             return;
         }
 
         if ($(this).val() !== $("input#2").val()) {
             valid = false;
             $(this).css({"border": "2px solid red"});
-            gridUtils.showServerPromtInDialog( $(this).parent(), "Пароли не совпадают.");
+            gridLib.showServerPromtInDialog( $(this).parent(), "Пароли не совпадают.");
             return;
         }
 

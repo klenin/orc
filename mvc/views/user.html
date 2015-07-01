@@ -104,8 +104,8 @@ $(function() {
     $("#tabs").tabs();
 });
 
-require(["grid-utils", "custom-grid", "reg-group", "blank", "reset-pass", "utils"],
-function(utils, grid, regGroup, blank, resetPass, reqUtils) {
+require(["grid_lib", "group_lib", "blank", "user_lib", "utils"],
+function(gridLib, groupLib, blank, userLib, utils) {
 
     var valid = false;
     console.log({{.}});
@@ -115,7 +115,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
         if (!pattern.test($(this).val())) {
             valid = false;
             $(this).css({"border": "2px solid red"});
-            utils.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
+            gridLib.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
 
         } else {
             valid = true;
@@ -129,14 +129,14 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
         if (!pattern.test($(this).val())) {
             valid = false;
             $(this).css({"border": "2px solid red"});
-            utils.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
+            gridLib.showServerPromtInDialog( $(this).parent(), "Пароль должен иметь длину от 6 до 36 символов.");
             return;
         }
 
         if ($(this).val() !== $("#password-1").val()) {
             valid = false;
             $(this).css({"border": "2px solid red"});
-            utils.showServerPromtInDialog( $(this).parent(), "Пароли не совпадают.");
+            gridLib.showServerPromtInDialog( $(this).parent(), "Пароли не совпадают.");
             return;
         }
 
@@ -150,15 +150,15 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
             return;
         }
 
-        var result = resetPass.CheckPass("password-1", "password-2");
+        var result = userLib.CheckPass("password-1", "password-2");
         if (!result.result) {
-            utils.showErrorMsg(result.msg);
+            gridLib.showErrorMsg(result.msg);
             return false;
         }
 
-        reqUtils.postRequest(
+        utils.postRequest(
             { "pass": $("#password-1").val() },
-            function(data) { utils.showServerPromtInDialog($("#dialog-reset-pass"), data["result"]); },
+            function(data) { gridLib.showServerPromtInDialog($("#dialog-reset-pass"), data["result"]); },
             "/usercontroller/resetpassword"
         );
     })
@@ -174,7 +174,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.group.ColNames}},
-        colModel: grid.SetPrimitive({{.group.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.group.ColModel}}),
         pager: "#my-group-table-pager",
         gridview: true,
         sortname: "id",
@@ -209,7 +209,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
                 +"<div id='"+subgrid_id+"_p"+"' class='scroll'></div></br>");
 
             var addDelFlag = false;
-            reqUtils.postRequest(
+            utils.postRequest(
                 { "group_id": group_id },
                 function(data) {
                     console.log("Is Reg Group?");
@@ -224,7 +224,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
                 datatype: "json",
                 mtype: "POST",
                 colNames: {{.group.SubColNames}},
-                colModel: grid.SetPrimitive({{.group.SubColModel}}),
+                colModel: gridLib.SetPrimitive({{.group.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
@@ -267,11 +267,11 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
                     width: "100%",
                     recreateForm: true,
                     addedrow: "last",
-                    afterSubmit: function(data) { return utils.errTextFormat(data, subgrid_id+"_t"); },
+                    afterSubmit: function(data) { return gridLib.errTextFormat(data, subgrid_id+"_t"); },
                     beforeShowForm: function(form) {
                         $("#tr_status", form).hide();
                     },
-                    errorTextFormat: function(data) { return utils.errTextFormat(data, subgrid_id+"_t"); },
+                    errorTextFormat: function(data) { return gridLib.errTextFormat(data, subgrid_id+"_t"); },
                     afterShowForm: function(formId) {
                         var grSelect = $($($($('#tr_group_id', formId)[0]).children()[1]).find('select'));
                         grSelect.val($("#my-group-table").jqGrid("getGridParam", "selrow"));
@@ -305,7 +305,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
                             mtype: "POST",
                             treeGrid: false,
                             colNames: {{.params.ColNames}},
-                            colModel: grid.SetPrimitive({{.params.ColModel}}),
+                            colModel: gridLib.SetPrimitive({{.params.ColModel}}),
                             pager: "#params-table-pager",
                             gridview: true,
                             viewrecords: true,
@@ -361,7 +361,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
                             mtype: "POST",
                             treeGrid: false,
                             colNames: {{.faces.ColNames}},
-                            colModel: grid.SetPrimitive({{.faces.ColModel}}),
+                            colModel: gridLib.SetPrimitive({{.faces.ColModel}}),
                             pager: "#faces-table-pager",
                             gridview: true,
                             viewrecords: true,
@@ -424,7 +424,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
                     onClickButton: function() {
                         var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                         if (!groupId) return false;
-                        regGroup.AddPerson("dialog-add-person", groupId);
+                        groupLib.AddPerson("dialog-add-person", groupId);
                         // !!!
                         window.location.reload();
                     }
@@ -459,25 +459,25 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
         {
             width: "100%",
             recreateForm: true,
-            afterSubmit: function(data) { return utils.errTextFormat(data, "my-group-table"); },
-            errorTextFormat: function(data) { return utils.errTextFormat(data, "my-group-table"); },
-            afterShowForm: utils.resizeSelectWidth,
+            afterSubmit: function(data) { return gridLib.errTextFormat(data, "my-group-table"); },
+            errorTextFormat: function(data) { return gridLib.errTextFormat(data, "my-group-table"); },
+            afterShowForm: gridLib.resizeSelectWidth,
         },
         {
             width: "100%",
             recreateForm: true,
             addedrow: "last",
-            errorTextFormat: function(data) { return utils.errTextFormat(data, "my-group-table"); },
-            afterShowForm: utils.resizeSelectWidth,
+            errorTextFormat: function(data) { return gridLib.errTextFormat(data, "my-group-table"); },
+            afterShowForm: gridLib.resizeSelectWidth,
             afterSubmit: function(data) {
-                var ans = utils.errTextFormat(data, "my-group-table");
+                var ans = gridLib.errTextFormat(data, "my-group-table");
                 window.location.reload();
                 return ans;
             },
         },
         {
             afterSubmit: function(data) {
-                var ans = utils.errTextFormat(data, "my-group-table");
+                var ans = gridLib.errTextFormat(data, "my-group-table");
                 window.location.reload();
                 return ans;
             },
@@ -492,7 +492,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
             onClickButton: function() {
                 var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                 if (!groupId) return false;
-                regGroup.Register("dialog-reg-group", groupId, "events-table");
+                groupLib.Register("dialog-reg-group", groupId, "events-table");
             }
         }
     );
@@ -506,7 +506,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
         datatype: "json",
         mtype: "POST",
         colNames: {{.group.ColNames}},
-        colModel: grid.SetPrimitive({{.group.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.group.ColModel}}),
         pager: "#group-table-pager",
         gridview: true,
         sortname: "id",
@@ -541,7 +541,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.reg.ColNames}},
-        colModel: grid.SetPrimitive({{.reg.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.reg.ColModel}}),
         pager: "#reg-table-pager",
         gridview: true,
         sortname: "id",
@@ -601,7 +601,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.groupreg.ColNames}},
-        colModel: grid.SetPrimitive({{.groupreg.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.groupreg.ColModel}}),
         pager: "#groupreg-table-pager",
         gridview: true,
         sortname: "id",
@@ -637,14 +637,14 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
             var group_id = $("#groupreg-table").jqGrid("getCell", row_id, "group_id");
             var event_id = $("#groupreg-table").jqGrid("getCell", row_id, "event_id");
 
-            console.log("groupreg.ColModel: ", grid.SetPrimitive({{.groupreg.ColModel}}));
+            console.log("groupreg.ColModel: ", gridLib.SetPrimitive({{.groupreg.ColModel}}));
 
             $("#"+subgrid_id+"_t").jqGrid({
                 url: "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
                 colNames: {{.groupreg.SubColNames}},
-                colModel: grid.SetPrimitive({{.groupreg.SubColModel}}),
+                colModel: gridLib.SetPrimitive({{.groupreg.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
@@ -719,7 +719,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils) {
         mtype: "POST",
         treeGrid: false,
         colNames: {{.events.ColNames}},
-        colModel: grid.SetPrimitive({{.events.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.events.ColModel}}),
         pager: "#events-table-pager",
         gridview: true,
         sortname: "id",

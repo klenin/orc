@@ -1,57 +1,5 @@
-define(["utils", "datepicker/datepicker", "blank", "grid-utils"],
-function(utils, datepicker, blank, gridUtils) {
-
-    function timePicker(e) {
-        $(e).timepicker({"timeFormat": "HH:mm:ss"});
-    }
-
-    function timeFormat(cellvalue, options, rowObject) {
-        return cellvalue != undefined ? cellvalue.slice(11, 19) : "";
-    }
-
-    function timeValidator(e) {
-        var pattern = /^[0-2][0-9]:[0-6][0-9]:[0-6][0-9]$/;
-        if (!(pattern.test(e))) {
-            return [false, "Неверный формат времени. (HH:mm:ss)"];
-        }
-
-        return [true, ""];
-    }
-
-    function dateFormat(cellvalue, options, rowObject) {
-        return cellvalue != undefined ? cellvalue.slice(0, 10) : "";
-    }
-
-    function timeStampFormat(cellvalue, options, rowObject) {
-        console.log(cellvalue)
-        return cellvalue != undefined ?
-                cellvalue.slice(0, 10)+" "
-                +cellvalue.slice(11, 19)
-            :
-                "";
-    }
-
-    function SetPrimitive(colModel) {
-        for (i = 0; i < colModel.length; ++i) {
-            if (colModel[i].type != undefined && colModel[i].type === "date") {
-                colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["formatter"] = dateFormat;
-            } else if (colModel[i].type != undefined && colModel[i].type === "time") {
-                colModel[i]["editrules"]["custom_func"] = timeValidator;
-                colModel[i]["editoptions"]["dataInit"] = timePicker;
-                colModel[i]["searchoptions"]["dataInit"] = timePicker;
-                colModel[i]["formatter"] = timeFormat;
-            } else if (colModel[i].type != undefined && colModel[i].type === "timestamp") {
-                // datetimepicker
-                colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["formatter"] = timeStampFormat;
-            }
-            continue;
-        }
-        return colModel;
-    }
+define(["utils", "blank", "grid_lib"],
+function(utils, blank, gridLib) {
 
     function AddSubTable(subgrid_id, row_id, index, tableName, gridId, data) {
         console.log("AddSubTable");
@@ -296,7 +244,7 @@ function(utils, datepicker, blank, gridUtils) {
                 {
                     caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету участника группы",
                     onClickButton: function() {
-                        var personId = gridUtils.getCurrRowId(subTId);
+                        var personId = gridLib.getCurrRowId(subTId);
                         if (!personId) return false;
                         var faceId = $("#" + subTId).jqGrid("getCell", personId, "face_id");
                         blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request");
@@ -308,7 +256,6 @@ function(utils, datepicker, blank, gridUtils) {
 
     return {
         AddSubTable: AddSubTable,
-        SetPrimitive: SetPrimitive,
     };
 
 });

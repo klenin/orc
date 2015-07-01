@@ -1,4 +1,4 @@
-define(["utils", "grid-utils"], function(utils, gridUtils) {
+define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
 
     function Register(dialogId, groupId, eventTableId) {
         $("#"+dialogId).dialog({
@@ -15,10 +15,10 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
                     utils.postRequest(
                         data,
                         function(response) {
-                            gridUtils.showServerPromtInDialog($("#"+dialogId), response["result"]);
-                            if (response["result"] === "ok") {
-                                window.location.reload();
-                            }
+                            gridLib.showServerPromtInDialog($("#"+dialogId), response["result"]);
+                            // if (response["result"] === "ok") {
+                            //     window.location.reload();
+                            // }
                         },
                         "/groupcontroller/register"
                     );
@@ -69,7 +69,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
                     utils.postRequest(
                         data,
                         function(response) {
-                            gridUtils.showServerPromtInDialog($("#"+dialogId), response["result"]);
+                            gridLib.showServerPromtInDialog($("#"+dialogId), response["result"]);
                         },
                         "/groupcontroller/addperson"
                     );

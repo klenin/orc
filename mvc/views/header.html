@@ -1,7 +1,11 @@
 ﻿{{define "header"}}
+
 <!doctype html>
+
 <head>
+
 <title>Система учета участников мероприятий</title>
+
 <meta http-equiv="Content-Type"
       content="text/html; charset=utf-8"/>
 
@@ -74,12 +78,13 @@
     </div>
 </div>
 <script type="text/javascript">
-    require(["utils"],
-    function(utils) {
+    require(["user_lib"],
+    function(userLib) {
         $(document).ready(function() {
-            utils.checkSession();
+            userLib.CheckSession();
         });
     });
 </script>
 <hr/>
+
 {{end}}
