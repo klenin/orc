@@ -309,7 +309,7 @@ function(reqUtils, grid, utils, resetPass, importForms, list, blank, regGroup) {
                 onClickButton: function() {
                     var groupId = $("#grid-table").jqGrid("getGridParam", "selrow");
                     if (!groupId) return false;
-                    regGroup.Registration("dialog-reg-group", groupId, "events-reg-table");
+                    regGroup.Register("dialog-reg-group", groupId, "events-reg-table");
                 }
             }
         );

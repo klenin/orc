@@ -1,6 +1,6 @@
 define(["utils", "grid-utils"], function(utils, gridUtils) {
 
-    function Registration(dialogId, groupId, eventTableId) {
+    function Register(dialogId, groupId, eventTableId) {
         $("#"+dialogId).dialog({
             modal: true,
             toTop: "150",
@@ -11,7 +11,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
                     var eventId = $("#"+eventTableId).jqGrid("getGridParam", "selrow");
                     if (!eventId) return false;
                     var data = { "group_id": groupId, "event_id": eventId };
-                    console.log("Registration group: ", data);
+                    console.log("Register group: ", data);
                     utils.postRequest(
                         data,
                         function(response) {
@@ -82,7 +82,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
     }
 
     return {
-        Registration: Registration,
+        Register: Register,
         AddPerson: AddPerson,
     };
 
