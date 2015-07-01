@@ -104,8 +104,8 @@ $(function() {
     $("#tabs").tabs();
 });
 
-require(["grid-utils", "custom-grid", "reg-group", "blank", "reset-pass", "utils", "add-person"],
-function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
+require(["grid-utils", "custom-grid", "reg-group", "blank", "reset-pass", "utils"],
+function(utils, grid, regGroup, blank, resetPass, reqUtils) {
 
     var valid = false;
     console.log({{.}});
@@ -424,7 +424,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
                     onClickButton: function() {
                         var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                         if (!groupId) return false;
-                        person.AddPerson("dialog-add-person", groupId);
+                        regGroup.AddPerson("dialog-add-person", groupId);
                         // !!!
                         window.location.reload();
                     }
