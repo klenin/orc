@@ -42,7 +42,7 @@ define(["grid-utils"], function(gridUtils) {
         var user_id = gridUtils.getCurrRowId(gridId);
         if (user_id == -1) return false;
 
-        location.href = "/handler/login/"+user_id;
+        location.href = "/usercontroller/login/"+user_id;
     }
 
     function sendEmailWellcomeToProfile(gridId, dialog) {
@@ -50,9 +50,9 @@ define(["grid-utils"], function(gridUtils) {
         if (user_id == -1) return false;
 
         postRequest(
-            { "action": "sendEmailWellcomeToProfile", "user_id": user_id },
+            { "user_id": user_id },
             function(data) { gridUtils.showServerPromtInDialog(dialog, data["result"]); },
-            "/handler"
+            "/usercontroller/sendemailwellcometoprofile"
         );
     }
 

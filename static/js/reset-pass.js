@@ -53,7 +53,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
                     utils.postRequest(
                         { "pass": $("#"+passId1).val(), "id": id },
                         function(data) { gridUtils.showServerPromtInDialog($("#"+dialogId), data["result"]); },
-                        "/handler/resetpassword"
+                        "/usercontroller/resetpassword"
                     );
                 },
                 "Отмена": function() {

@@ -8,6 +8,14 @@ import (
     "strconv"
 )
 
+func (c *BaseController) Handler() *Handler {
+    return new(Handler)
+}
+
+type Handler struct {
+    Controller
+}
+
 func (this *Handler) GetEditHistoryData() {
     data, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {

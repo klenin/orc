@@ -5,8 +5,10 @@ import (
     "github.com/orc/db"
     "github.com/orc/mvc/models"
     "github.com/orc/sessions"
-    "net/http"
+    "github.com/orc/utils"
     "html/template"
+    "net/http"
+    "strings"
 )
 
 const HASH_SIZE = 32
@@ -51,23 +53,6 @@ func (this *Controller) Render(filenames []string, tmpname string, data interfac
     }
 }
 
-func (this *Controller) isAdmin() bool {
-    userId, err := this.CheckSid()
-    if err != nil {
-        return false
-    }
-
-    var role string
-    user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": userId})
-    err = db.SelectRow(user, []string{"role"}).Scan(&role)
-    if err != nil || role == "user" {
-        return false
-    }
-
-    return role == "admin"
-}
-
 func (this *Controller) CheckSid() (id int, result error)  {
     userSid := sessions.GetValue("sid", this.Request)
     if !sessions.CheckSession(this.Response, this.Request) || userSid == nil {
@@ -85,9 +70,53 @@ func (this *Controller) CheckSid() (id int, result error)  {
     return id, nil
 }
 
+func (this *Controller) isAdmin() bool {
+    userId, err := this.CheckSid()
+    if err != nil {
+        return false
+    }
+
+    var role string
+    user := this.GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"id": userId})
+    err = db.SelectRow(user, []string{"role"}).Scan(&role)
+    if err != nil || role == "user" {
+        return false
+    }
+
+    return role == "admin"
+}
+
+func WellcomeToProfile(w http.ResponseWriter, r *http.Request) {
+    newContreoller := new(BaseController).Handler()
+
+    parts := strings.Split(r.URL.Path, "/")
+    token := parts[len(parts)-1]
+
+    user := newContreoller.GetModel("users")
+    user.LoadWherePart(map[string]interface{}{"token": token})
+
+    var id int
+    err := db.SelectRow(user, []string{"id"}).Scan(&id)
+    if utils.HandleErr("[WellcomeToProfile]: ", err, w) || id == 0 {
+        return
+    }
+
+    sid := utils.GetRandSeq(HASH_SIZE)
+    user = newContreoller.GetModel("users")
+    user.GetFields().(*models.User).Sid = sid
+    user.GetFields().(*models.User).Enabled = true
+    user.LoadWherePart(map[string]interface{}{"id": id})
+    db.QueryUpdate(user).Scan()
+
+    sessions.SetSession(w, map[string]interface{}{"sid": sid})
+
+    http.Redirect(w, r, "/usercontroller/showcabinet", 200)
+}
+
 type VirtController interface {
     GetModel(tableName string) models.VirtEntity
     Render(filename string, data interface{})
-    isAdmin() bool
     CheckSid() (id int, result bool)
+    isAdmin() bool
 }
