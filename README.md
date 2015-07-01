@@ -80,17 +80,9 @@ Add to httpd-vhosts.conf:
         DocumentRoot "path/to/localhost"
         ServerName localhost
 
-        # Add directives from routes.txt
+        ProxyPass /examplecontroller/controlleraction/args http://localhost:6543/examplecontroller/controlleraction/args
 
     </VirtualHost>
-
-Generate routes:
-
-    $ export HOST="http://localhost:6543"
-    $ export LINK="events"
-    $ go run gen.go > routes.txt
-
-
 
 [1]: https://golang.org
 [2]: http://www.postgresql.org
