@@ -80,7 +80,15 @@ Add to httpd-vhosts.conf:
         DocumentRoot "path/to/localhost"
         ServerName localhost
 
+        ProxyPass /js http://localhost:6543/js
+        ProxyPass /css http://localhost:6543/css
+        ProxyPass /img http://localhost:6543/img
+
         ProxyPass /examplecontroller/controlleraction/args http://localhost:6543/examplecontroller/controlleraction/args
+
+        # Other directives here
+
+        ProxyPassReverse /same/path/ http://localhost:6543
 
     </VirtualHost>
 
