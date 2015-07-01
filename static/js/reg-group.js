@@ -20,7 +20,7 @@ define(["utils", "grid-utils"], function(utils, gridUtils) {
                                 window.location.reload();
                             }
                         },
-                        "/gridcontroller/reggroup"
+                        "/groupcontroller/register"
                     );
                 },
                 "Отмена": function() {

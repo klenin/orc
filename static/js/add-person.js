@@ -41,7 +41,7 @@ define(["utils", "grid-utils", "blank"], function(utils, gridUtils, blank) {
                         function(response) {
                             gridUtils.showServerPromtInDialog($("#"+dialogId), response["result"]);
                         },
-                        "/handler/addperson"
+                        "/groupcontroller/addperson"
                     );
                 },
                 "Отмена": function() {

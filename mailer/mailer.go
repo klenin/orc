@@ -109,8 +109,8 @@ func InviteToGroup(to, address, token, headName, groupName string) bool {
         From: admin.Name,
         To: to,
         Subject: `Приглашение в группу "`+groupName+`"`,
-        ConfirmationUrl: Server+"/handler/confirminvitationtogroup/"+token,
-        RejectionUrl: Server+"/handler/rejectinvitationtogroup/"+token,
+        ConfirmationUrl: Server+"/groupcontroller/confirminvitationtogroup/"+token,
+        RejectionUrl: Server+"/groupcontroller/rejectinvitationtogroup/"+token,
         HeadName: headName,
         GroupName: groupName}
 
