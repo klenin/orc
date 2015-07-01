@@ -73,8 +73,8 @@ func SendConfirmEmail(to, address, token string) bool {
         From: admin.Name,
         To: to,
         Subject: "Подтверждение регистрации",
-        ConfirmationUrl: Server+"/handler/confirmuser/"+token,
-        RejectionUrl: Server+"/handler/rejectuser/"+token}
+        ConfirmationUrl: Server+"/registrationcontroller/confirmuser/"+token,
+        RejectionUrl: Server+"/registrationcontroller/rejectuser/"+token}
 
     return SendEmail(address, ComfirmRegistrationEmailTmp, context)
 }
@@ -139,7 +139,7 @@ func SendEmailWellcomeToProfile(to, address, token string) bool {
         From: admin.Name,
         To: to,
         Subject: `Система учета учатников мероприятий`,
-        ConfirmationUrl: Server+"/handler/wellcometoprofile/"+token,}
+        ConfirmationUrl: Server+"/wellcometoprofile/"+token,}
 
     return SendEmail(address, WellcomeToProfileEmailTmp, context)
 }
