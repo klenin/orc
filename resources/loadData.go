@@ -35,13 +35,12 @@ func Load() {
     loadEvents()
     loadEventTypes()
     loadForms()
-    loadParamTypes()
 }
 
 func LoadAdmin() {
     base := new(controllers.BaseController)
 
-    result, reg_id := base.Handler().HandleRegister("admin", "password", "secret.oasis.3805@gmail.com", "admin")
+    result, reg_id := base.RegistrationController().Register("admin", "password", "secret.oasis.3805@gmail.com", "admin")
 
     if result != "ok" {
         utils.HandleErr("[LoadAdmin]: "+result, nil, nil)
@@ -61,14 +60,14 @@ func LoadAdmin() {
     }
 
     token := res[0].(map[string]interface{})["token"].(string)
-    base.Handler().ConfirmUser(token)
+    base.RegistrationController().ConfirmUser(token)
 }
 
 func loadUsers() {
     base := new(controllers.BaseController)
     for i := 0; i < USER_COUNT; i++ {
         rand.Seed(int64(i))
-        result, reg_id := base.Handler().HandleRegister("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "", "user")
+        result, reg_id := base.RegistrationController().Register("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "", "user")
         if result != "ok" {
             utils.HandleErr("[loadUsers]: "+result, nil, nil)
             continue
@@ -87,7 +86,7 @@ func loadUsers() {
         }
 
         token := res[0].(map[string]interface{})["token"].(string)
-        base.Handler().ConfirmUser(token)
+        base.RegistrationController().ConfirmUser(token)
     }
 }
 
@@ -136,7 +135,7 @@ func loadForms() {
     }
 }
 
-func loadParamTypes() {
+func LoadParamTypes() {
     paramTypesNames, _ := ioutil.ReadFile("./resources/param-type-name")
     paramTypesSourse := strings.Split(string(paramTypesNames), "\n")
     for i := 0; i < len(paramTypesSourse); i++ {
