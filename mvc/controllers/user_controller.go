@@ -308,3 +308,98 @@ func (this *UserController) SendEmailWellcomeToProfile() {
 
     utils.SendJSReply(map[string]interface{}{"result": "Письмо отправлено"}, this.Response)
 }
+
+func (this *GridController) ConfirmOrRejectPersonRequest() {
+    if !sessions.CheckSession(this.Response, this.Request) {
+        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+        return
+    }
+
+    if !this.isAdmin() {
+        http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
+        return
+    }
+
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    eventId, err := strconv.Atoi(request["event_id"].(string))
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    regId, err := strconv.Atoi(request["reg_id"].(string))
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    query := `SELECT param_values.value, users.id as user_id
+        FROM reg_param_vals
+        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        INNER JOIN params ON params.id = param_values.param_id
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE params.id in (4, 5, 6, 7) AND users.id in (
+            SELECT users.id FROM registrations INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN users ON users.id = faces.user_id
+            WHERE registrations.id = $1
+        ) ORDER BY params.id;`
+
+    data := db.Query(query, []interface{}{regId})
+
+    if len(data) < 2 {
+        utils.SendJSReply(
+            map[string]interface{}{"result": "Нет регистрационных данных пользователя"},
+            this.Response)
+        return
+    }
+
+    email := data[0].(map[string]interface{})["value"].(string)
+
+    to := data[1].(map[string]interface{})["value"].(string)
+    to += " " + data[2].(map[string]interface{})["value"].(string)
+    to += " " + data[3].(map[string]interface{})["value"].(string)
+
+    event := db.Query(
+        "SELECT name FROM events WHERE id=$1;",
+        []interface{}{eventId})[0].(map[string]interface{})["name"].(string)
+
+    if request["confirm"].(bool) {
+        if eventId == 1 {
+            utils.SendJSReply(map[string]interface{}{"result": "Эту заявку нельзя подтвердить письмом"}, this.Response)
+        } else {
+            if mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, true) {
+                utils.SendJSReply(map[string]interface{}{"result": "Письмо с подтверждением заявки отправлено"}, this.Response)
+            } else {
+                utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с подтверждением заявки не отправлено"}, this.Response)
+            }
+        }
+
+    } else {
+        if eventId == 1 {
+            utils.SendJSReply(map[string]interface{}{"result": "Эту заявку нельзя отклонить письмом"}, this.Response)
+        } else {
+            query := `DELETE
+                FROM param_values USING reg_param_vals
+                WHERE param_values.id in (SELECT reg_param_vals.param_val_id WHERE reg_param_vals.reg_id = $1);`
+            db.Query(query, []interface{}{regId})
+
+            query = `DELETE FROM registrations WHERE id = $1;`
+            db.Query(query, []interface{}{regId})
+
+            if mailer.SendEmailToConfirmRejectPersonRequest(to, email, event, false) {
+                utils.SendJSReply(map[string]interface{}{"result": "Письмо с отклонением заявки отправлено"}, this.Response)
+            } else {
+                utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с отклонением заявки не отправлено"}, this.Response)
+            }
+        }
+    }
+}

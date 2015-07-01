@@ -12,6 +12,14 @@ import (
     "strings"
 )
 
+func (c *BaseController) Handler() *Handler {
+    return new(Handler)
+}
+
+type Handler struct {
+    Controller
+}
+
 func (this *GridController) Load(tableName string) {
     if tableName != "events" && !sessions.CheckSession(this.Response, this.Request) {
         http.Error(this.Response, "Unauthorized", 400)
