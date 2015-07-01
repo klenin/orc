@@ -42,7 +42,7 @@ func main() {
     // base.Index().LoadContestsFromCats()
 
     http.Handle("/", new(router.FastCGIServer))
-    http.HandleFunc("/handler/wellcometoprofile/", controllers.WellcomeToProfile)
+    http.HandleFunc("/wellcometoprofile/", controllers.WellcomeToProfile)
     http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js"))))
     http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
     http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))
