@@ -10,7 +10,7 @@ import (
 )
 
 const HASH_SIZE = 32
-const Server = "http://secret-oasis-3805.herokuapp.com"
+const Server = "my server link"
 
 var err error
 
@@ -40,8 +40,8 @@ type SmtpTemplateData struct {
 
 var admin = &Admin{
     Name:       "Secret Oasis",
-    EmailAdmin: "email of admin",
-    Password:   "password of email",
+    EmailAdmin: "secret.oasis.3805@gmail.com",
+    Password:   "mysterious-reef-6215",
     SMTPServer: "smtp.gmail.com",
     Port:       587}
 

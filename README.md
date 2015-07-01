@@ -68,6 +68,10 @@ Run with downloading test data:
         SMTPServer: "smtp.gmail.com",
         Port:       587}
 
+!!! Fix server link:
+
+    const Server = "my server link"
+
 ### Configuring [Apache][6]
 
 Install modules [mod_proxy][7] and [mod_proxy_http][8]. Uncomment lines in `httpd.conf`:
