@@ -311,7 +311,7 @@ func (this *RegistrationController) Logout() {
     user := this.GetModel("users")
     user.LoadWherePart(map[string]interface{}{"id": userId})
     err = db.SelectRow(user, []string{"enabled"}).Scan(&enabled)
-    if utils.HandleErr("[Handle::HandleLogout]: ", err, this.Response) {
+    if utils.HandleErr("[RegistrationController::Logout]: ", err, this.Response) {
         utils.SendJSReply(map[string]string{"result": err.Error()}, this.Response)
         return
     }
@@ -332,7 +332,7 @@ func (this *RegistrationController) ConfirmUser(token string) {
     user.GetFields().(*models.User).Token = token
     err := db.SelectRow(user, []string{"id"}).Scan(&userId)
 
-    if utils.HandleErr("[Handle::ConfirmUser]: ", err, this.Response) {
+    if utils.HandleErr("[RegistrationController::ConfirmUser]: ", err, this.Response) {
         if this.Response != nil {
             this.Render([]string{"mvc/views/msg.html"}, "msg", err.Error())
         }
@@ -356,7 +356,7 @@ func (this *RegistrationController) RejectUser(token string) {
     user.GetFields().(*models.User).Token = token
     err := db.SelectRow(user, []string{"id"}).Scan(&userId)
 
-    if utils.HandleErr("[Handle::RejectUser]: ", err, this.Response) {
+    if utils.HandleErr("[RegistrationController::RejectUser]: ", err, this.Response) {
         if this.Response != nil {
             this.Render([]string{"mvc/views/msg.html"}, "msg", err.Error())
         }

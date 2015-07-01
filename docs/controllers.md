@@ -2,7 +2,12 @@
 
 ![controllers][scheme-1]
 
-## controller.go
+UPDATE-1
+--------
+
+![controllers][scheme-2]
+
+## Controller
 
 #### GetModel
 
@@ -20,22 +25,42 @@
 
 Возвращает истину или ложь: проверка роли пользователя.
 
-## auth.go
+## RegistrationController
 
-#### HandleRegister
+#### EventRegisterAction
+
+Регистрация пользователя в мероприятии.
+
+#### InsertUserParams
+
+Сохранение папаметров анкеты.
+
+#### Register
 
 Регистрация пользователя в системе. Создание `физического лица` и `регистрации`.
 Пароль пользователя хранится в базе в неявном виде. В качестве соли для генерации хеша пароля используется текущее время.
 
-#### HandleLogin
+#### Login
 
 Вход в систему. Начало сеанса: генерация SID, хранение его в куках.
 
-#### HandleLogout
+#### Logout
 
 Выход из системы. Окончание сеанса: чистка SID и кук.
 
-## form-import.go
+#### ConfirmUser
+
+#### RejectUser
+
+## GridController
+
+#### GetSubTable
+
+#### CreateGrid
+
+#### EditGridRow
+
+#### JsonToExcel
 
 #### GetEventTypesByEventId
 
@@ -45,8 +70,6 @@
 
 Копирование форм из последнесозданных мероприятий указанных типов мероприятий.
 
-## person-list.go
-
 #### GetPersonsByEventId
 
 Список значений об участниках мероприятия по параметрам анкет.
@@ -55,7 +78,11 @@
 
 Список параметров по идентификатору мероприятия.
 
-## index.go
+#### Load
+
+Подгрузка данных в грид для любой таблицы БД.
+
+## IndexController
 
 #### Index
 
@@ -73,7 +100,13 @@
 
 Создание мероприятия, соответсвующих форм и полей для регистрации пользователей в системе.
 
-## item.go
+## BlankController
+
+#### GetPersonRequestFromGroup
+
+#### GetPersonRequest
+
+#### EditParams
 
 #### GetEditHistoryData
 
@@ -83,15 +116,7 @@
 
 #### GetRequest
 
-#### RegPerson
-
-#### InsertUserParams
-
-## load.go
-
-#### Load
-
-Подгрузка данных в грид для любой таблицы БД.
+## Handler
 
 #### UserGroupsLoad
 
@@ -113,21 +138,9 @@
 
 Подгрузка данных об участниках группы.
 
-## blank.go
+## GroupController
 
-#### GetPersonRequestFromGroup
-
-#### GetPersonRequest
-
-#### ConfirmOrRejectPersonRequest
-
-#### EditParams
-
-#### AddPerson
-
-## groups.go
-
-#### RegGroup
+#### Register
 
 #### ConfirmInvitationToGroup
 
@@ -135,28 +148,23 @@
 
 #### IsRegGroup
 
-## handler.go
+#### AddPerson
 
-#### GetList
-
-#### Index
+## UserController
 
 #### ShowCabinet
 
-#### WellcomeToProfile
-
 #### Login
 
-#### CheckEnableOfUser
+#### CheckEnable
 
-## grid-handler.go
+#### CheckSession
 
-#### GetSubTable
+#### ResetPassword
 
-#### CreateGrid
+#### ConfirmOrRejectPersonRequest
 
-#### EditGridRow
+#### SendEmailWelcomeToPofile
 
-#### JsonToExcel
-
-[scheme-1]: ../docs/img/controllers.png  "controllers"
+[scheme-1]: ../docs/img/controllers.png "controllers"
+[scheme-2]: ../docs/img/controllers-update-1.png "controllers"
