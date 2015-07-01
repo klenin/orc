@@ -158,7 +158,7 @@ function(utils, gridLib, datepicker, kladr) {
         }
 
         var history = $("<p/>", {id: "history"})
-            .append($("<h5/>", {text: "Ранее заполненные анкеты"}))
+            .append($("<b/>", {text: "Ранее заполненные анкеты"})).append("<br/>")
             .append($("<select/>", {}))
             .append($("<input/>", {type: "button", value: "выбрать", id: "send-btn", name: "submit"}));
 
@@ -166,10 +166,10 @@ function(utils, gridLib, datepicker, kladr) {
 
         if (regId) {
             $("#"+dialogId)
-                .append($("<p/>", {id: "edit-history"}))
-                .append($("<input/>", {type: "button", value: "о редактировании полей", id: "edit-history-btn", name: "submit"}));
+                .append($("<input/>", {type: "checkbox", id: "edit-history-box", width: "auto"}))
+                .append($("<label/>", {id: "edit-history", style: "display:inline;"}).text("Информация о редактировании полей"));
 
-            $("#"+dialogId+" #edit-history-btn").click(function() {
+            $("#"+dialogId+" #edit-history-box").change(function() {
                 console.log("ShowBlank: ", { "reg_id": regId });
                 utils.postRequest(
                     { "reg_id": regId },
@@ -178,7 +178,12 @@ function(utils, gridLib, datepicker, kladr) {
                             ShowServerAns(-1, response, "now #server-answer");
                             return false;
                         }
-                        ExportDataLoad_(response["data"], dialogId);
+
+                        if ($("#"+dialogId+" #edit-history-box").is(":checked")) {
+                            SetEditHistoryData(response["data"], dialogId);
+                        } else {
+                            ClearEditHistoryData(response["data"], dialogId);
+                        }
                     },
                     "/blankcontroller/getedithistorydata"
                 );
@@ -373,8 +378,8 @@ function(utils, gridLib, datepicker, kladr) {
         }
     }
 
-    function ExportDataLoad_(data, dialogId) {
-        console.log("ExportDataLoad_: ", data);
+    function SetEditHistoryData(data, dialogId) {
+        console.log("SetEditHistoryData: ", data);
 
         for (var i = 0; i < data.length; ++i) {
             var f_id = data[i]["form_id"];
@@ -382,8 +387,20 @@ function(utils, gridLib, datepicker, kladr) {
             var p_v = data[i]["edit_date"].replace(/[T,Z]/g, " ")+" - "+data[i]["login"];
 
             $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").remove();
-            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id).append($("<br/>"));
-            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id).append($("<div/>", {text: p_v}));
+            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id).append($("<div/>"));
+            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").append($("<br/>"));
+            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").append($("<div/>", {text: p_v}));
+        }
+    }
+
+    function ClearEditHistoryData(data, dialogId) {
+        console.log("SetEditHistoryData: ", data);
+
+        for (var i = 0; i < data.length; ++i) {
+            var f_id = data[i]["form_id"];
+            var p_id = data[i]["param_id"];
+
+            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").remove();
         }
     }
 
@@ -392,11 +409,9 @@ function(utils, gridLib, datepicker, kladr) {
         getFormData: getFormData,
         getListHistoryEvents: getListHistoryEvents,
         ShowBlank: ShowBlank,
-        ExportDataLoad: ExportDataLoad,
-
+        ShowPersonBlank: ShowPersonBlank,
         ShowPersonBlankFromGroup: ShowPersonBlankFromGroup,
         ShowServerAns: ShowServerAns,
-        ShowPersonBlank: ShowPersonBlank,
     };
 
 });
