@@ -713,7 +713,7 @@ function(utils, grid, regGroup, blank, resetPass, reqUtils, person) {
     }).trigger("resize");
 
     $("#events-table").jqGrid({
-        url: "/gridhandler/load/events",
+        url: "/gridcontroller/load/events",
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
