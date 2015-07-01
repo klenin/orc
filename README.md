@@ -72,6 +72,11 @@ Run with downloading test data:
 
     const Server = "my server link"
 
+!!! Admin credentials:
+
+    Login: admin
+    Password: password
+
 ### Configuring [Apache][6]
 
 Install modules [mod_proxy][7] and [mod_proxy_http][8]. Uncomment lines in `httpd.conf`:
