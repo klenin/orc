@@ -40,8 +40,8 @@ type SmtpTemplateData struct {
 
 var admin = &Admin{
     Name:       "Secret Oasis",
-    EmailAdmin: "secret.oasis.3805@gmail.com",
-    Password:   "mysterious-reef-6215",
+    EmailAdmin: "email of admin",
+    Password:   "password of email",
     SMTPServer: "smtp.gmail.com",
     Port:       587}
 
