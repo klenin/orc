@@ -59,6 +59,15 @@ Run with downloading test data:
 
     $ go build && orc.exe -test-data=true
 
+!!! Fix `EmailAdmin` and `Password` of admin data in mailer/mailer.go:
+
+    var admin = &Admin{
+        Name:       "Secret Oasis",
+        EmailAdmin: "email of admin",
+        Password:   "password of email",
+        SMTPServer: "smtp.gmail.com",
+        Port:       587}
+
 ### Configuring [Apache][6]
 
 Install modules [mod_proxy][7] and [mod_proxy_http][8]. Uncomment lines in `httpd.conf`:
