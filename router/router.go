@@ -12,7 +12,7 @@ type FastCGIServer struct{}
 func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     url := r.URL
     parts := strings.Split(url.Path, "/")
-    controllerName := "index"
+    controllerName := "indexcontroller"
     methodName := "index"
 
     if len(parts) < 2 {

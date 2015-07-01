@@ -11,7 +11,7 @@ import (
     "fmt"
 )
 
-func (c *BaseController) Index() *IndexController {
+func (c *BaseController) IndexController() *IndexController {
     return new(IndexController)
 }
 
