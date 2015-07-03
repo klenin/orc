@@ -2,12 +2,13 @@
 
 {{template "header"}}
 
-<div id="list"></div>
+<div id="container">
+    <div id="list"></div>
+</div>
 
 <script type="text/javascript">
 $(document).ready(function() {
-    var table = $("<table/>", {style: "border: 1px solid #4c9ac3;"});
-
+    var table = $("<table/>", {style: "border: 1px solid #4c9ac3; color: black;"});
     var data = {{.}};
     console.log("list: ", data);
 
@@ -18,8 +19,10 @@ $(document).ready(function() {
 
     for (i = 0; i < data.length; ++i) {
         var tr = $("<tr/>");
-        for (var key in data[i]["data"]) {
-            var td = $("<td/>", {style: "border: 1px solid #4c9ac3;"}).text(data[i]["data"][key]);
+        for (j = 0; j < data[0]["data"].length; ++j) {
+            var td = data[0]["data"].length == 1
+                ? $("<td/>", {style: "border: 1px solid #4c9ac3;"}).text(data[i]["data"])
+                : $("<td/>", {style: "border: 1px solid #4c9ac3;"}).text(data[i]["data"][j]);
             tr.append(td);
         }
         table.append(tr);

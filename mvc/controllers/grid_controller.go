@@ -298,13 +298,13 @@ func (this *GridController) GetPersonsByEventId() {
     query := "SELECT params.name FROM params WHERE params.id in ("
 
     for k, v := range paramsIds {
-        param_id, err := strconv.Atoi(v)
+        paramId, err := strconv.Atoi(v)
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
         query += "$"+strconv.Itoa(k+1)+", "
-        queryParams = append(queryParams, param_id)
+        queryParams = append(queryParams, paramId)
     }
     query = query[:len(query)-2]
     query+=") ORDER BY id;"
@@ -316,13 +316,23 @@ func (this *GridController) GetPersonsByEventId() {
 
     result := []interface{}{0: map[string]interface{}{"id": -1, "data": caption}}
 
-    query = `SELECT param_values.reg_id as id, array_agg(param_values.value) as data
+    query = `SELECT
+        reg.id as id,
+        ARRAY(
+            SELECT param_values.value
+            FROM param_values
+            INNER JOIN registrations ON registrations.id = param_values.reg_id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN params ON params.id = param_values.param_id
+            WHERE param_values.param_id IN (` + strings.Join(db.MakeParams(len(queryParams)), ", ")
+    query += `) AND events.id = $` + strconv.Itoa(len(queryParams)+1) + ` AND registrations.id = reg.id ORDER BY param_values.param_id
+        ) as data
+
         FROM param_values
-        INNER JOIN registrations ON registrations.id = param_values.reg_id
-        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN registrations as reg ON reg.id = param_values.reg_id
+        INNER JOIN events as ev ON ev.id = reg.event_id
         INNER JOIN params ON params.id = param_values.param_id
-        WHERE params.id in (` + strings.Join(db.MakeParams(len(queryParams)), ", ")
-    query += ") AND events.id = $" + strconv.Itoa(len(queryParams)+1) + " GROUP BY param_values.reg_id ORDER BY param_values.reg_id;"
+        WHERE ev.id = $` + strconv.Itoa(len(queryParams)+1) + ` GROUP BY reg.id ORDER BY reg.id;`
 
     data := db.Query(query, append(queryParams, eventId))
 
