@@ -121,21 +121,27 @@ func (this *IndexController) CreateRegistrationEvent() {
         "name":          "Логин",
         "form_id":       formId1,
         "param_type_id": paramTextTypeId,
-        "identifier":    2})
+        "identifier":    2,
+        "required":      true,
+        "editable":      true})
     db.QueryInsert(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Пароль",
         "form_id":       formId1,
         "param_type_id": paramPassTypeId,
-        "identifier":    3})
+        "identifier":    3,
+        "required":      true,
+        "editable":      true})
     db.QueryInsert(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Подтвердите пароль",
         "form_id":       formId1,
         "param_type_id": paramPassTypeId,
-        "identifier":    4})
+        "identifier":    4,
+        "required":      true,
+        "editable":      true})
     db.QueryInsert(params, "").Scan()
 
     var paramEmailTypeId int
@@ -146,7 +152,9 @@ func (this *IndexController) CreateRegistrationEvent() {
         "name":          "E-mail",
         "form_id":       formId1,
         "param_type_id": paramTextTypeId,
-        "identifier":    5})
+        "identifier":    5,
+        "required":      true,
+        "editable":      true})
     db.QueryInsert(params, "").Scan()
 
     var formId2 int
@@ -160,20 +168,26 @@ func (this *IndexController) CreateRegistrationEvent() {
         "name":          "Фамилия",
         "form_id":       formId2,
         "param_type_id": paramTextTypeId,
-        "identifier":    6})
+        "identifier":    6,
+        "required":      true,
+        "editable":      true})
     db.QueryInsert(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Имя",
         "form_id":       formId2,
         "param_type_id": paramTextTypeId,
-        "identifier":    7})
+        "identifier":    7,
+        "required":      true,
+        "editable":      true})
     db.QueryInsert(params, "").Scan()
 
     params.LoadModelData(map[string]interface{}{
         "name":          "Отчество",
         "form_id":       formId2,
         "param_type_id": paramTextTypeId,
-        "identifier":    8})
+        "identifier":    8,
+        "required":      true,
+        "editable":      true})
     db.QueryInsert(params, "").Scan()
 }

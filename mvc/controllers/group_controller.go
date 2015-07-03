@@ -116,14 +116,8 @@ func (this *GroupController) Register() {
 
             var paramValId int
             paramValues := this.GetModel("param_values")
-            paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date, "user_id": userId})
+            paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date, "user_id": userId, "reg_id": regId})
             db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
-
-            regParamValue := this.GetModel("reg_param_vals")
-            regParamValue.LoadModelData(map[string]interface{}{
-                "reg_id":        regId,
-                "param_val_id":  paramValId})
-            db.QueryInsert(regParamValue, "").Scan()
         }
 
     }
@@ -211,9 +205,8 @@ func (this *GroupController) AddPerson() {
     // to, address, headName := "", "", ""
 
     query := `SELECT param_values.value
-        FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        FROM param_values
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
@@ -268,17 +261,11 @@ func (this *GroupController) AddPerson() {
 
         var paramValId int
         paramValues := this.GetModel("param_values")
-        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId})
+        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId, "reg_id": regId})
         err = db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
         if err, ok := err.(*pq.Error); ok {
             println(err.Code.Name())
         }
-
-        regParamValue := this.GetModel("reg_param_vals")
-        regParamValue.LoadModelData(map[string]interface{}{
-            "reg_id":       regId,
-            "param_val_id": paramValId})
-        db.QueryInsert(regParamValue, "").Scan()
 
         paramValueIds = append(paramValueIds, strconv.Itoa(paramValId))
 

@@ -52,8 +52,7 @@ func (this *BlankController) GetPersonRequestFromGroup() {
         INNER JOIN params ON forms.id = params.form_id
         INNER JOIN param_types ON param_types.id = params.param_type_id
         INNER JOIN param_values ON params.id = param_values.param_id
-        INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN group_registrations ON group_registrations.event_id = events.id
         INNER JOIN groups ON group_registrations.group_id = groups.id
@@ -97,8 +96,7 @@ func (this *BlankController) GetPersonRequest() {
         INNER JOIN params ON forms.id = params.form_id
         INNER JOIN param_types ON param_types.id = params.param_type_id
         INNER JOIN param_values ON params.id = param_values.param_id
-        INNER JOIN reg_param_vals ON reg_param_vals.param_val_id = param_values.id
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
             AND events.id = registrations.event_id
         WHERE registrations.id = $1 ORDER BY forms.id, params.id;`
 
@@ -149,19 +147,31 @@ func (this *BlankController) GetEditHistoryData() {
         return
     }
 
-    query := `SELECT params.id as param_id, forms.id as form_id,
-            param_values.date as edit_date, users.login
+    query := `SELECT params.id as param_id, forms.id as form_id, p.date as edit_date,
+        array_to_string(ARRAY(
+            SELECT param_values.value
+                FROM events
+                INNER JOIN events_forms ON events_forms.event_id = events.id
+                INNER JOIN forms ON events_forms.form_id = forms.id
+                INNER JOIN registrations ON events.id = registrations.event_id
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN users ON users.id = faces.user_id
+                INNER JOIN params ON params.form_id = forms.id
+                INNER JOIN param_types ON param_types.id = params.param_type_id
+                INNER JOIN param_values ON param_values.param_id = params.id
+                    AND registrations.id = param_values.reg_id
+                WHERE (params.id in (5, 6, 7) AND events.id = 1) and users.id = p.user_id
+        ), ' ') as login
         FROM events
         INNER JOIN events_forms ON events_forms.event_id = events.id
         INNER JOIN forms ON events_forms.form_id = forms.id
         INNER JOIN registrations ON events.id = registrations.event_id
-        INNER JOIN reg_param_vals ON reg_param_vals.reg_id = registrations.id
         INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
         INNER JOIN params ON params.form_id = forms.id
         INNER JOIN param_types ON param_types.id = params.param_type_id
-        INNER JOIN param_values ON param_values.param_id = params.id
-            AND reg_param_vals.param_val_id = param_values.id
-        INNER JOIN users ON users.id = param_values.user_id
+        INNER JOIN param_values as p ON p.param_id = params.id
+            AND p.reg_id = registrations.id
         WHERE registrations.id = $1;`
 
     utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{regId})}, this.Response)
@@ -192,13 +202,12 @@ func (this *BlankController) GetHistoryRequest() {
         INNER JOIN events_forms ON events_forms.event_id = events.id
         INNER JOIN forms ON events_forms.form_id = forms.id
         INNER JOIN registrations ON events.id = registrations.event_id
-        INNER JOIN reg_param_vals ON reg_param_vals.reg_id = registrations.id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
         INNER JOIN params ON params.form_id = forms.id
         INNER JOIN param_types ON param_types.id = params.param_type_id
         INNER JOIN param_values ON param_values.param_id = params.id
-            AND reg_param_vals.param_val_id = param_values.id
+            AND param_values.reg_id = registrations.id
         WHERE users.id = $1 AND events.id = $2;`
 
     utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{userId, eventId})}, this.Response)

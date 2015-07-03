@@ -13,6 +13,7 @@ type ParamValues struct {
     Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
     ParamId int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
     Value   string `name:"value" type:"text" null:"NULL" extra:""`
+    RegId   int    `name:"reg_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"registrations" refField:"id" refFieldShow:"id"`
     Date    string `name:"date" type:"timestamp" null:"NOT NULL" extra:""`
     UserId  int    `name:"user_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
 }
@@ -23,8 +24,8 @@ func (c *ModelManager) ParamValues() *ParamValuesModel {
     model.TableName = "param_values"
     model.Caption = "Значение параметров"
 
-    model.Columns = []string{"id", "param_id", "value", "date", "user_id"}
-    model.ColNames = []string{"ID", "Параметр", "Значение", "Дата", "Кто редактировал"}
+    model.Columns = []string{"id", "param_id", "value", "reg_id", "date", "user_id"}
+    model.ColNames = []string{"ID", "Параметр", "Значение", "Регистрация", "Дата", "Кто редактировал"}
 
     model.Fields = new(ParamValues)
     model.WherePart = make(map[string]interface{}, 0)
@@ -55,6 +56,9 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
         case "param_id":
             query += "forms.name || ': ' || params.name as name, "
             break
+        case "reg_id":
+            query += "registrations.id || ' - ' || events.name, "
+            break
         case "value":
             query += "param_values.value, "
             break
@@ -69,10 +73,12 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
 
     query = query[:len(query)-2]
 
-    query += ` FROM param_values
+    query += ` FROM registrations
+        INNER JOIN param_values ON param_values.reg_id = registrations.id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN forms ON forms.id = params.form_id
-        INNER JOIN users ON users.id = param_values.user_id`
+        INNER JOIN users ON users.id = param_values.user_id
+        INNER JOIN events ON events.id = registrations.event_id`
 
     where, params, _ := this.Where(filters, 1)
     if where != "" {
@@ -125,6 +131,20 @@ func (this *ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string
         array(SELECT users.id || ':' || users.login FROM users GROUP BY users.id ORDER BY users.id), ';') as name;`
     logins := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
+    query = `SELECT array_to_string(
+        array(SELECT registrations.id || ':' || registrations.id || ' - ' || events.name FROM registrations
+        INNER JOIN events ON events.id = registrations.event_id
+        GROUP BY registrations.id, events.name ORDER BY registrations.id), ';') as name;`
+    regs := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+
+    var hideUser bool
+
+    if isAdmin {
+        hideUser = false
+    } else {
+        hideUser = true
+    }
+
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",
@@ -150,6 +170,18 @@ func (this *ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string
             "editrules": map[string]interface{}{"required": true},
         },
         3: map[string]interface{} {
+            "index": "reg_id",
+            "name": "reg_id",
+            "editable": true,
+            "formatter": "select",
+            "edittype": "select",
+            "stype": "select",
+            "search": true,
+            "editrules": map[string]interface{}{"required": true},
+            "editoptions": map[string]string{"value": regs},
+            "searchoptions": map[string]string{"value": ":Все;"+regs},
+        },
+        4: map[string]interface{} {
             "index": "date",
             "name": "date",
             "editable": true,
@@ -160,7 +192,7 @@ func (this *ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string
             "searchoptions": map[string]interface{}{"sopt": []string{"eq", "ne"}, "dataInit": nil},
             "type": "timestamp",
         },
-        4: map[string]interface{} {
+        5: map[string]interface{} {
             "index": "user_id",
             "name": "user_id",
             "editable": true,
@@ -171,6 +203,7 @@ func (this *ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string
             "editrules": map[string]interface{}{"required": true},
             "editoptions": map[string]string{"value": logins},
             "searchoptions": map[string]string{"value": ":Все;"+logins},
+            "hidden": hideUser,
         },
     }
 }

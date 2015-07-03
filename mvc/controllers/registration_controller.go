@@ -62,7 +62,7 @@ func (this *RegistrationController) EventRegisterAction() {
         registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId})
         db.QueryInsert(registration, "RETURNING id").Scan(&regId)
 
-        if err = this.InsertUserParams(regId, data["data"].([]interface{})); err != nil {
+        if err = this.InsertUserParams(userId, regId, data["data"].([]interface{})); err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
         }
@@ -116,14 +116,15 @@ func (this *RegistrationController) EventRegisterAction() {
             return
         }
 
-        err = this.InsertUserParams(regId, data["data"].([]interface{}))
+        query := `SELECT users.id
+            FROM users
+            INNER JOIN faces ON faces.user_id = users.id
+            INNER JOIN registrations ON registrations.face_id = faces.id
+            WHERE registrations.id = $1;`
+        userId := db.Query(query, []interface{}{regId})[0].(map[string]interface{})["id"].(int)
+
+        err = this.InsertUserParams(userId, regId, data["data"].([]interface{}))
         if err != nil {
-            query := `SELECT users.id
-                FROM users
-                INNER JOIN faces ON faces.usr_id = users.id
-                INNER JOIN registrations ON registrations.face_id = faces.id
-                WHERE registrations.id = $1;`
-            userId := db.Query(query, []interface{}{regId})[0].(map[string]interface{})["id"].(int)
             db.QueryDeleteByIds("users", strconv.Itoa(userId))
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
             return
@@ -137,12 +138,7 @@ func (this *RegistrationController) EventRegisterAction() {
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
 
-func (this *RegistrationController) InsertUserParams(regId int, data []interface{}) (err error) {
-    userId, _ := this.CheckSid()
-    if userId == -1 {
-        userId = 1
-    }
-
+func (this *RegistrationController) InsertUserParams(userId, regId int, data []interface{}) (err error) {
     var paramValueIds []string
 
     date := time.Now().Format("2006-01-02T15:04:05Z00:00")
@@ -179,17 +175,11 @@ func (this *RegistrationController) InsertUserParams(regId int, data []interface
 
         var paramValId int
         paramValues := this.GetModel("param_values")
-        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId})
+        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId, "reg_id": regId})
         err = db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
         if err, ok := err.(*pq.Error); ok {
             println(err.Code.Name())
         }
-
-        regParamValue := this.GetModel("reg_param_vals")
-        regParamValue.LoadModelData(map[string]interface{}{
-            "reg_id":       regId,
-            "param_val_id": paramValId})
-        db.QueryInsert(regParamValue, "").Scan()
 
         paramValueIds = append(paramValueIds, strconv.Itoa(paramValId))
     }

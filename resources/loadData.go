@@ -39,20 +39,31 @@ func Load() {
 
 func LoadAdmin() {
     base := new(controllers.BaseController)
+    date := time.Now().Format("2006-01-02T15:04:05Z00:00")
 
-    result, reg_id := base.RegistrationController().Register("admin", "password", "secret.oasis.3805@gmail.com", "admin")
+    result, regId := base.RegistrationController().Register("admin", "password", "secret.oasis.3805@gmail.com", "admin")
 
     if result != "ok" {
         utils.HandleErr("[LoadAdmin]: "+result, nil, nil)
         return
     }
 
-    query := `SELECT users.token FROM registrations
+    query := `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
+        VALUES (5, 'admin', $1, NULL, $2);`
+    db.Exec(query, []interface{}{date, regId})
+    query = `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
+        VALUES (6, 'admin', $1, NULL, $2);`
+    db.Exec(query, []interface{}{date, regId})
+    query = `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
+        VALUES (7, 'admin', $1, NULL, $2);`
+    db.Exec(query, []interface{}{date, regId})
+
+    query = `SELECT users.token FROM registrations
         INNER JOIN events ON registrations.event_id = events.id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE events.id = $1 AND registrations.id = $2;`
-    res := db.Query(query, []interface{}{1, reg_id})
+    res := db.Query(query, []interface{}{1, regId})
 
     if len(res) == 0 {
         utils.HandleErr("[LoadAdmin]: ", errors.New("Data are not faund."), nil)
@@ -67,7 +78,7 @@ func loadUsers() {
     base := new(controllers.BaseController)
     for i := 0; i < USER_COUNT; i++ {
         rand.Seed(int64(i))
-        result, reg_id := base.RegistrationController().Register("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "", "user")
+        result, regId := base.RegistrationController().Register("user"+strconv.Itoa(i), "secret"+strconv.Itoa(i), "", "user")
         if result != "ok" {
             utils.HandleErr("[loadUsers]: "+result, nil, nil)
             continue
@@ -78,7 +89,7 @@ func loadUsers() {
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN users ON users.id = faces.user_id
             WHERE events.id = $1 AND registrations.id = $2;`
-        res := db.Query(query, []interface{}{1, reg_id})
+        res := db.Query(query, []interface{}{1, regId})
 
         if len(res) == 0 {
             utils.HandleErr("[loadUsers]: ", errors.New("Data are not faund."), nil)

@@ -316,14 +316,13 @@ func (this *GridController) GetPersonsByEventId() {
 
     result := []interface{}{0: map[string]interface{}{"id": -1, "data": caption}}
 
-    query = `SELECT reg_param_vals.reg_id as id, array_agg(param_values.value) as data
-        FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+    query = `SELECT param_values.reg_id as id, array_agg(param_values.value) as data
+        FROM param_values
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
         INNER JOIN params ON params.id = param_values.param_id
         WHERE params.id in (` + strings.Join(db.MakeParams(len(queryParams)), ", ")
-    query += ") AND events.id = $" + strconv.Itoa(len(queryParams)+1) + " GROUP BY reg_param_vals.reg_id ORDER BY reg_param_vals.reg_id;"
+    query += ") AND events.id = $" + strconv.Itoa(len(queryParams)+1) + " GROUP BY param_values.reg_id ORDER BY param_values.reg_id;"
 
     data := db.Query(query, append(queryParams, eventId))
 

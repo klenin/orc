@@ -446,8 +446,6 @@ func (this *ModelManager) GetModel(tableName string) VirtEntity {
         return this.Registrations()
     case "faces":
         return this.Faces()
-    case "reg_param_vals":
-        return this.RegParamVals()
     case "groups":
         return this.Groups()
     case "group_registrations":

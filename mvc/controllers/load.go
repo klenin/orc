@@ -63,11 +63,10 @@ func (this *GridController) Load(tableName string) {
 
         model := this.GetModel("faces")
         query := `SELECT DISTINCT faces.id, faces.user_id
-            FROM reg_param_vals
-            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            FROM param_values
+            INNER JOIN registrations ON registrations.id = param_values.reg_id
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN events ON events.id = registrations.event_id
-            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
             INNER JOIN users ON users.id = faces.user_id`
 
@@ -86,11 +85,10 @@ func (this *GridController) Load(tableName string) {
 
         query = `SELECT COUNT(*)
             FROM (SELECT DISTINCT faces.id, faces.user_id
-            FROM reg_param_vals
-            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+            FROM param_values
+            INNER JOIN registrations ON registrations.id = param_values.reg_id
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN events ON events.id = registrations.event_id
-            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
             INNER JOIN params ON params.id = param_values.param_id
             INNER JOIN users ON users.id = faces.user_id`
         query += where+") as count;"

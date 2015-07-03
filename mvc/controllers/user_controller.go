@@ -179,9 +179,8 @@ func (this *UserController) ShowCabinet() {
             SubColNames:  persons.GetColNames()}
 
         query := `SELECT params.name, param_values.value, users.login
-            FROM reg_param_vals
-            INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-            INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+            FROM param_values
+            INNER JOIN registrations ON registrations.id = param_values.reg_id
             INNER JOIN params ON params.id = param_values.param_id
             INNER JOIN events ON events.id = registrations.event_id
             INNER JOIN faces ON faces.id = registrations.face_id
@@ -274,9 +273,8 @@ func (this *UserController) SendEmailWellcomeToProfile() {
     }
 
     query := `SELECT param_values.value
-        FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        FROM param_values
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
@@ -339,9 +337,8 @@ func (this *UserController) ConfirmOrRejectPersonRequest() {
     }
 
     query := `SELECT param_values.value, users.id as user_id
-        FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        FROM param_values
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
@@ -387,9 +384,7 @@ func (this *UserController) ConfirmOrRejectPersonRequest() {
         if eventId == 1 {
             utils.SendJSReply(map[string]interface{}{"result": "Эту заявку нельзя отклонить письмом"}, this.Response)
         } else {
-            query := `DELETE
-                FROM param_values USING reg_param_vals
-                WHERE param_values.id in (SELECT reg_param_vals.param_val_id WHERE reg_param_vals.reg_id = $1);`
+            query := `DELETE FROM param_values WHERE param_values.reg_id = $1;`
             db.Query(query, []interface{}{regId})
 
             query = `DELETE FROM registrations WHERE id = $1;`

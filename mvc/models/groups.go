@@ -110,11 +110,10 @@ func (this *GroupsModel) Select(fields []string, filters map[string]interface{},
 
     query = query[:len(query)-2]
 
-    query += ` FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+    query += ` FROM param_values
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN groups ON groups.face_id = faces.id`
 
@@ -150,11 +149,10 @@ func (this *GroupsModel) Select(fields []string, filters map[string]interface{},
 func (this *GroupsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT faces.id || ':' || array_to_string(array_agg(param_values.value), ' ')
-        FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
+        FROM param_values
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
         INNER JOIN params ON params.id = param_values.param_id
         WHERE params.id in (5, 6, 7) GROUP BY faces.id ORDER BY faces.id), ';') as name;`
 
