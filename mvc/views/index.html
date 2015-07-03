@@ -54,9 +54,6 @@ function(utils, gridLib, blank) {
             closeOnEscape: true,
             multipleSearch: true,
             closeAfterSearch: true,
-        },
-        {   // view
-            width: "100%",
         }
     );
 
@@ -69,6 +66,12 @@ function(utils, gridLib, blank) {
                 $("#events #server-answer").empty();
                 var selectedRowId = $("#events-table").jqGrid("getGridParam", "selrow");
                 var eventId = $("#events-table").jqGrid("getCell", selectedRowId, "id");
+                console.log("eventId: ", eventId);
+                if (eventId == undefined || eventId == false) {
+                    alert("Выберите запись.");
+                    return false;
+                }
+
                 utils.postRequest(
                     {},
                     function(response) {
