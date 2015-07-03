@@ -384,7 +384,7 @@ function(utils, gridLib, datepicker, kladr) {
         for (var i = 0; i < data.length; ++i) {
             var f_id = data[i]["form_id"];
             var p_id = data[i]["param_id"];
-            var p_v = data[i]["edit_date"].replace(/[T,Z]/g, " ")+" - "+data[i]["login"];
+            var p_v = data[i]["edit_date"] ? data[i]["edit_date"].replace(/[T,Z]/g, " ")+" - "+data[i]["login"] : data[i]["login"];
 
             $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").remove();
             $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id).append($("<div/>"));
@@ -394,7 +394,7 @@ function(utils, gridLib, datepicker, kladr) {
     }
 
     function ClearEditHistoryData(data, dialogId) {
-        console.log("SetEditHistoryData: ", data);
+        console.log("ClearEditHistoryData: ", data);
 
         for (var i = 0; i < data.length; ++i) {
             var f_id = data[i]["form_id"];
