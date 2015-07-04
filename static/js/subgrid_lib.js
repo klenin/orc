@@ -23,7 +23,7 @@ function(utils, blank, gridLib) {
             subTableName    = data["name"];
             subColNames     = data["colnames"];
             subColumns      = data["columns"];
-            subColModel     = SetPrimitive(data["colmodel"]);
+            subColModel     = gridLib.SetPrimitive(data["colmodel"]);
         }
 
         utils.postRequest(
