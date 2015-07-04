@@ -57,20 +57,14 @@ func (this *FaceModel) Select(fields []string, filters map[string]interface{}, l
         }
     }
 
-    query += `array_to_string(array_agg(param_values.value), ' ') as name
-        FROM param_values
-        INNER JOIN registrations ON registrations.id = param_values.reg_id
-        INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN params ON params.id = param_values.param_id
-        INNER JOIN users ON users.id = faces.user_id`
+    query = query[:len(query)-2]
+
+    query += ` FROM faces INNER JOIN users ON users.id = faces.user_id`
 
     where, params, _ := this.Where(filters, 1)
 
     if where != "" {
-        query += ` WHERE ` + where + ` AND params.id in (5, 6, 7) GROUP BY faces.id, users.id`
-    } else {
-        query += ` WHERE params.id in (5, 6, 7) GROUP BY faces.id, users.id`
+        query += ` WHERE ` + where
     }
 
     if sidx != "" {
@@ -100,13 +94,24 @@ func (this *FaceModel) GetColModel(isAdmin bool, userId int) []map[string]interf
     logins := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
     query = `SELECT array_to_string(
-        array(SELECT faces.id || ':' || faces.id || '-' || array_to_string(array_agg(param_values.value), ' ')
-        FROM param_values
-        INNER JOIN registrations ON registrations.id = param_values.reg_id
-        INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN params ON params.id = param_values.param_id
-        WHERE params.id in (5, 6, 7) AND events.id = 1 GROUP BY faces.id ORDER BY faces.id), ';') as name;`
+        array(
+            SELECT f.id || ':' || f.id || '-' || array_to_string(
+            array(
+                SELECT param_values.value
+                FROM param_values
+                INNER JOIN registrations ON registrations.id = param_values.reg_id
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN events ON events.id = registrations.event_id
+                INNER JOIN params ON params.id = param_values.param_id
+                WHERE param_values.param_id IN (5, 6, 7) AND events.id = 1 AND faces.id = f.id ORDER BY param_values.param_id
+            ), ' ')
+            FROM param_values
+            INNER JOIN registrations as reg ON reg.id = param_values.reg_id
+            INNER JOIN faces as f ON f.id = reg.face_id
+            INNER JOIN events ON events.id = reg.event_id
+            INNER JOIN params as p ON p.id = param_values.param_id
+            INNER JOIN users ON users.id = f.user_id GROUP BY f.id ORDER BY f.id
+        ), ';') as name;`
 
     faces := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
