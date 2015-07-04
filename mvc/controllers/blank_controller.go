@@ -68,7 +68,7 @@ func (this *BlankController) GetPersonRequestFromGroup() {
         this.Response)
 }
 
-func (this *BlankController) GetPersonRequest() {
+func (this *BlankController) GetBlankByRegId() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         return
@@ -108,9 +108,9 @@ func (this *BlankController) GetPersonRequest() {
         this.Response)
 }
 
-func (this *BlankController) GetRequest(id string) {
+func (this *BlankController) GetBlankByEventId(id string) {
     eventId, err := strconv.Atoi(id)
-    if utils.HandleErr("[BlankController::GetRequest] event_id Atoi: ", err, this.Response) {
+    if utils.HandleErr("[BlankController::GetBlankByEventId] event_id Atoi: ", err, this.Response) {
         return
     }
 

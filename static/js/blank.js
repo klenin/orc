@@ -312,7 +312,7 @@ function(utils, gridLib, datepicker, kladr) {
                 }
                 getListHistoryEvents(dialogId+" #history", f_ids);
             },
-            "/blankcontroller/getpersonrequest"
+            "/blankcontroller/getblankbyregid"
         );
 
         $("#"+dialogId).dialog({

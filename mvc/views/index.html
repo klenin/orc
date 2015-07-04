@@ -76,7 +76,7 @@ function(utils, gridLib, blank) {
                     {},
                     function(response) {
                         if (response["result"] == "ok") {
-                            location.href = "/blankcontroller/getrequest/" + eventId;
+                            location.href = "/blankcontroller/getblankbyeventid/" + eventId;
                         } else if (response["result"] == "regExists") {
                             if (response["regId"] == undefined) {
                                 alert("Ошибка при загрузке анкеты: id регистрации НЕ найден.")
