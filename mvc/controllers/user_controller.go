@@ -64,19 +64,11 @@ func (this *UserController) CheckEnable(id string) {
         return
     }
 
-    query := `SELECT registrations.id
-        FROM registrations
-        INNER JOIN events ON events.id = registrations.event_id
-        INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1 AND events.id = $2;`
-
-    var regId int
-    err = db.QueryRow(query, []interface{}{userId, eventId}).Scan(&regId)
-    if err != sql.ErrNoRows {
-        utils.SendJSReply(map[string]interface{}{"result": "regExists", "regId": strconv.Itoa(regId)}, this.Response)
-    } else {
+    regId := this.regExists(userId, eventId)
+    if regId == -1 {
         utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
+    } else {
+        utils.SendJSReply(map[string]interface{}{"result": "regExists", "regId": strconv.Itoa(regId)}, this.Response)
     }
 }
 

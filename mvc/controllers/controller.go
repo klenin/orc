@@ -1,6 +1,7 @@
 package controllers
 
 import (
+    "database/sql"
     "errors"
     "github.com/orc/db"
     "github.com/orc/mvc/models"
@@ -87,6 +88,22 @@ func (this *Controller) isAdmin() bool {
     return role == "admin"
 }
 
+func (this *Controller) regExists(userId, eventId int) int {
+    var regId int
+    query := `SELECT registrations.id
+        FROM registrations
+        INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN faces ON faces.id = registrations.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1 AND events.id = $2;`
+    err := db.QueryRow(query, []interface{}{userId, eventId}).Scan(&regId)
+    if err != sql.ErrNoRows {
+        return regId
+    } else {
+        return -1
+    }
+}
+
 func WellcomeToProfile(w http.ResponseWriter, r *http.Request) {
     newContreoller := new(BaseController).Handler()
 
@@ -119,4 +136,5 @@ type VirtController interface {
     Render(filename string, data interface{})
     CheckSid() (id int, result bool)
     isAdmin() bool
+    regExists(userId, eventId int) bool
 }

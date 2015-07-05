@@ -73,9 +73,10 @@ func (this *GroupController) Register() {
     groupReg.LoadModelData(map[string]interface{}{"event_id": eventId, "group_id": groupId})
     db.QueryInsert(groupReg, "RETURNING id").Scan(&groupregId)
 
-    query = `SELECT persons.status, faces.id FROM persons
+    query = `SELECT persons.status, faces.id as face_id, users.id as user_id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = persons.face_id
+        INNER JOIN users ON users.id = faces.user_id
         WHERE groups.id = $1;`
     data := db.Query(query, []interface{}{groupId})
 
@@ -90,16 +91,28 @@ func (this *GroupController) Register() {
 
     for _, v := range data {
         status := v.(map[string]interface{})["status"].(bool)
-        personfaceId := v.(map[string]interface{})["id"]
+        personFaceId := v.(map[string]interface{})["face_id"].(int)
+        personUserId := v.(map[string]interface{})["user_id"].(int)
 
         if !status {
             continue
         }
 
-        var regId int
-        regs := this.GetModel("registrations")
-        regs.LoadModelData(map[string]interface{}{"face_id": personfaceId, "event_id": eventId})
-        db.QueryInsert(regs, "RETURNING id").Scan(&regId)
+        regId := this.regExists(personUserId, eventId)
+        if regId == -1 {
+            regs := this.GetModel("registrations")
+            regs.LoadModelData(map[string]interface{}{"face_id": personFaceId, "event_id": eventId})
+            db.QueryInsert(regs, "RETURNING id").Scan(&regId)
+
+            for _, elem := range params {
+                param_id := int(elem.(map[string]interface{})["id"].(int))
+
+                var paramValId int
+                paramValues := this.GetModel("param_values")
+                paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date, "user_id": userId, "reg_id": regId})
+                db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
+            }
+        }
 
         regsGroupRegs := this.GetModel("regs_groupregs")
         regsGroupRegs.LoadModelData(map[string]interface{}{"groupreg_id": groupregId, "reg_id": regId})
@@ -110,16 +123,6 @@ func (this *GroupController) Register() {
         // if !mailer.AttendAnEvent(to, address, eventName, groupName) {
         //     utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с уведомлением не отправлено."}, this.Response)
         // }
-
-        for _, elem := range params {
-            param_id := int(elem.(map[string]interface{})["id"].(int))
-
-            var paramValId int
-            paramValues := this.GetModel("param_values")
-            paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date, "user_id": userId, "reg_id": regId})
-            db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
-        }
-
     }
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
