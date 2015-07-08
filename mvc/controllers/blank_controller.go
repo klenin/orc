@@ -238,8 +238,7 @@ func (this *BlankController) GetListHistoryEvents() {
     }
 
     eventsForms := this.GetModel("events_forms")
-    eventsForms.LoadWherePart(ids)
-    eventsForms.SetCondition(models.OR)
+    eventsForms.LoadWherePart(ids).SetCondition(models.OR)
     events := db.Select(eventsForms, []string{"event_id"})
 
     if len(events) == 0 {
@@ -315,10 +314,9 @@ func (this *BlankController) EditParams() {
             value = " "
         }
 
-        paramValue := this.GetModel("param_values")
-        paramValue.LoadModelData(map[string]interface{}{"value": value, "date": date, "user_id": userId})
-        paramValue.LoadWherePart(map[string]interface{}{"id": paramValId})
-        db.QueryUpdate(paramValue).Scan()
+        params := map[string]interface{}{"value": value, "date": date, "user_id": userId}
+        where := map[string]interface{}{"id": paramValId}
+        this.GetModel("param_values").Update(userId, params, where)
     }
 
     utils.SendJSReply(map[string]interface{}{"result": "Изменения сохранены"}, this.Response)

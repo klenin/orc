@@ -146,7 +146,7 @@ func (this *GridController) EditGridRow(tableName string) {
             http.Error(this.Response, err.Error(), 400)
             return
         }
-        model.Update(userId, rowId, params)
+        model.Update(userId, params, map[string]interface{}{"id": rowId})
         break
 
     case "add":
@@ -248,12 +248,15 @@ func (this *GridController) ImportForms() {
 
         for i := 0; i < len(formsResult); i++ {
             formId := int(formsResult[i].(map[string]interface{})["id"].(int))
+
             eventsForms := this.GetModel("events_forms")
-            eventsForms.LoadWherePart(map[string]interface{}{"event_id": eventId, "form_id": formId})
 
             var eventFormId int
-            err := db.SelectRow(eventsForms, []string{"id"}).Scan(&eventFormId)
-            if err != sql.ErrNoRows {
+            if err := eventsForms.
+                LoadWherePart(map[string]interface{}{"event_id": eventId, "form_id": formId}).
+                SelectRow([]string{"id"}).
+                Scan(&eventFormId);
+                err != sql.ErrNoRows {
                 continue
             }
 

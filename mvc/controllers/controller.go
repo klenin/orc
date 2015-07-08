@@ -60,11 +60,11 @@ func (this *Controller) CheckSid() (id int, result error)  {
         return -1, errors.New("Данные в куках отсутствуют.")
     }
 
-    user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"sid": userSid})
-
-    err := db.SelectRow(user, []string{"id"}).Scan(&id)
-    if err != nil {
+    if err := this.GetModel("users").
+        LoadWherePart(map[string]interface{}{"sid": userSid}).
+        SelectRow([]string{"id"}).
+        Scan(&id);
+        err != nil {
         return -1, errors.New("Данные в куках отсутствуют.")
     }
 
@@ -78,9 +78,10 @@ func (this *Controller) isAdmin() bool {
     }
 
     var role string
-    user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": userId})
-    err = db.SelectRow(user, []string{"role"}).Scan(&role)
+    err = this.GetModel("users").
+        LoadWherePart(map[string]interface{}{"id": userId}).
+        SelectRow([]string{"role"}).
+        Scan(&role)
     if err != nil || role == "user" {
         return false
     }
@@ -110,24 +111,20 @@ func WellcomeToProfile(w http.ResponseWriter, r *http.Request) {
     parts := strings.Split(r.URL.Path, "/")
     token := parts[len(parts)-1]
 
-    user := newContreoller.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"token": token})
-
     var id int
-    err := db.SelectRow(user, []string{"id"}).Scan(&id)
+    err := newContreoller.GetModel("users").
+        LoadWherePart(map[string]interface{}{"token": token}).
+        SelectRow([]string{"id"}).
+        Scan(&id)
     if utils.HandleErr("[WellcomeToProfile]: ", err, w) || id == 0 {
         return
     }
 
     sid := utils.GetRandSeq(HASH_SIZE)
-    user = newContreoller.GetModel("users")
-    user.GetFields().(*models.User).Sid = sid
-    user.GetFields().(*models.User).Enabled = true
-    user.LoadWherePart(map[string]interface{}{"id": id})
-    db.QueryUpdate(user).Scan()
-
+    params := map[string]interface{}{"sid": sid, "enabled": true}
+    where := map[string]interface{}{"id": id}
+    newContreoller.GetModel("users").Update(-1, params, where)
     sessions.SetSession(w, map[string]interface{}{"sid": sid})
-
     http.Redirect(w, r, "/usercontroller/showcabinet", 200)
 }
 

@@ -41,12 +41,12 @@ func (this *GroupController) Register() {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     }
 
-    event := this.GetModel("events")
-    event.LoadWherePart(map[string]interface{}{"id": eventId})
-
     var eventName string
-    err = db.SelectRow(event, []string{"name"}).Scan(&eventName)
-    if err != nil {
+    if err = this.GetModel("events").
+        LoadWherePart(map[string]interface{}{"id": eventId}).
+        SelectRow([]string{"name"}).
+        Scan(&eventName);
+        err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
@@ -129,23 +129,21 @@ func (this *GroupController) Register() {
 }
 
 func (this *GroupController) ConfirmInvitationToGroup(token string) {
-    person := this.GetModel("persons")
-    person.LoadWherePart(map[string]interface{}{"token": token})
-
     var faceId, groupId int
-    err = db.SelectRow(person, []string{"face_id", "group_id",}).Scan(&faceId, &groupId)
-
-    if err != nil {
+    if err := this.GetModel("persons").
+        LoadWherePart(map[string]interface{}{"token": token}).
+        SelectRow([]string{"face_id", "group_id"}).
+        Scan(&faceId, &groupId);
+        err != nil {
         if this.Response != nil {
             this.Render([]string{"mvc/views/msg.html"}, "msg", "Неверный токен.")
         }
         return
     }
 
-    person = this.GetModel("persons")
-    person.LoadModelData(map[string]interface{}{"status": true, "token": " "})
-    person.LoadWherePart(map[string]interface{}{"token": token})
-    db.QueryUpdate(person).Scan()
+    params := map[string]interface{}{"status": true, "token": " "}
+    where := map[string]interface{}{"token": token}
+    this.GetModel("persons").Update(-1, params, where)
 
     if this.Response != nil {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Вы успешно присоединены к группе.")

@@ -4,7 +4,6 @@ import (
     "database/sql"
     "github.com/orc/db"
     "github.com/orc/mailer"
-    "github.com/orc/mvc/models"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "net/http"
@@ -29,9 +28,10 @@ func (this *UserController) CheckSession() {
         result = map[string]interface{}{"result": "no"}
 
     } else {
-        user := this.GetModel("users")
-        user.LoadWherePart(map[string]interface{}{"sid": sid})
-        err := db.SelectRow(user, []string{"sid"}).Scan(&userHash)
+        err := this.GetModel("users").
+            LoadWherePart(map[string]interface{}{"sid": sid}).
+            SelectRow([]string{"sid"}).
+            Scan(&userHash)
         if err != sql.ErrNoRows && sessions.CheckSession(this.Response, this.Request) {
             result = map[string]interface{}{"result": "ok"}
         } else {
@@ -105,13 +105,15 @@ func (this *UserController) ResetPassword() {
 
     var enabled bool
     salt := strconv.Itoa(int(time.Now().Unix()))
+    params := map[string]interface{}{"enabled": enabled, "salt": salt, "pass": utils.GetMD5Hash(pass + salt)}
+    where := map[string]interface{}{"id": id}
+
     user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": id})
-    db.SelectRow(user, []string{"enabled"}).Scan(&enabled)
-    user.GetFields().(*models.User).Enabled = enabled
-    user.GetFields().(*models.User).Salt = salt
-    user.GetFields().(*models.User).Pass = utils.GetMD5Hash(pass + salt)
-    db.QueryUpdate(user).Scan()
+    user.LoadWherePart(where).
+        SelectRow([]string{"enabled"}).
+        Scan(&enabled)
+
+    user.Update(id, params, where)
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
@@ -123,12 +125,12 @@ func (this *UserController) ShowCabinet() {
         return
     }
 
-    user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": userId})
-
     var role string
-    err = db.SelectRow(user, []string{"role"}).Scan(&role)
-    if err != nil {
+    if err = this.GetModel("users").
+        LoadWherePart(map[string]interface{}{"id": userId}).
+        SelectRow([]string{"role"}).
+        Scan(&role);
+        err != nil {
         utils.HandleErr("[UserController::ShowCabinet]: ", err, this.Response)
         return
     }
@@ -234,13 +236,10 @@ func (this *UserController) Login(userId string) {
     }
 
     sid := utils.GetRandSeq(HASH_SIZE)
+    params := map[string]interface{}{"sid": sid, "enabled": true}
+    where := map[string]interface{}{"id": id}
 
-    user := this.GetModel("users")
-    user.GetFields().(*models.User).Sid = sid
-    user.GetFields().(*models.User).Enabled = true
-    user.LoadWherePart(map[string]interface{}{"id": id})
-    db.QueryUpdate(user).Scan()
-
+    this.GetModel("users").Update(id, params, where)
     sessions.SetSession(this.Response, map[string]interface{}{"sid": sid})
 
     http.Redirect(this.Response, this.Request, "/usercontroller/showcabinet", 200)
@@ -290,11 +289,9 @@ func (this *UserController) SendEmailWellcomeToProfile() {
         return
     }
 
-    user := this.GetModel("users")
-    user.GetFields().(*models.User).Token = token
-    user.GetFields().(*models.User).Enabled = true
-    user.LoadWherePart(map[string]interface{}{"id": userId})
-    db.QueryUpdate(user).Scan()
+    params := map[string]interface{}{"token": token, "enabled": true}
+    where := map[string]interface{}{"id": userId}
+    this.GetModel("users").Update(userId, params, where)
 
     utils.SendJSReply(map[string]interface{}{"result": "Письмо отправлено"}, this.Response)
 }

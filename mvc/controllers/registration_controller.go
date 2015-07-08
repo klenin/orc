@@ -225,8 +225,8 @@ func (this *RegistrationController) Register(login, password, email, role string
             "pass":  pass,
             "salt":  salt,
             "role":  role,
-            "token": token})
-        user.GetFields().(*models.User).Enabled = false
+            "token": token,
+            "enabled": false})
         db.QueryInsert(user, "RETURNING id").Scan(&userId)
 
         var faceId int
@@ -259,11 +259,11 @@ func (this *RegistrationController) Login() {
     var passHash, salt string
     result := make(map[string]interface{}, 1)
 
-    user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"login": login})
-    err = db.SelectRow(user, []string{"id", "pass", "salt", "enabled"}).Scan(&id, &passHash, &salt, &enabled)
-
-    if err != nil {
+    if err = this.GetModel("users").
+        LoadWherePart(map[string]interface{}{"login": login}).
+        SelectRow([]string{"id", "pass", "salt", "enabled"}).
+        Scan(&id, &passHash, &salt, &enabled);
+        err != nil {
         result["result"] = "invalidCredentials"
 
     } else if enabled == false {
@@ -276,13 +276,9 @@ func (this *RegistrationController) Login() {
         result["result"] = "ok"
 
         sid := utils.GetRandSeq(HASH_SIZE)
-
-        user := this.GetModel("users")
-        user.GetFields().(*models.User).Enabled = true
-        user.GetFields().(*models.User).Sid = sid
-        user.LoadWherePart(map[string]interface{}{"id": id})
-        db.QueryUpdate(user).Scan()
-
+        params := map[string]interface{}{"sid": sid, "enabled": true}
+        where := map[string]interface{}{"id": id}
+        this.GetModel("users").Update(id, params, where)
         sessions.SetSession(this.Response, map[string]interface{}{"sid": sid})
     }
 
@@ -298,20 +294,18 @@ func (this *RegistrationController) Logout() {
     }
 
     var enabled bool
-    user := this.GetModel("users")
-    user.LoadWherePart(map[string]interface{}{"id": userId})
-    err = db.SelectRow(user, []string{"enabled"}).Scan(&enabled)
-    if utils.HandleErr("[RegistrationController::Logout]: ", err, this.Response) {
+    if err = this.GetModel("users").
+        LoadWherePart(map[string]interface{}{"id": userId}).
+        SelectRow([]string{"enabled"}).
+        Scan(&enabled);
+        utils.HandleErr("[RegistrationController::Logout]: ", err, this.Response) {
         utils.SendJSReply(map[string]string{"result": err.Error()}, this.Response)
         return
     }
 
-    user = this.GetModel("users")
-    user.GetFields().(*models.User).Enabled = enabled
-    user.GetFields().(*models.User).Sid = " "
-    user.LoadWherePart(map[string]interface{}{"id": userId})
-    db.QueryUpdate(user).Scan()
-
+    params := map[string]interface{}{"enabled": enabled, "sid": " "}
+    where := map[string]interface{}{"id": userId}
+    this.GetModel("users").Update(userId, params, where)
     sessions.ClearSession(this.Response)
     utils.SendJSReply(map[string]string{"result": "ok"}, this.Response)
 }
@@ -329,11 +323,9 @@ func (this *RegistrationController) ConfirmUser(token string) {
         return
     }
 
-    user = this.GetModel("users")
-    user.GetFields().(*models.User).Enabled = true
-    user.GetFields().(*models.User).Token = " "
-    user.LoadWherePart(map[string]interface{}{"id": userId})
-    db.QueryUpdate(user).Scan()
+    params := map[string]interface{}{"enabled": true, "token": " "}
+    where := map[string]interface{}{"id": userId}
+    this.GetModel("users").Update(userId, params, where)
 
     if this.Response != nil {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Регистрация подтверждена.")

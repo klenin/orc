@@ -1,6 +1,7 @@
 package models
 
 import (
+    "database/sql"
     "github.com/orc/utils"
     "github.com/orc/db"
     "reflect"
@@ -107,7 +108,11 @@ func (this *Entity) LoadModelData(data map[string]interface{}) {
     }
 }
 
-func (this Entity) LoadWherePart(data map[string]interface{}) {
+func (this *Entity) LoadWherePart(data map[string]interface{}) (*Entity) {
+    if data == nil {
+        return this
+    }
+
     rv := reflect.ValueOf(this.WherePart)
     rt := reflect.ValueOf(this.Fields).Type()
 
@@ -135,6 +140,7 @@ func (this Entity) LoadWherePart(data map[string]interface{}) {
             rv.Interface().(map[string]interface{})[key] = utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), val)
         }
     }
+    return this
 }
 
 func (this Entity) GenerateWherePart(counter int) (string, []interface{}) {
@@ -364,9 +370,9 @@ func (this *Entity) Delete(id int) {
     db.Exec(query, []interface{}{id})
 }
 
-func (this *Entity) Update(userId, rowId int, params map[string]interface{}) {
+func (this *Entity) Update(userId int, params, where map[string]interface{}) {
     this.LoadModelData(params)
-    this.LoadWherePart(map[string]interface{}{"id": rowId})
+    this.LoadWherePart(where)
     db.QueryUpdate(this).Scan()
 }
 
@@ -374,6 +380,10 @@ func (this *Entity) Add(userId int, params map[string]interface{}) error {
     this.LoadModelData(params)
     db.QueryInsert(this, "").Scan()
     return nil
+}
+
+func (this *Entity) SelectRow(fields []string) *sql.Row {
+    return db.SelectRow(this, fields)
 }
 
 func (this *Entity) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
@@ -386,7 +396,7 @@ func (this *Entity) WhereByParams(filters map[string]interface{}, num int) (wher
 
 type VirtEntity interface {
     LoadModelData(data map[string]interface{})
-    LoadWherePart(data map[string]interface{})
+    LoadWherePart(data map[string]interface{}) *Entity
     GenerateWherePart(counter int) (string, []interface{})
 
     GetConditionName() string
@@ -413,9 +423,10 @@ type VirtEntity interface {
     Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{})
+    SelectRow(fields []string) *sql.Row
     Delete(id int)
     Add(userId int, params map[string]interface{}) error
-    Update(userId, rowId int, params map[string]interface{})
+    Update(userId int, params, where map[string]interface{})
 
     GetColModel(isAdmin bool, userId int) ([]map[string]interface{})
 }
