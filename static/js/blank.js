@@ -76,11 +76,11 @@ function(utils, gridLib, datepicker, kladr) {
         return empty ? false : values;
     }
 
-    function getListHistoryEvents(historyDiv, F_ids) {
-        console.log("getListHistoryEvents: F_ids: ", F_ids);
+    function getListHistoryEvents(historyDiv, formIds) {
+        console.log("getListHistoryEvents: formIds: ", formIds);
 
         utils.postRequest(
-            { "form_ids": F_ids, },
+            { "form_ids": formIds },
             function(response) {
                 console.log("getListHistoryEvents: ", response);
 
@@ -192,7 +192,7 @@ function(utils, gridLib, datepicker, kladr) {
 
         $("#"+dialogId).append($("<h1/>")).append($("<div/>"));
 
-        var F_ids = {};
+        var formIds = [];
 
         $("#" + dialogId + " h1").text(d[0]["event_name"]);
 
@@ -201,8 +201,6 @@ function(utils, gridLib, datepicker, kladr) {
 
         $(div_forms).append(ul_forms);
         $(div_forms).appendTo("#" + dialogId + " div");
-
-        F_ids["form_id"] = [];
 
         for (i = 0; i < d.length; ++i) {
             if ($("#" + dialogId +" div#form-" + d[i]["form_id"]).attr("id") == undefined) {
@@ -215,7 +213,7 @@ function(utils, gridLib, datepicker, kladr) {
                 var div_tab_form = $("<div/>", {id: "form-" + d[i]["form_id"]});
                 $(div_forms).append(div_tab_form);
 
-                F_ids["form_id"].push(parseInt(d[i]["form_id"]));
+                formIds.push(parseInt(d[i]["form_id"]));
 
                 var div_params = $("<div/>", {id: "params-" + d[i]["form_id"]});
                 $(div_tab_form).append(div_params);
@@ -235,7 +233,7 @@ function(utils, gridLib, datepicker, kladr) {
 
         $("#" + dialogId + " #" + "event-" + d[0]["event_id"]).tabs();
 
-        console.log("F_ids: ", F_ids);
+        console.log("formIds: ", formIds);
 
         $("#"+dialogId+" #history #send-btn").click(function() {
             utils.postRequest(
@@ -255,7 +253,7 @@ function(utils, gridLib, datepicker, kladr) {
 
         kladr.kladr();
 
-        return F_ids;
+        return formIds;
     }
 
     function ShowServerAns(event_id, data, responseId) {
@@ -267,7 +265,7 @@ function(utils, gridLib, datepicker, kladr) {
                 msg += "Ваша заявка на участие будет рассмотрена.";
             } else {
                 msg += "На вашу электронную почту было отправлено письмо, содержащее ссылку для подтверждения регистрации. "
-                + "Воспользуйтесь этой ссылкой, для продолжения работы.";
+                + "Воспользуйтесь этой ссылкой для продолжения работы.";
             }
             $("#"+responseId).text(msg).css("color", "green");
 
@@ -306,11 +304,11 @@ function(utils, gridLib, datepicker, kladr) {
         utils.postRequest(
             { "reg_id": regId },
             function(data) {
-                var f_ids = ShowBlank(data["data"], dialogId, data["role"], regId);
-                if (!f_ids) {
+                var formIds = ShowBlank(data["data"], dialogId, data["role"], regId);
+                if (!formIds) {
                     return false;
                 }
-                getListHistoryEvents(dialogId+" #history", f_ids);
+                getListHistoryEvents(dialogId+" #history", formIds);
             },
             "/blankcontroller/getblankbyregid"
         );
@@ -356,6 +354,7 @@ function(utils, gridLib, datepicker, kladr) {
 
             $("#"+dialogId+" #params-"+f_id +" table #export-param-"+p_id+" input").remove();
             $("#"+dialogId+" #params-"+f_id +" table #export-val-"+p_id+" p").remove();
+            $("#"+dialogId+" #params-"+f_id +" table #export-param-"+p_id+" br").remove();
             if (data[i]["value"] != "") {
                 $("#"+dialogId+" #params-"+f_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
                 $("<br/>").appendTo("#"+dialogId+" #params-"+f_id+" table #export-param-"+p_id);

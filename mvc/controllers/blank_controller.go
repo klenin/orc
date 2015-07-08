@@ -226,14 +226,13 @@ func (this *BlankController) GetListHistoryEvents() {
         return
     }
 
-    ids := make(map[string]interface{}, 1)
-    ids["form_id"] = make([]interface{}, 0)
-    if data["form_ids"] == nil || len(data["form_ids"].(map[string]interface{})["form_id"].([]interface{})) == 0 {
-        utils.SendJSReply(map[string]interface{}{"result": "Нет данных"}, this.Response)
+    ids := map[string]interface{}{"form_id": make([]interface{}, 0)}
+    if data["form_ids"] == nil || len(data["form_ids"].([]interface{})) == 0 {
+        utils.SendJSReply(map[string]interface{}{"result": "Нет данных о формах анкеты"}, this.Response)
         return
     }
 
-    for _, v := range data["form_ids"].(map[string]interface{})["form_id"].([]interface{}) {
+    for _, v := range data["form_ids"].([]interface{}) {
         ids["form_id"] = append(ids["form_id"].([]interface{}), int(v.(float64)))
     }
 
@@ -261,6 +260,7 @@ func (this *BlankController) GetListHistoryEvents() {
         query += "$" + strconv.Itoa(i) + ", "
         params = append(params, int(events[i-2].(map[string]interface{})["event_id"].(int)))
     }
+
     query += "$" + strconv.Itoa(i) + ")"
     params = append(params, int(events[i-2].(map[string]interface{})["event_id"].(int)))
 
