@@ -96,7 +96,7 @@ func (this *Entity) LoadModelData(data map[string]interface{}) {
         for i := 0; i < rt.Elem().NumField(); i++ {
             tag := rt.Elem().Field(i).Tag.Get("name")
             if tag == key {
-                println(tag)
+                log.Println("tag: ", tag)
                 value := utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), val)
                 if value == nil {
                     continue
