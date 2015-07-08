@@ -70,7 +70,7 @@ func (this *GroupController) Register() {
 
     var groupregId int
     groupReg := this.GetModel("group_registrations")
-    groupReg.LoadModelData(map[string]interface{}{"event_id": eventId, "group_id": groupId})
+    groupReg.LoadModelData(map[string]interface{}{"event_id": eventId, "group_id": groupId, "status": false})
     db.QueryInsert(groupReg, "RETURNING id").Scan(&groupregId)
 
     query = `SELECT persons.status, faces.id as face_id, users.id as user_id FROM persons
@@ -101,7 +101,7 @@ func (this *GroupController) Register() {
         regId := this.regExists(personUserId, eventId)
         if regId == -1 {
             regs := this.GetModel("registrations")
-            regs.LoadModelData(map[string]interface{}{"face_id": personFaceId, "event_id": eventId})
+            regs.LoadModelData(map[string]interface{}{"face_id": personFaceId, "event_id": eventId, "status": false})
             db.QueryInsert(regs, "RETURNING id").Scan(&regId)
 
             for _, elem := range params {
@@ -237,7 +237,7 @@ func (this *GroupController) AddPerson() {
 
     var regId int
     registration := this.GetModel("registrations")
-    registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1})
+    registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1, "status": false})
     db.QueryInsert(registration, "RETURNING id").Scan(&regId)
 
     var paramValueIds []string

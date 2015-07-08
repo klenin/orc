@@ -59,7 +59,7 @@ func (this *RegistrationController) EventRegisterAction() {
         }
 
         registration := this.GetModel("registrations")
-        registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId})
+        registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId, "status": false})
         db.QueryInsert(registration, "RETURNING id").Scan(&regId)
 
         if err = this.InsertUserParams(userId, regId, data["data"].([]interface{})); err != nil {
@@ -235,7 +235,7 @@ func (this *RegistrationController) Register(login, password, email, role string
         db.QueryInsert(face, "RETURNING id").Scan(&faceId)
 
         registration := this.GetModel("registrations")
-        registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1})
+        registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1, "status": false})
         db.QueryInsert(registration, "RETURNING id").Scan(&regId)
 
         return result, regId
