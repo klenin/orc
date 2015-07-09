@@ -26,23 +26,7 @@
 
     <div style="display:none;" id="dialog-params" title="Параметры"></div>
 
-    <div style="display:none;" id="dialog-reg-group" title="Регистрация группы">
-        <p style="color:red;">
-            <strong>
-                Внимание! После регистрации группы в мероприятии 
-                Вы не сможете удалять или добавлять участников группы
-                во избежание потери информации.<br/>
-                Участники, которые не подтвердили запрос для присоединения к группе, 
-                не будут зарегистрированны в мепроприятии.<br/>
-                Регистрируя группу в некомандном мероприятии, 
-                каждый участник группы принимает участие в мероприятии индивидуально.
-            </string>
-        </p>
-        <p>
-            <table id="events-reg-table"></table>
-            <div id="events-reg-table-pager"></div>
-        </p>
-    </div>
+    <div style="display:none;" id="dialog-reg-group" title="Регистрация группы"></div>
 
     <div style="display:none;" id="dialog-persons-request" title="Анкета участника"></div>
 
@@ -309,7 +293,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 onClickButton: function() {
                     var groupId = $("#grid-table").jqGrid("getGridParam", "selrow");
                     if (!groupId) return false;
-                    groupLib.Register("dialog-reg-group", groupId, "events-reg-table");
+                    groupLib.Register("dialog-reg-group", groupId, {{.events}});
                 }
             }
         );
@@ -327,52 +311,6 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
     $(window).bind("resize", function() {
         $("#grid-table").setGridWidth($(window).width()-50, true);
     }).trigger("resize");
-
-    $("#events-reg-table").jqGrid({
-        url: "/gridcontroller/load/events",
-        datatype: "json",
-        mtype: "POST",
-        treeGrid: false,
-        colNames: {{.events.ColNames}},
-        colModel: gridLib.SetPrimitive({{.events.ColModel}}),
-        pager: "#events-reg-table-pager",
-        gridview: true,
-        sortname: "id",
-        viewrecords: true,
-        height: "100%",
-        width: "auto",
-        rowNum: 5,
-        rownumbers: true,
-        rownumWidth: 20,
-        rowList: [5, 10, 20, 50],
-        caption: {{.events.Caption}},
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function(jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
-        },
-    });
-
-    $("#events-reg-table").navGrid(
-        "#events-reg-table-pager",
-        {   // buttons
-            edit: false,
-            add: false,
-            del: false,
-            refresh: false,
-            view: true,
-            search: true
-        }, {}, {}, {},
-        {   // search
-            multipleGroup: true,
-            closeOnEscape: true,
-            multipleSearch: true,
-            closeAfterSearch: true,
-        }
-    );
 
 });
 </script>

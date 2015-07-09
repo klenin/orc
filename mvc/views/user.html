@@ -12,23 +12,7 @@
     <div id="title" class="left"></div></br>
 
     <div id="cabinet" class="left">
-        <div hidden="true" id="dialog-reg-group" title="Регистрация группы">
-            <p style="color:red;">
-                <strong>
-                    Внимание! После регистрации группы в мероприятии 
-                    Вы не сможете удалять или добавлять участников группы
-                    во избежание потери информации.<br/>
-                    Участники, которые не подтвердили запрос для присоединения к группе, 
-                    не будут зарегистрированны в мепроприятии.<br/>
-                    Регистрируя группу в некомандном мероприятии, 
-                    каждый участник группы принимает участие в мероприятии индивидуально.
-                </string>
-            </p>
-            <p>
-                <table id="events-table"></table>
-                <div id="events-table-pager"></div>
-            </p>
-        </div>
+        <div hidden="true" id="dialog-reg-group" title="Регистрация группы"></div>
         <div hidden="true" id="dialog-person-request" title="Анкета"></div>
         <div hidden="true" id="dialog-group-person-request" title="Анкета"></div>
         <div hidden="true" id="dialog-add-person" title="Добавить участника"></div>
@@ -492,7 +476,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             onClickButton: function() {
                 var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                 if (!groupId) return false;
-                groupLib.Register("dialog-reg-group", groupId, "events-table");
+                groupLib.Register("dialog-reg-group", groupId, {{.events}});
             }
         }
     );
@@ -612,7 +596,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: {{.groupreg.Caption}},
+        caption: "Регистрации групп",
         sortname: "id",
         sortorder: "asc",
         loadError: function (jqXHR, textStatus, errorThrown) {
@@ -713,61 +697,13 @@ function(gridLib, groupLib, blank, userLib, utils) {
         $("#groupreg-table").setGridWidth($(window).width()-100, true);
     }).trigger("resize");
 
-    $("#events-table").jqGrid({
-        url: "/gridcontroller/load/events",
-        datatype: "json",
-        mtype: "POST",
-        treeGrid: false,
-        colNames: {{.events.ColNames}},
-        colModel: gridLib.SetPrimitive({{.events.ColModel}}),
-        pager: "#events-table-pager",
-        gridview: true,
-        sortname: "id",
-        viewrecords: true,
-        height: "100%",
-        width: "auto",
-        rowNum: 5,
-        rownumbers: true,
-        rownumWidth: 20,
-        rowList: [5, 10, 20, 50],
-        caption: {{.events.Caption}},
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function(jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
-    });
-
-    $("#events-table").jqGrid("hideCol", ["id"]);
-
-    $("#events-table").navGrid(
-        "#events-table-pager",
-        {   // buttons
-            edit: false,
-            add: false,
-            del: false,
-            refresh: false,
-            view: true,
-            search: true
-        }, {}, {}, {},
-        {   // search
-            multipleGroup: true,
-            closeOnEscape: true,
-            multipleSearch: true,
-            closeAfterSearch: true,
-        }
-    );
-
     $("#teams-table").jqGrid({
         url: "/handler/"+{{.groupreg.TableName}}.replace(/_/g, "")+"load/1",
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
         colNames: {{.groupreg.ColNames}},
-        colModel: grid.SetPrimitive({{.groupreg.ColModel}}),
+        colModel: gridLib.SetPrimitive({{.groupreg.ColModel}}),
         pager: "#teams-table-pager",
         gridview: true,
         sortname: "id",
@@ -808,7 +744,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 datatype: "json",
                 mtype: "POST",
                 colNames: {{.groupreg.SubColNames}},
-                colModel: grid.SetPrimitive({{.groupreg.SubColModel}}),
+                colModel: gridLib.SetPrimitive({{.groupreg.SubColModel}}),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
@@ -816,7 +752,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 sortname: "num",
                 sortorder: "asc",
                 height: "100%",
-                editurl: "/gridhandler/editgridrow/"+{{.groupreg.SubTableName}},
+                editurl: "/gridcontroller/editgridrow/"+{{.groupreg.SubTableName}},
                 loadError: function (jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: '+jqXHR.status+'\n'
                         +'textStatus: '+textStatus+'\n'
