@@ -44,16 +44,7 @@ func (this *GroupRegistrationModel) Delete(id int) {
         FROM param_values
         WHERE param_values.reg_id in
             (SELECT regs_groupregs.reg_id
-                FROM regs_groupregs WHERE regs_groupregs.groupreg_id = $1));`
-    db.Query(query, []interface{}{id})
-
-    query = `DELETE
-        FROM faces
-        WHERE faces.id in
-            (SELECT registrations.face_id
-                FROM registrations WHERE registrations.id in
-                    (SELECT regs_groupregs.reg_id
-                        FROM regs_groupregs WHERE regs_groupregs.groupreg_id = $1));`
+                FROM regs_groupregs WHERE regs_groupregs.groupreg_id = $1);`
     db.Query(query, []interface{}{id})
 
     query = `DELETE

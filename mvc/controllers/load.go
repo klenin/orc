@@ -222,7 +222,8 @@ func (this *Handler) GroupsLoad() {
     sidx := this.Request.FormValue("sidx")
     start := limit * page - limit
 
-    query := `SELECT groups.id, groups.name FROM groups
+    query := `SELECT groups.id, groups.name, groups.face_id
+        FROM groups
         INNER JOIN persons ON persons.group_id = groups.id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id

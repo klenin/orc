@@ -41,11 +41,11 @@ func (this *GroupController) Register() {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
     }
 
-    var eventName string
+    var eventName string; var teamEvent bool
     if err = this.GetModel("events").
         LoadWherePart(map[string]interface{}{"id": eventId}).
-        SelectRow([]string{"name"}).
-        Scan(&eventName);
+        SelectRow([]string{"name", "team"}).
+        Scan(&eventName, &teamEvent);
         err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
@@ -84,7 +84,7 @@ func (this *GroupController) Register() {
         INNER JOIN events ON events.id = events_forms.event_id
         INNER JOIN forms ON forms.id = events_forms.form_id
         INNER JOIN params ON forms.id = params.form_id
-        WHERE events.id = $1 ORDER BY forms.id;`
+        WHERE events.id = $1 AND forms.personal = true ORDER BY forms.id;`
     params := db.Query(query, []interface{}{eventId})
 
     date := time.Now().Format("20060102T15:04:05Z00:00")
@@ -105,12 +105,10 @@ func (this *GroupController) Register() {
             db.QueryInsert(regs, "RETURNING id").Scan(&regId)
 
             for _, elem := range params {
-                param_id := int(elem.(map[string]interface{})["id"].(int))
-
-                var paramValId int
+                paramId := int(elem.(map[string]interface{})["id"].(int))
                 paramValues := this.GetModel("param_values")
-                paramValues.LoadModelData(map[string]interface{}{"param_id": param_id, "value": " ", "date": date, "user_id": userId, "reg_id": regId})
-                db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
+                paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": " ", "date": date, "user_id": userId, "reg_id": regId})
+                db.QueryInsert(paramValues, "").Scan()
             }
         }
 
@@ -125,15 +123,40 @@ func (this *GroupController) Register() {
         // }
     }
 
+    if teamEvent == true {
+        query = `SELECT params.id FROM events_forms
+            INNER JOIN events ON events.id = events_forms.event_id
+            INNER JOIN forms ON forms.id = events_forms.form_id
+            INNER JOIN params ON forms.id = params.form_id
+            WHERE events.id = $1 AND forms.personal = false ORDER BY forms.id;`
+        params := db.Query(query, []interface{}{eventId})
+
+        var regId int
+        regs := this.GetModel("registrations")
+        regs.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId, "status": false})
+        db.QueryInsert(regs, "RETURNING id").Scan(&regId)
+
+        for _, elem := range params {
+            paramId := int(elem.(map[string]interface{})["id"].(int))
+            paramValues := this.GetModel("param_values")
+            paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": " ", "date": date, "user_id": userId, "reg_id": regId})
+            db.QueryInsert(paramValues, "").Scan()
+        }
+
+        regsGroupRegs := this.GetModel("regs_groupregs")
+        regsGroupRegs.LoadModelData(map[string]interface{}{"groupreg_id": groupregId, "reg_id": regId})
+        db.QueryInsert(regsGroupRegs, "").Scan()
+    }
+
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
 
 func (this *GroupController) ConfirmInvitationToGroup(token string) {
-    var faceId, groupId int
+    var faceId int
     if err := this.GetModel("persons").
         LoadWherePart(map[string]interface{}{"token": token}).
-        SelectRow([]string{"face_id", "group_id"}).
-        Scan(&faceId, &groupId);
+        SelectRow([]string{"face_id"}).
+        Scan(&faceId);
         err != nil {
         if this.Response != nil {
             this.Render([]string{"mvc/views/msg.html"}, "msg", "Неверный токен.")

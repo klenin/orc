@@ -32,6 +32,8 @@
 
     <div style="display:none;" id="dialog-group-person-request" title="Анкета участника"></div>
 
+    <div style="display:none;" id="dialog-group-request" title="Анкета группы"></div>
+
     <div id="error"></div>
     <div id="msg"></div>
 </div>
@@ -294,6 +296,19 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                     var groupId = $("#grid-table").jqGrid("getGridParam", "selrow");
                     if (!groupId) return false;
                     groupLib.Register("dialog-reg-group", groupId, {{.events}});
+                }
+            }
+        );
+
+    } else if ({{.model.TableName}} == "group_registrations") {
+        $("#grid-table").jqGrid(
+            "navButtonAdd",
+            "#grid-table-pager",
+            {
+                caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету группы",
+                onClickButton: function() {
+                    var regId = $("#grid-table").jqGrid("getGridParam", "selrow");
+                    blank.ShowPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
                 }
             }
         );

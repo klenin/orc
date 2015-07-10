@@ -5,8 +5,9 @@ type FormsModel struct {
 }
 
 type Forms struct {
-    Id   int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    Id       int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    Name     string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    Personal bool   `name:"personal" type:"boolean" null:"NOT NULL" extra:""`
 }
 
 func (c *ModelManager) Forms() *FormsModel {
@@ -15,8 +16,8 @@ func (c *ModelManager) Forms() *FormsModel {
     model.TableName = "forms"
     model.Caption = "Формы"
 
-    model.Columns = []string{"id", "name"}
-    model.ColNames = []string{"ID", "Название"}
+    model.Columns = []string{"id", "name", "personal"}
+    model.ColNames = []string{"ID", "Название", "Персональная"}
 
     model.Fields = new(Forms)
     model.WherePart = make(map[string]interface{}, 0)
@@ -45,6 +46,16 @@ func (this *FormsModel) GetColModel(isAdmin bool, userId int) []map[string]inter
             "name": "name",
             "editable": true,
             "editrules": map[string]interface{}{"required": true},
+        },
+        2: map[string]interface{} {
+            "index": "personal",
+            "name": "personal",
+            "editable": true,
+            "editrules": map[string]interface{}{"required": true},
+            "formatter": "checkbox",
+            "formatoptions": map[string]interface{}{"disabled": true},
+            "edittype": "checkbox",
+            "editoptions": map[string]interface{}{"value": "true:false"},
         },
     }
 }

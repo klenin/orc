@@ -145,27 +145,50 @@ func (this *GroupsModel) Select(fields []string, filters map[string]interface{},
 }
 
 func (this *GroupsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
-    query := `SELECT array_to_string(
-        array(
-            SELECT f.id || ':' || f.id || '-' || array_to_string(
+    var query, faces string
+    if isAdmin {
+        query = `SELECT array_to_string(
             array(
-                SELECT param_values.value
+                SELECT f.id || ':' || f.id || '-' || array_to_string(
+                array(
+                    SELECT param_values.value
+                    FROM param_values
+                    INNER JOIN registrations ON registrations.id = param_values.reg_id
+                    INNER JOIN faces ON faces.id = registrations.face_id
+                    INNER JOIN events ON events.id = registrations.event_id
+                    INNER JOIN params ON params.id = param_values.param_id
+                    WHERE param_values.param_id IN (5, 6, 7) AND events.id = 1 AND faces.id = f.id ORDER BY param_values.param_id
+                ), ' ')
                 FROM param_values
-                INNER JOIN registrations ON registrations.id = param_values.reg_id
-                INNER JOIN faces ON faces.id = registrations.face_id
-                INNER JOIN events ON events.id = registrations.event_id
-                INNER JOIN params ON params.id = param_values.param_id
-                WHERE param_values.param_id IN (5, 6, 7) AND events.id = 1 AND faces.id = f.id ORDER BY param_values.param_id
-            ), ' ')
-            FROM param_values
-            INNER JOIN registrations as reg ON reg.id = param_values.reg_id
-            INNER JOIN faces as f ON f.id = reg.face_id
-            INNER JOIN events ON events.id = reg.event_id
-            INNER JOIN params as p ON p.id = param_values.param_id
-            INNER JOIN users ON users.id = f.user_id GROUP BY f.id ORDER BY f.id
-        ), ';') as name;`
+                INNER JOIN registrations as reg ON reg.id = param_values.reg_id
+                INNER JOIN faces as f ON f.id = reg.face_id
+                INNER JOIN events ON events.id = reg.event_id
+                INNER JOIN params as p ON p.id = param_values.param_id
+                INNER JOIN users ON users.id = f.user_id GROUP BY f.id ORDER BY f.id
+            ), ';') as name;`
+    } else {
+        query = `SELECT array_to_string(
+            array(
+                SELECT f.id || ':' || array_to_string(
+                array(
+                    SELECT param_values.value
+                    FROM param_values
+                    INNER JOIN registrations ON registrations.id = param_values.reg_id
+                    INNER JOIN faces ON faces.id = registrations.face_id
+                    INNER JOIN events ON events.id = registrations.event_id
+                    INNER JOIN params ON params.id = param_values.param_id
+                    WHERE param_values.param_id IN (5, 6, 7) AND events.id = 1 AND faces.id = f.id ORDER BY param_values.param_id
+                ), ' ')
+                FROM param_values
+                INNER JOIN registrations as reg ON reg.id = param_values.reg_id
+                INNER JOIN faces as f ON f.id = reg.face_id
+                INNER JOIN events ON events.id = reg.event_id
+                INNER JOIN params as p ON p.id = param_values.param_id
+                INNER JOIN users ON users.id = f.user_id GROUP BY f.id ORDER BY f.id
+            ), ';') as name;`
+    }
 
-    faces := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
+    faces = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
 
     return []map[string]interface{} {
         0: map[string]interface{} {

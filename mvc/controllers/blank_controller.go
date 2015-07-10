@@ -5,6 +5,7 @@ import (
     "github.com/orc/mvc/models"
     "github.com/orc/sessions"
     "github.com/orc/utils"
+    "log"
     "net/http"
     "strconv"
     "time"
@@ -18,9 +19,15 @@ type BlankController struct {
     Controller
 }
 
-func (this *BlankController) GetPersonRequestFromGroup() {
-    if !sessions.CheckSession(this.Response, this.Request) {
-        http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+func (this *BlankController) GetPersonRequestFromGroup(formType string) {
+    userId, err := this.CheckSid()
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
+        return
+    }
+
+    if formType != "true" && formType != "false" {
+        utils.SendJSReply(map[string]interface{}{"result": "Invalid formType"}, this.Response)
         return
     }
 
@@ -42,6 +49,71 @@ func (this *BlankController) GetPersonRequestFromGroup() {
         return
     }
 
+    var regId int
+
+    if faceId == -1 {
+        if this.isAdmin() {
+            query := `SELECT faces.id, registrations.id
+                FROM regs_groupregs
+                INNER JOIN group_registrations ON group_registrations.id = regs_groupregs.groupreg_id
+                INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
+                INNER JOIN groups ON groups.id = group_registrations.group_id
+                INNER JOIN faces ON faces.id = groups.face_id AND faces.id = registrations.face_id
+                INNER JOIN events ON events.id = registrations.event_id
+                INNER JOIN events_forms ON events_forms.event_id = events.id
+                INNER JOIN forms ON forms.id = events_forms.form_id
+                INNER JOIN params ON forms.id = params.form_id
+                INNER JOIN param_types ON param_types.id = params.param_type_id
+                INNER JOIN param_values ON params.id = param_values.param_id AND param_values.reg_id = registrations.id
+                WHERE group_registrations.id = $1 AND forms.personal = false;`
+            db.QueryRow(query, []interface{}{groupRegId}).Scan(&faceId, &regId)
+        } else {
+            if err := this.GetModel("faces").
+                LoadWherePart(map[string]interface{}{"user_id": userId}).
+                SelectRow([]string{"id"}).
+                Scan(&faceId);
+                err != nil {
+                utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+                return
+            }
+
+            query := `SELECT registrations.id
+                FROM regs_groupregs
+                INNER JOIN group_registrations ON group_registrations.id = regs_groupregs.groupreg_id
+                INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN groups ON groups.face_id = faces.id AND groups.id = group_registrations.group_id
+                INNER JOIN events ON events.id = registrations.event_id
+                INNER JOIN events_forms ON events_forms.event_id = events.id
+                INNER JOIN forms ON forms.id = events_forms.form_id
+                INNER JOIN params ON forms.id = params.form_id
+                INNER JOIN param_types ON param_types.id = params.param_type_id
+                INNER JOIN param_values ON params.id = param_values.param_id AND param_values.reg_id = registrations.id
+                WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = false;`
+            db.QueryRow(query, []interface{}{groupRegId, faceId}).Scan(&regId)
+        }
+    } else {
+        query := `SELECT registrations.id
+                FROM regs_groupregs
+                INNER JOIN group_registrations ON group_registrations.id = regs_groupregs.groupreg_id
+                INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN groups ON groups.face_id = faces.id AND groups.id = group_registrations.group_id
+                INNER JOIN events ON events.id = registrations.event_id
+                INNER JOIN events_forms ON events_forms.event_id = events.id
+                INNER JOIN forms ON forms.id = events_forms.form_id
+                INNER JOIN params ON forms.id = params.form_id
+                INNER JOIN param_types ON param_types.id = params.param_type_id
+                INNER JOIN param_values ON params.id = param_values.param_id AND param_values.reg_id = registrations.id
+                WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = true;`
+        db.QueryRow(query, []interface{}{groupRegId, faceId}).Scan(&regId)
+    }
+
+    log.Println("faceId: ", faceId)
+    log.Println("groupRegId: ", groupRegId)
+    log.Println("regId: ", regId)
+    log.Println("formType: ", formType)
+
     query := `SELECT forms.id as form_id, forms.name as form_name,
             params.id as param_id, params.name as param_name, params.required, params.editable,
             events.name as event_name, events.id as event_id,
@@ -58,13 +130,14 @@ func (this *BlankController) GetPersonRequestFromGroup() {
         INNER JOIN groups ON group_registrations.group_id = groups.id
         INNER JOIN regs_groupregs ON regs_groupregs.reg_id = registrations.id
             AND regs_groupregs.groupreg_id = group_registrations.id
-        WHERE group_registrations.id = $1 AND faces.id = $2 ORDER BY forms.id, params.id;`
+        WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = $3 ORDER BY forms.id, params.id;`
 
     utils.SendJSReply(
         map[string]interface{}{
             "result": "ok",
-            "data": db.Query(query, []interface{}{groupRegId, faceId}),
-            "role": this.isAdmin()},
+            "data": db.Query(query, []interface{}{groupRegId, faceId, formType}),
+            "role": this.isAdmin(),
+            "regId": regId},
         this.Response)
 }
 
@@ -98,7 +171,7 @@ func (this *BlankController) GetBlankByRegId() {
         INNER JOIN param_values ON params.id = param_values.param_id
         INNER JOIN registrations ON registrations.id = param_values.reg_id
             AND events.id = registrations.event_id
-        WHERE registrations.id = $1 ORDER BY forms.id, params.id;`
+        WHERE registrations.id = $1 AND forms.personal = true ORDER BY forms.id, params.id;`
 
     utils.SendJSReply(
         map[string]interface{}{
@@ -127,7 +200,7 @@ func (this *BlankController) GetBlankByEventId(id string) {
         INNER JOIN forms ON forms.id = events_forms.form_id
         INNER JOIN params ON forms.id = params.form_id
         INNER JOIN param_types ON param_types.id = params.param_type_id
-        WHERE events.id = $1 ORDER BY forms.id, params.id;`
+        WHERE events.id = $1 AND forms.personal = true ORDER BY forms.id, params.id;`
     res := db.Query(query, []interface{}{eventId})
 
     this.Render([]string{"mvc/views/item.html"}, "item", map[string]interface{}{"data": res})
@@ -144,6 +217,12 @@ func (this *BlankController) GetEditHistoryData() {
     regId, err := strconv.Atoi(data["reg_id"].(string))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    formType := data["personal"].(string)
+    if formType != "true" && formType != "false" {
+        utils.SendJSReply(map[string]interface{}{"result": "Invalid form type"}, this.Response)
         return
     }
 
@@ -172,9 +251,9 @@ func (this *BlankController) GetEditHistoryData() {
         INNER JOIN param_types ON param_types.id = params.param_type_id
         INNER JOIN param_values as p ON p.param_id = params.id
             AND p.reg_id = registrations.id
-        WHERE registrations.id = $1;`
+        WHERE registrations.id = $1 AND forms.personal = $2;`
 
-    utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{regId})}, this.Response)
+    utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{regId, formType})}, this.Response)
 }
 
 func (this *BlankController) GetHistoryRequest() {
@@ -208,7 +287,7 @@ func (this *BlankController) GetHistoryRequest() {
         INNER JOIN param_types ON param_types.id = params.param_type_id
         INNER JOIN param_values ON param_values.param_id = params.id
             AND param_values.reg_id = registrations.id
-        WHERE users.id = $1 AND events.id = $2;`
+        WHERE users.id = $1 AND events.id = $2 AND forms.personal = true;`
 
     utils.SendJSReply(map[string]interface{}{"result": "ok", "data": db.Query(query, []interface{}{userId, eventId})}, this.Response)
 }

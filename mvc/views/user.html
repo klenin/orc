@@ -15,6 +15,7 @@
         <div hidden="true" id="dialog-reg-group" title="Регистрация группы"></div>
         <div hidden="true" id="dialog-person-request" title="Анкета"></div>
         <div hidden="true" id="dialog-group-person-request" title="Анкета"></div>
+        <div hidden="true" id="dialog-group-request" title="Анкета группы"></div>
         <div hidden="true" id="dialog-add-person" title="Добавить участника"></div>
         <div id="error"></div>
         <p id="userData"></p>
@@ -149,8 +150,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
     $("#userData").append($("<div/>").text("Логин: "+{{.}}.userData[0].login));
     $("#userData").append($("<div/>").text({{.}}.userData[0].name+": "+{{.}}.userData[0].value));
-
-    console.log("group.SubColModel: ", {{.group.SubColModel}});
 
     $("#my-group-table").jqGrid({
         url: "/handler/usergroupsload",
@@ -393,7 +392,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                             $("#faces-table").setGridWidth(formId.width()-100, true);
                         }).trigger("resize");
                     }
-
                 },
                 {   //del
                     closeAfterAdd: true,
@@ -513,7 +511,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
     });
 
     $("#group-table").jqGrid("hideCol", ["id"]);
-    $("#group-table").jqGrid("hideCol", ["face_id"]);
 
     $(window).bind("resize", function() {
         $("#group-table").setGridWidth($(window).width()-100, true);
@@ -666,7 +663,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                     onClickButton: function() {
                         var personId = $("#"+subgrid_id+"_t").jqGrid("getGridParam", "selrow");
                         var faceId = $("#"+subgrid_id+"_t").jqGrid("getCell", personId, "face_id");
-                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request");
+                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
                     }
                 }
             );
@@ -680,6 +677,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
     });
 
     $("#groupreg-table").jqGrid("hideCol", ["face_id"]);
+    $("#groupreg-table").jqGrid("hideCol", ["id"]);
 
     $("#groupreg-table").navGrid(
         "#groupreg-table-pager",
@@ -781,7 +779,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                     onClickButton: function() {
                         var personId = $("#"+subgrid_id+"_t").jqGrid("getGridParam", "selrow");
                         var faceId = $("#"+subgrid_id+"_t").jqGrid("getCell", personId, "face_id");
-                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request");
+                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
                     }
                 }
             );
@@ -806,6 +804,18 @@ function(gridLib, groupLib, blank, userLib, utils) {
             refresh: false,
             view: false,
             search: false
+        }
+    );
+
+    $("#teams-table").jqGrid(
+        "navButtonAdd",
+        "#teams-table-pager",
+        {
+            caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету группы",
+            onClickButton: function() {
+                var regId = $("#teams-table").jqGrid("getGridParam", "selrow");
+                blank.ShowPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
+            }
         }
     );
 

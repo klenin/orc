@@ -99,25 +99,25 @@ function(utils, gridLib, datepicker, kladr) {
         );
     }
 
-    function ShowPersonBlankFromGroup(groupRegId, faceId, dialogId) {
+    function ShowPersonBlankFromGroup(groupRegId, faceId, dialogId, formType) {
         console.log("ShowPersonBlankFromGroup");
-
-        var data = { "group_reg_id": groupRegId, "face_id": faceId };
-        console.log("ShowPersonBlankFromGroup: ", data);
 
         if (!groupRegId || !faceId) {
             return false;
         }
+
+        var data = { "group_reg_id": groupRegId, "face_id": faceId };
+        console.log("ShowPersonBlankFromGroup: ", data);
 
         $("#"+dialogId).empty();
 
         utils.postRequest(
             data,
             function(data) {
-                ShowBlank(data["data"], dialogId, data["role"]);
+                ShowBlank(data["data"], dialogId, data["role"], data["regId"].toString(), formType);
                 $("#"+dialogId+" #history").hide();
             },
-            "/blankcontroller/getpersonrequestfromgroup"
+            "/blankcontroller/getpersonrequestfromgroup/"+formType
         );
 
         $("#"+dialogId).dialog({
@@ -149,9 +149,10 @@ function(utils, gridLib, datepicker, kladr) {
         return true;
     }
 
-    function ShowBlank(d, dialogId, role, regId) {
+    function ShowBlank(d, dialogId, role, regId, formType) {
         console.log("ShowBlank data: ", d);
         console.log("ShowBlank role: ", role);
+        console.log("ShowBlank formType: ", formType);
 
         if (d.length == 0) {
             return false;
@@ -172,7 +173,7 @@ function(utils, gridLib, datepicker, kladr) {
             $("#"+dialogId+" #edit-history-box").change(function() {
                 console.log("ShowBlank: ", { "reg_id": regId });
                 utils.postRequest(
-                    { "reg_id": regId },
+                    { "reg_id": regId, "personal": formType },
                     function(response) {
                         if (response["result"] !== "ok") {
                             ShowServerAns(-1, response, "now #server-answer");
@@ -295,16 +296,13 @@ function(utils, gridLib, datepicker, kladr) {
     }
 
     function ShowPersonBlank(dialogId, regId) {
-        console.log("ShowPersonBlank");
-
-        console.log("reg_id", regId)
-
+        console.log("ShowPersonBlank: reg_id = ", regId);
         $("#"+dialogId).empty();
 
         utils.postRequest(
             { "reg_id": regId },
             function(data) {
-                var formIds = ShowBlank(data["data"], dialogId, data["role"], regId);
+                var formIds = ShowBlank(data["data"], dialogId, data["role"], regId, "true");
                 if (!formIds) {
                     return false;
                 }
