@@ -1,11 +1,11 @@
 # controllers
 
-![controllers][scheme-1]
+![controllers][schema-1]
 
 UPDATE-1
 --------
 
-![controllers][scheme-2]
+![controllers][schema-2]
 
 ## Controller
 
@@ -166,5 +166,5 @@ UPDATE-1
 
 #### SendEmailWelcomeToPofile
 
-[scheme-1]: ../docs/img/controllers.png "controllers"
-[scheme-2]: ../docs/img/controllers-update-1.png "controllers"
+[schema-1]: ../docs/img/controllers.png "controllers"
+[schema-2]: ../docs/img/controllers-update-1.png "controllers"
