@@ -19,21 +19,22 @@ type BlankController struct {
     Controller
 }
 
-func (this *BlankController) GetPersonRequestFromGroup(formType string) {
+func (this *BlankController) GetPersonRequestFromGroup() {
     userId, err := this.CheckSid()
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
         return
     }
 
-    if formType != "true" && formType != "false" {
-        utils.SendJSReply(map[string]interface{}{"result": "Invalid formType"}, this.Response)
-        return
-    }
-
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    personalForm := request["personal"].(string)
+    if personalForm != "true" && personalForm != "false" {
+        utils.SendJSReply(map[string]interface{}{"result": "Invalid personalForm"}, this.Response)
         return
     }
 
@@ -112,9 +113,11 @@ func (this *BlankController) GetPersonRequestFromGroup(formType string) {
     log.Println("faceId: ", faceId)
     log.Println("groupRegId: ", groupRegId)
     log.Println("regId: ", regId)
-    log.Println("formType: ", formType)
+    log.Println("formType: ", personalForm)
 
     query := `SELECT forms.id as form_id, forms.name as form_name,
+    var query string
+    var result []interface{}
             params.id as param_id, params.name as param_name, params.required, params.editable,
             events.name as event_name, events.id as event_id,
             param_types.name as type, param_values.id as param_val_id, param_values.value
@@ -131,11 +134,29 @@ func (this *BlankController) GetPersonRequestFromGroup(formType string) {
         INNER JOIN regs_groupregs ON regs_groupregs.reg_id = registrations.id
             AND regs_groupregs.groupreg_id = group_registrations.id
         WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = $3 ORDER BY forms.id, params.id;`
+        query = `SELECT forms.id as form_id, forms.name as form_name,
+                params.id as param_id, params.name as param_name, params.required, params.editable,
+                events.name as event_name, events.id as event_id,
+                param_types.name as type, param_values.id as param_val_id, param_values.value
+            FROM events_forms
+            INNER JOIN events ON events.id = events_forms.event_id
+            INNER JOIN forms ON forms.id = events_forms.form_id
+            INNER JOIN params ON forms.id = params.form_id
+            INNER JOIN param_types ON param_types.id = params.param_type_id
+            INNER JOIN param_values ON params.id = param_values.param_id
+            INNER JOIN registrations ON registrations.id = param_values.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN group_registrations ON group_registrations.event_id = events.id
+            INNER JOIN groups ON group_registrations.group_id = groups.id
+            INNER JOIN regs_groupregs ON regs_groupregs.reg_id = registrations.id
+                AND regs_groupregs.groupreg_id = group_registrations.id
+            WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = $3 ORDER BY forms.id, params.id;`
+        result = db.Query(query, []interface{}{groupRegId, faceId, personalForm})
 
     utils.SendJSReply(
         map[string]interface{}{
             "result": "ok",
-            "data": db.Query(query, []interface{}{groupRegId, faceId, formType}),
+            "data": result,
             "role": this.isAdmin(),
             "regId": regId},
         this.Response)

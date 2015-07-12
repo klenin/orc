@@ -106,7 +106,11 @@ function(utils, gridLib, datepicker, kladr) {
             return false;
         }
 
-        var data = { "group_reg_id": groupRegId, "face_id": faceId };
+        var data = {
+            "group_reg_id": groupRegId,
+            "face_id": faceId,
+            "personal": formType,
+        };
         console.log("ShowPersonBlankFromGroup: ", data);
 
         $("#"+dialogId).empty();
@@ -117,7 +121,7 @@ function(utils, gridLib, datepicker, kladr) {
                 ShowBlank(data["data"], dialogId, data["role"], data["regId"].toString(), formType);
                 $("#"+dialogId+" #history").hide();
             },
-            "/blankcontroller/getpersonrequestfromgroup/"+formType
+            "/blankcontroller/getpersonrequestfromgroup"
         );
 
         $("#"+dialogId).dialog({

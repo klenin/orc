@@ -329,7 +329,7 @@ func (this *Handler) RegistrationsLoad(userId_ string) {
     utils.SendJSReply(result, this.Response)
 }
 
-func (this *Handler) GroupRegistrationsLoad(isTeam string) {
+func (this *Handler) UserGroupRegistrationsLoad(isTeam string) {
     userId, err := this.CheckSid()
     if err != nil {
         http.Error(this.Response, "Unauthorized", 400)
@@ -371,7 +371,69 @@ func (this *Handler) GroupRegistrationsLoad(isTeam string) {
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 AND events.team = $2) as count;`
-    count := int(db.Query(query, []interface{}{userId, isTeam_})[0].(map[string]interface{})["count"].(int))
+
+    var count int
+    db.QueryRow(query, []interface{}{userId, isTeam_}).Scan(&count)
+
+    var totalPages int
+    if count > 0 {
+        totalPages = int(math.Ceil(float64(count) / float64(limit)))
+    } else {
+        totalPages = 0
+    }
+
+    result := make(map[string]interface{}, 2)
+    result["rows"] = rows
+    result["page"] = page
+    result["total"] = totalPages
+    result["records"] = count
+
+    utils.SendJSReply(result, this.Response)
+}
+
+func (this *Handler) GroupRegistrationsLoad() {
+    userId, err := this.CheckSid()
+    if err != nil {
+        http.Error(this.Response, "Unauthorized", 400)
+        return
+    }
+
+    limit, err := strconv.Atoi(this.Request.PostFormValue("rows"))
+    if err != nil {
+        http.Error(this.Response, err.Error(), 400)
+        return
+    }
+
+    page, err := strconv.Atoi(this.Request.PostFormValue("page"))
+    if err != nil {
+        http.Error(this.Response, err.Error(), 400)
+        return
+    }
+
+    sidx := this.Request.FormValue("sidx")
+    start := limit * page - limit
+
+    query := `SELECT group_registrations.id, group_registrations.event_id, group_registrations.group_id
+        FROM group_registrations
+        INNER JOIN events ON events.id = group_registrations.event_id
+        INNER JOIN groups ON groups.id = group_registrations.group_id
+        INNER JOIN persons ON persons.group_id = groups.id
+        INNER JOIN faces ON faces.id = persons.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
+    rows := db.Query(query, []interface{}{userId, sidx, limit, start})
+
+    query = `SELECT COUNT(*) FROM (SELECT group_registrations.id
+        FROM group_registrations
+        INNER JOIN events ON events.id = group_registrations.event_id
+        INNER JOIN groups ON groups.id = group_registrations.group_id
+        INNER JOIN persons ON persons.group_id = groups.id
+        INNER JOIN faces ON faces.id = persons.face_id
+        INNER JOIN users ON users.id = faces.user_id
+        WHERE users.id = $1 GROUP BY group_registrations.id) as count;`
+
+    var count int
+    db.QueryRow(query, []interface{}{userId}).Scan(&count)
 
     var totalPages int
     if count > 0 {
