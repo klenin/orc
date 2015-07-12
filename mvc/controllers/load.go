@@ -288,16 +288,29 @@ func (this *Handler) RegistrationsLoad(userId_ string) {
 
     query := `SELECT registrations.id, registrations.event_id, registrations.status FROM registrations
         INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN events_forms ON events_forms.event_id = events.id
+        INNER JOIN forms ON forms.id = events_forms.form_id
+        INNER JOIN params ON forms.id = params.form_id
+        INNER JOIN param_types ON param_types.id = params.param_type_id
+        INNER JOIN param_values ON params.id = param_values.param_id AND param_values.reg_id = registrations.id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
+        WHERE users.id = $1 AND forms.personal = true
+        GROUP BY registrations.id
+        ORDER BY $2 LIMIT $3 OFFSET $4;`
     rows := db.Query(query, []interface{}{id, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM (SELECT registrations.id FROM registrations
         INNER JOIN events ON events.id = registrations.event_id
+        INNER JOIN events_forms ON events_forms.event_id = events.id
+        INNER JOIN forms ON forms.id = events_forms.form_id
+        INNER JOIN params ON forms.id = params.form_id
+        INNER JOIN param_types ON param_types.id = params.param_type_id
+        INNER JOIN param_values ON params.id = param_values.param_id AND param_values.reg_id = registrations.id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1) as count;`
+        WHERE users.id = $1 AND forms.personal = true
+        GROUP BY registrations.id) as count;`
     count := int(db.Query(query, []interface{}{id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
