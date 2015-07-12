@@ -10,7 +10,7 @@ import (
 )
 
 const HASH_SIZE = 32
-const Server = "my server link"
+const Server = "https://server/link/"
 
 var err error
 
@@ -39,9 +39,9 @@ type SmtpTemplateData struct {
 }
 
 var admin = &Admin{
-    Name:       "Secret Oasis",
-    EmailAdmin: "email of admin",
-    Password:   "password of email",
+    Name:       "Name of Admin",
+    EmailAdmin: "Email of admin",
+    Password:   "Password of email",
     SMTPServer: "smtp.gmail.com",
     Port:       587}
 

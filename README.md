@@ -7,22 +7,25 @@ Course work.
 organizers of various competitions, events, tournaments, seminars,
 conferences, etc.
 
-Installation
-------------
+The system has a web interface and provides the ability to generate
+different kinds of registration forms, allows to organize an individual
+or a group registration of participants in events of any type.
 
-### Requirements
+# Installation
+
+## Requirements
 
 [Go][1] v1.2 or higher.
 
 [PostgreSQL][2] v9.3 or higher.
 
-### Getting Source Files
+## Getting Source Files
 
 Install [git][3]. Get a copy of repository:
 
     $ git clone git@github.com:GuraYaroslava/orc.git
 
-### Install Packages
+## Installation of Go-packages
 
 - [package pq][4] ([godoc](http://godoc.org/github.com/lib/pq))
 
@@ -32,9 +35,9 @@ Install [git][3]. Get a copy of repository:
 
         $ go get github.com/gorilla/securecookie
 
-### Running
+## Preparation of database
 
-Create database `orc`:
+Create a database `orc`:
 
     CREATE DATABASE orc;
 
@@ -43,48 +46,39 @@ Create a user account called `admin` and grant permission for database called `o
     CREATE USER admin WITH PASSWORD 'admin';
     GRANT ALL PRIVILEGES ON DATABASE orc to admin;
 
-Local postgres connection string for a database called `orc`:
+## Setting Admin credentials
 
-    $ export DATABASE_URL="user=admin host=localhost dbname=orc password=password sslmode=disable"
+Fix `Name`, `EmailAdmin` and `Password` of administrator data in mailer/mailer.go:
 
-Port (port is 5000 by default):
-
-    $ export PORT="6543"
-
-Run:
-
-    $ go build && orc.exe
-
-Run with downloading test data:
-
-    $ go build && orc.exe -test-data=true
-
-!!! Fix `EmailAdmin` and `Password` of admin data in mailer/mailer.go:
-
+    // mailer/mailer.go
     var admin = &Admin{
-        Name:       "Secret Oasis",
-        EmailAdmin: "email of admin",
-        Password:   "password of email",
+        Name:       "Name of Admin",
+        EmailAdmin: "Email of admin",
+        Password:   "Password of email",
         SMTPServer: "smtp.gmail.com",
         Port:       587}
 
-!!! Fix server link:
+Fix a server link:
 
-    const Server = "my server link"
+    // mailer/mailer.go
+    const Server = "https://server/link/"
 
-!!! Admin credentials:
+Administrator credentials to login system:
 
     Login: admin
     Password: password
 
-### Configuring [Apache][6]
+## Configuring [Apache][6]
 
 Install modules [mod_proxy][7] and [mod_proxy_http][8]. Uncomment lines in `httpd.conf`:
 
+    # httpd.conf
     LoadModule proxy_module modules/mod_proxy.so
     LoadModule proxy_http_module modules/mod_proxy_http.so
 
 Add to httpd-vhosts.conf:
+
+    # httpd-vhosts.conf
 
     <VirtualHost localhost:6543>
         DocumentRoot "path/to/orc"
@@ -109,6 +103,24 @@ Add to httpd-vhosts.conf:
         ProxyPassReverse /same/path/ http://localhost:6543
 
     </VirtualHost>
+
+## Running
+
+Set a local postgres connection string for a database called `orc`:
+
+    $ export DATABASE_URL="user=admin host=localhost dbname=orc password=password sslmode=disable"
+
+Set a port (5000 by default):
+
+    $ export PORT="6543"
+
+Run:
+
+    $ go build && orc.exe
+
+Clear a database and run the system with a test data:
+
+    $ go build && orc.exe -test-data=true
 
 [1]: https://golang.org
 [2]: http://www.postgresql.org
