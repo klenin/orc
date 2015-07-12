@@ -35,6 +35,7 @@
     <div style="display:none;" id="dialog-group-request" title="Анкета группы"></div>
 
     <div id="error"></div>
+
     <div id="msg"></div>
 </div>
 
@@ -295,7 +296,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 onClickButton: function() {
                     var groupId = $("#grid-table").jqGrid("getGridParam", "selrow");
                     if (!groupId) return false;
-                    groupLib.Register("dialog-reg-group", groupId, {{.events}});
+                    groupLib.Register("dialog-reg-group", groupId, false, false, {{.events}});
                 }
             }
         );

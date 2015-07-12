@@ -474,7 +474,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             onClickButton: function() {
                 var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                 if (!groupId) return false;
-                groupLib.Register("dialog-reg-group", groupId, {{.events}});
+                groupLib.Register("dialog-reg-group", groupId, false, false, {{.events}});
             }
         }
     );

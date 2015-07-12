@@ -10,8 +10,8 @@
 
 <script type="text/javascript">
 
-require(["utils", "grid_lib", "blank"],
-function(utils, gridLib, blank) {
+require(["utils", "grid_lib", "group_lib", "blank"],
+function(utils, gridLib, groupLib, blank) {
 
     $("#events-table").jqGrid({
         url: "/gridcontroller/load/" + {{.events.TableName}},
@@ -66,7 +66,9 @@ function(utils, gridLib, blank) {
                 $("#events #server-answer").empty();
                 var selectedRowId = $("#events-table").jqGrid("getGridParam", "selrow");
                 var eventId = $("#events-table").jqGrid("getCell", selectedRowId, "id");
-                console.log("eventId: ", eventId);
+                var teamEvent = $("#events-table").jqGrid("getCell", selectedRowId, "team");
+
+                console.log("eventId: ", eventId, "teamEvent: ", teamEvent);
                 if (eventId == undefined || eventId == false) {
                     alert("Выберите запись.");
                     return false;
@@ -75,15 +77,21 @@ function(utils, gridLib, blank) {
                 utils.postRequest(
                     {},
                     function(response) {
-                        if (response["result"] == "ok") {
-                            location.href = "/blankcontroller/getblankbyeventid/" + eventId;
-                        } else if (response["result"] == "regExists") {
-                            if (response["regId"] == undefined) {
-                                alert("Ошибка при загрузке анкеты: id регистрации НЕ найден.")
-                                console.log("Ошибка при загрузке анкеты: id регистрации НЕ найден.")
-                                return
+                        if (response["result"] === "ok") {
+                            if (teamEvent === "true") {
+                                groupLib.Register("dialog-reg-group", false, eventId, response["groups"], false);
+                                blank.ShowPersonBlankFromGroup(response["regId"], "-1", "dialog-person-request", "false");
+                            } else if (teamEvent === "false") {
+                                location.href = "/blankcontroller/getblankbyeventid/"+eventId;
                             }
-                            blank.ShowPersonBlank("dialog-person-request", response["regId"]);
+
+                        } else if (response["result"] === "regExists") {
+                            if (teamEvent === "true") {
+                                blank.ShowPersonBlankFromGroup(response["groupRegId"], "-1", "dialog-person-request", "false");
+                            } else if (teamEvent === "false") {
+                                blank.ShowPersonBlank("dialog-person-request", response["regId"]);
+                            }
+
                         } else {
                             blank.ShowServerAns(eventId, response, "events #server-answer");
                         }
@@ -107,6 +115,7 @@ function(utils, gridLib, blank) {
     <div id="events">
         <div id="server-answer"></div>
         <div hidden="true" id="dialog-person-request" title="Анкета"></div>
+        <div hidden="true" id="dialog-reg-group" title="Регистрация группы"></div>
         <table id="events-table"></table>
         <div id="events-table-pager"></div>
     </div>

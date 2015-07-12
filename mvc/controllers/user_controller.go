@@ -66,9 +66,46 @@ func (this *UserController) CheckEnable(id string) {
 
     regId := this.regExists(userId, eventId)
     if regId == -1 {
-        utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
+        groups := this.GetModel("groups")
+        persons := this.GetModel("persons")
+        groupsModel := Model{
+            TableName:    groups.GetTableName(),
+            ColNames:     groups.GetColNames(),
+            ColModel:     groups.GetColModel(false, userId),
+            Caption:      groups.GetCaption(),
+            Sub:          groups.GetSub(),
+            SubTableName: persons.GetTableName(),
+            SubCaption:   persons.GetCaption(),
+            SubColModel:  persons.GetColModel(false, userId),
+            SubColNames:  persons.GetColNames()}
+        utils.SendJSReply(map[string]interface{}{"result": "ok", "groups": groupsModel}, this.Response)
     } else {
-        utils.SendJSReply(map[string]interface{}{"result": "regExists", "regId": strconv.Itoa(regId)}, this.Response)
+        var teamEvent bool
+        if err = this.GetModel("events").
+            LoadWherePart(map[string]interface{}{"id": eventId}).
+            SelectRow([]string{"team"}).
+            Scan(&teamEvent);
+            err != nil{
+            utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+            return
+        }
+
+        if teamEvent {
+            var groupRegId int
+            query := `SELECT group_registrations.id
+                FROM regs_groupregs
+                INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
+                INNER JOIN group_registrations ON group_registrations.id = regs_groupregs.groupreg_id
+                INNER JOIN events ON events.id = registrations.event_id AND events.id = group_registrations.event_id
+                INNER JOIN faces ON faces.id = registrations.face_id
+                INNER JOIN users ON users.id = faces.user_id
+                INNER JOIN groups ON groups.face_id = faces.id AND group_registrations.group_id = groups.id
+                WHERE users.id = $1 AND events.id = $2 GROUP BY group_registrations.id;`
+            db.QueryRow(query, []interface{}{userId, eventId}).Scan(&groupRegId)
+            utils.SendJSReply(map[string]interface{}{"result": "regExists", "groupRegId": strconv.Itoa(groupRegId)}, this.Response)
+        } else {
+            utils.SendJSReply(map[string]interface{}{"result": "regExists", "regId": strconv.Itoa(regId)}, this.Response)
+        }
     }
 }
 

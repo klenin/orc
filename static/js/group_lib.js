@@ -1,19 +1,130 @@
 define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
 
-    function Register(dialogId, groupId, events) {
+    function Register(dialogId, groupId, eventId, groups, events) {
+        if ((!groupId && !eventId) || (!eventId && !events) || (!groupId && !groups)) {
+            return false;
+        }
+
         var teamEvent = false;
         $("#"+dialogId).empty();
-        $("#"+dialogId)
-            .append(
-                $("<p/>", { style: "color:red;" }).append(
-                    "<strong>"
-                    +"Внимание! После регистрации группы в мероприятии "
-                    +"Вы не сможете удалять или добавлять участников группы "
-                    +"во избежание потери информации. "
-                    +"Участники, которые не подтвердили запрос для присоединения к группе, "
-                    +"не будут зарегистрированны в мепроприятии."
-                    +"</strong>")
-            ).append(
+        $("#"+dialogId).append(
+            $("<p/>", { style: "color:red;" }).append(
+                "<strong>"
+                +"Внимание!<br/>После регистрации группы в мероприятии "
+                +"Вы не сможете удалять или добавлять участников группы "
+                +"во избежание потери информации.<br/>"
+                +"Участники, которые не подтвердили запрос для присоединения к группе, "
+                +"не будут зарегистрированны в мепроприятии."
+                +"</strong>"));
+
+        if (!groupId) {
+            $("#"+dialogId).append(
+                $("<p/>")
+                    .append("<table id=\"group-reg-groups-table\"></table>")
+                    .append("<div id=\"group-reg-groups-table-pager\"></div>")
+            );
+
+            $("#group-reg-groups-table").jqGrid({
+                url: "/handler/usergroupsload",
+                datatype: "json",
+                mtype: "POST",
+                treeGrid: false,
+                colNames: groups.ColNames,
+                colModel: gridLib.SetPrimitive(groups.ColModel),
+                pager: "#group-reg-groups-table-pager",
+                gridview: true,
+                sortname: "id",
+                viewrecords: true,
+                height: "100%",
+                width: "auto",
+                rowNum: 5,
+                rownumbers: true,
+                rownumWidth: 20,
+                rowList: [5, 10, 20, 50],
+                caption: "Мои группы",
+                sortname: "id",
+                sortorder: "asc",
+                editurl: "/gridcontroller/editgridrow/"+groups.TableName,
+                loadError: function (jqXHR, textStatus, errorThrown) {
+                    alert('HTTP status code: '+jqXHR.status+'\n'
+                        +'textStatus: '+textStatus+'\n'
+                        +'errorThrown: '+errorThrown);
+                    alert('HTTP message body: '+jqXHR.responseText);
+                },
+
+                subGrid: groups.Sub,
+                subGridOptions: {
+                    "plusicon": "ui-icon-triangle-1-e",
+                    "minusicon": "ui-icon-triangle-1-s",
+                    "openicon": "ui-icon-arrowreturn-1-e",
+                    "reloadOnExpand": true,
+                    "selectOnExpand": true
+                },
+                subGridRowExpanded: function(subgrid_id, group_id) {
+                    $("#"+subgrid_id).append("<table id='"+subgrid_id+"_t"+"' class='scroll'></table>"
+                        +"<div id='"+subgrid_id+"_p"+"' class='scroll'></div></br>");
+
+                    var addDelFlag = false;
+                    utils.postRequest(
+                        { "group_id": group_id },
+                        function(data) {
+                            console.log("Is Reg Group?");
+                            console.log(data["result"]);
+                            addDelFlag = data["addDelFlag"];
+                        },
+                        "/groupcontroller/isreggroup"
+                    );
+
+                    $("#"+subgrid_id+"_t").jqGrid({
+                        url: "/handler/"+groups.SubTableName.replace(/_/g, "")+"load/"+group_id,
+                        datatype: "json",
+                        mtype: "POST",
+                        colNames: groups.SubColNames,
+                        colModel: gridLib.SetPrimitive(groups.SubColModel),
+                        rowNum: 5,
+                        rowList: [5, 10, 20, 50],
+                        pager: "#"+subgrid_id+"_p",
+                        caption: groups.SubCaption,
+                        sortname: "num",
+                        sortorder: "asc",
+                        height: "100%",
+                        width: $("#group-reg-groups-table").width()-65,
+                        editurl: "/gridcontroller/editgridrow/"+groups.SubTableName,
+                        loadError: function(jqXHR, textStatus, errorThrown) {
+                            alert('HTTP status code: '+jqXHR.status+'\n'
+                                +'textStatus: '+textStatus+'\n'
+                                +'errorThrown: '+errorThrown);
+                            alert('HTTP message body: '+jqXHR.responseText);
+                        },
+                        gridComplete: function() {
+                            var rows = $("#"+subgrid_id+"_t").getDataIDs();
+                            for (var i = 0; i < rows.length; i++) {
+                                var status = $("#"+subgrid_id+"_t").getCell(rows[i], "status");
+                                if (status === "true") {
+                                    $("#"+subgrid_id+"_t").jqGrid('setRowData', rows[i], false, "row-green");
+                                }
+                            }
+                        },
+                    });
+
+                    $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
+
+                    $(window).bind("resize", function() {
+                        $("#"+subgrid_id+"_t").setGridWidth($("#group-reg-groups-table").width(), true);
+                    }).trigger("resize");
+                }
+            });
+
+            $("#group-reg-groups-table").jqGrid("hideCol", ["id"]);
+            $("#group-reg-groups-table").jqGrid("hideCol", ["face_id"]);
+
+            $(window).bind("resize", function() {
+                $("#group-reg-groups-table").setGridWidth($(window).width()-100, true);
+            }).trigger("resize");
+        }
+
+        if (!eventId) {
+            $("#"+dialogId).append(
                 $("<p/>").append(
                     $("<input/>", {
                         type: "radio",
@@ -34,70 +145,71 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
                 ).append(
                     "Регистрация в мероприятии группы в качестве команды</br>"
                 )
-            ).append(
-                $("<p/>")
-                    .append("<table id=\"events-table\"></table>")
-                    .append("<div id=\"events-table-pager\"></div>")
             );
 
-        $("#"+dialogId+" input:radio[name=group-registration-type]").change(function() {
-            if (this.value == 'one') {
-                console.log("one");
-                teamEvent = false;
-            } else if (this.value == 'many') {
-                console.log("many");
-                teamEvent = true;
-            }
-        });
+            $("#"+dialogId+" input:radio[name=group-registration-type]").change(function() {
+                if (this.value == 'one') {
+                    console.log("one");
+                    teamEvent = false;
+                } else if (this.value == 'many') {
+                    console.log("many");
+                    teamEvent = true;
+                }
+            $("#"+dialogId).append(
+                $("<p/>")
+                    .append("<table id=\"group-reg-events-table\"></table>")
+                    .append("<div id=\"group-reg-events-table-pager\"></div>")
+            );
 
-        $("#"+dialogId+" #events-table").jqGrid({
-            url: "/gridcontroller/load/events",
-            datatype: "json",
-            mtype: "POST",
-            treeGrid: false,
-            colNames: events.ColNames,
-            colModel: gridLib.SetPrimitive(events.ColModel),
-            pager: "#events-table-pager",
-            gridview: true,
-            sortname: "id",
-            viewrecords: true,
-            height: "100%",
-            width: "auto",
-            rowNum: 5,
-            rownumbers: true,
-            rownumWidth: 20,
-            rowList: [5, 10, 20, 50],
-            caption: events.Caption,
-            sortname: "id",
-            sortorder: "asc",
-            loadError: function(jqXHR, textStatus, errorThrown) {
-                alert('HTTP status code: '+jqXHR.status+'\n'
-                    +'textStatus: '+textStatus+'\n'
-                    +'errorThrown: '+errorThrown);
-                alert('HTTP message body: '+jqXHR.responseText);
-            },
-        });
+            $("#"+dialogId+" #group-reg-events-table").jqGrid({
+                url: "/gridcontroller/load/events",
+                datatype: "json",
+                mtype: "POST",
+                treeGrid: false,
+                colNames: events.ColNames,
+                colModel: gridLib.SetPrimitive(events.ColModel),
+                pager: "#group-reg-events-table-pager",
+                gridview: true,
+                sortname: "id",
+                viewrecords: true,
+                height: "100%",
+                width: "auto",
+                rowNum: 5,
+                rownumbers: true,
+                rownumWidth: 20,
+                rowList: [5, 10, 20, 50],
+                caption: events.Caption,
+                sortname: "id",
+                sortorder: "asc",
+                loadError: function(jqXHR, textStatus, errorThrown) {
+                    alert('HTTP status code: '+jqXHR.status+'\n'
+                        +'textStatus: '+textStatus+'\n'
+                        +'errorThrown: '+errorThrown);
+                    alert('HTTP message body: '+jqXHR.responseText);
+                },
+            });
 
-        $("#"+dialogId+" #events-table").jqGrid("hideCol", ["id"]);
+            $("#"+dialogId+" #group-reg-events-table").jqGrid("hideCol", ["id"]);
 
-        $("#"+dialogId+" #events-table").navGrid(
-           "#events-table-pager",
-            {   // buttons
-                edit: false,
-                add: false,
-                del: false,
-                refresh: false,
-                view: true,
-                search: true
-            }, {}, {}, {},
-            {   // search
-                multipleGroup: true,
-                closeOnEscape: true,
-                multipleSearch: true,
-                closeAfterSearch: true,
-                showQuery: true,
-            }
-        );
+            $("#"+dialogId+" #group-reg-events-table").navGrid(
+               "#group-reg-events-table-pager",
+                {   // buttons
+                    edit: false,
+                    add: false,
+                    del: false,
+                    refresh: false,
+                    view: true,
+                    search: true
+                }, {}, {}, {},
+                {   // search
+                    multipleGroup: true,
+                    closeOnEscape: true,
+                    multipleSearch: true,
+                    closeAfterSearch: true,
+                    showQuery: true,
+                }
+            );
+        }
 
         $("#"+dialogId).dialog({
             toTop: "150",
@@ -105,19 +217,31 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
             width: "auto",
             buttons: {
                 "Участвовать в мероприятии": function() {
-                    var eventId = $("#"+dialogId+" #events-table").jqGrid("getGridParam", "selrow");
-                    var eventType = $("#"+dialogId+" #events-table").jqGrid("getCell", eventId, "team") === "true" ? true : false;
-                    console.log("eventType: ", eventType, "  teamEvent: ", teamEvent);
                     if (!eventId) {
-                        console.log("Выберите запись");
-                        return false;
-                    } else if (eventType != teamEvent) {
-                        console.log("Режим регистрации не соответсвует типу мероприятия");
+                        eventId = $("#"+dialogId+" #group-reg-events-table").jqGrid("getGridParam", "selrow");
+                        var eventType = $("#"+dialogId+" #group-reg-events-table").jqGrid("getCell", eventId, "team") === "true" ? true : false;
+                        console.log("eventType: ", eventType, "  teamEvent: ", teamEvent);
+                        if (!eventId) {
+                            console.log("Выберите запись");
+                            return false;
+                        } else if (eventType != teamEvent) {
+                            console.log("Режим регистрации не соответсвует типу мероприятия");
+                            return false;
+                        }
+                    }
+
+                    if (!groupId) {
+                        groupId = $("#"+dialogId+" #group-reg-groups-table").jqGrid("getGridParam", "selrow");
+                    }
+
+                    if (!eventId || !groupId) {
+                        console.log("Так не пойдет. ", "eventId: ", eventId, "  groupId: ", groupId);
                         return false;
                     }
 
                     var data = { "group_id": groupId, "event_id": eventId };
                     console.log("Register group: ", data);
+
                     utils.postRequest(
                         data,
                         function(response) {

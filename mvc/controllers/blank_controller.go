@@ -98,7 +98,7 @@ func (this *BlankController) GetPersonRequestFromGroup(formType string) {
                 INNER JOIN group_registrations ON group_registrations.id = regs_groupregs.groupreg_id
                 INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
                 INNER JOIN faces ON faces.id = registrations.face_id
-                INNER JOIN groups ON groups.face_id = faces.id AND groups.id = group_registrations.group_id
+                INNER JOIN persons ON persons.face_id = faces.id AND persons.group_id = group_registrations.group_id
                 INNER JOIN events ON events.id = registrations.event_id
                 INNER JOIN events_forms ON events_forms.event_id = events.id
                 INNER JOIN forms ON forms.id = events_forms.form_id
