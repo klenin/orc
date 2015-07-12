@@ -70,6 +70,10 @@ Administrator credentials to login system:
 
 ## Configuring [Apache][6]
 
+### Example using Reverse Proxies/Gateways
+
+Redirection requests from localhost:8080 to localhost:6543.
+
 Install modules [mod_proxy][7] and [mod_proxy_http][8]. Uncomment lines in `httpd.conf`:
 
     # httpd.conf
