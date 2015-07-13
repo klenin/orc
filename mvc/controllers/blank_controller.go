@@ -38,6 +38,8 @@ func (this *BlankController) GetPersonRequestFromGroup() {
         return
     }
 
+    groupMember := request["group_member"].(bool)
+
     faceId, err := strconv.Atoi(request["face_id"].(string))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
@@ -115,9 +117,11 @@ func (this *BlankController) GetPersonRequestFromGroup() {
     log.Println("regId: ", regId)
     log.Println("formType: ", personalForm)
 
-    query := `SELECT forms.id as form_id, forms.name as form_name,
     var query string
     var result []interface{}
+
+    if groupMember {
+        query = `SELECT DISTINCT forms.id as form_id, forms.name as form_name,
             params.id as param_id, params.name as param_name, params.required, params.editable,
             events.name as event_name, events.id as event_id,
             param_types.name as type, param_values.id as param_val_id, param_values.value
@@ -127,13 +131,16 @@ func (this *BlankController) GetPersonRequestFromGroup() {
         INNER JOIN params ON forms.id = params.form_id
         INNER JOIN param_types ON param_types.id = params.param_type_id
         INNER JOIN param_values ON params.id = param_values.param_id
-        INNER JOIN registrations ON registrations.id = param_values.reg_id
-        INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN group_registrations ON group_registrations.event_id = events.id
         INNER JOIN groups ON group_registrations.group_id = groups.id
-        INNER JOIN regs_groupregs ON regs_groupregs.reg_id = registrations.id
-            AND regs_groupregs.groupreg_id = group_registrations.id
-        WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = $3 ORDER BY forms.id, params.id;`
+        INNER JOIN faces ON faces.id = groups.face_id
+        INNER JOIN regs_groupregs ON regs_groupregs.groupreg_id = group_registrations.id
+        INNER JOIN registrations ON regs_groupregs.reg_id = registrations.id AND registrations.event_id = events.id
+        AND registrations.id = param_values.reg_id
+        WHERE group_registrations.id = $1 AND forms.personal = false ORDER BY forms.id, params.id;`
+        result = db.Query(query, []interface{}{groupRegId})
+
+    } else {
         query = `SELECT forms.id as form_id, forms.name as form_name,
                 params.id as param_id, params.name as param_name, params.required, params.editable,
                 events.name as event_name, events.id as event_id,
@@ -152,6 +159,7 @@ func (this *BlankController) GetPersonRequestFromGroup() {
                 AND regs_groupregs.groupreg_id = group_registrations.id
             WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = $3 ORDER BY forms.id, params.id;`
         result = db.Query(query, []interface{}{groupRegId, faceId, personalForm})
+    }
 
     utils.SendJSReply(
         map[string]interface{}{

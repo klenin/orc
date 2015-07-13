@@ -88,8 +88,7 @@ func QueryCreateTable(m interface{}) {
             query += ", "
         }
     }
-    query = query[0 : len(query)-2]
-    query += ");"
+    query = query[0 : len(query)-2]; query += ");"
     Exec(fmt.Sprintf(query, tableName), nil)
 }
 
@@ -113,8 +112,7 @@ func QueryInsert(m interface{}, extra string) *sql.Row {
         }
         p[i-1] = v
     }
-    query = query[0 : len(query)-2]
-    query += ") VALUES (%s) %s;"
+    query = query[0 : len(query)-2]; query += ") VALUES (%s) %s;"
 
     // if i < 2 {
     //     return

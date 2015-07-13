@@ -80,14 +80,13 @@ function(utils, gridLib, groupLib, blank) {
                         if (response["result"] === "ok") {
                             if (teamEvent === "true") {
                                 groupLib.Register("dialog-reg-group", false, eventId, response["groups"], false);
-                                blank.ShowPersonBlankFromGroup(response["regId"], "-1", "dialog-person-request", "false");
                             } else if (teamEvent === "false") {
                                 location.href = "/blankcontroller/getblankbyeventid/"+eventId;
                             }
 
                         } else if (response["result"] === "regExists") {
                             if (teamEvent === "true") {
-                                blank.ShowPersonBlankFromGroup(response["groupRegId"], "-1", "dialog-person-request", "false");
+                                blank.ShowPersonBlankFromGroup(response["groupRegId"], "-1", "dialog-person-request", "false", true);
                             } else if (teamEvent === "false") {
                                 blank.ShowPersonBlank("dialog-person-request", response["regId"]);
                             }

@@ -247,7 +247,7 @@ function(utils, blank, gridLib) {
                         var personId = gridLib.getCurrRowId(subTId);
                         if (!personId) return false;
                         var faceId = $("#" + subTId).jqGrid("getCell", personId, "face_id");
-                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
+                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true", true);
                     }
                 }
             );

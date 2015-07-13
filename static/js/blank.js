@@ -99,7 +99,7 @@ function(utils, gridLib, datepicker, kladr) {
         );
     }
 
-    function ShowPersonBlankFromGroup(groupRegId, faceId, dialogId, formType) {
+    function ShowPersonBlankFromGroup(groupRegId, faceId, dialogId, formType, groupMember) {
         console.log("ShowPersonBlankFromGroup");
 
         if (!groupRegId || !faceId) {
@@ -110,6 +110,7 @@ function(utils, gridLib, datepicker, kladr) {
             "group_reg_id": groupRegId,
             "face_id": faceId,
             "personal": formType,
+            "group_member": groupMember,
         };
         console.log("ShowPersonBlankFromGroup: ", data);
 

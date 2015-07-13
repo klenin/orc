@@ -667,7 +667,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                     onClickButton: function() {
                         var personId = $("#"+subgrid_id+"_t").jqGrid("getGridParam", "selrow");
                         var faceId = $("#"+subgrid_id+"_t").jqGrid("getCell", personId, "face_id");
-                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
+                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true", false);
                     }
                 }
             );
@@ -783,7 +783,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                     onClickButton: function() {
                         var personId = $("#"+subgrid_id+"_t").jqGrid("getGridParam", "selrow");
                         var faceId = $("#"+subgrid_id+"_t").jqGrid("getCell", personId, "face_id");
-                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
+                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true", false);
                     }
                 }
             );
@@ -791,7 +791,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
 
             $(window).bind("resize", function() {
-                $("#"+subgrid_id+"_t").setGridWidth($("#teams-table").width(), true);
+                $("#"+subgrid_id+"_t").setGridWidth($("#my-teams-table").width(), true);
             }).trigger("resize");
         }
     });
@@ -817,8 +817,8 @@ function(gridLib, groupLib, blank, userLib, utils) {
         {
             caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету группы",
             onClickButton: function() {
-                blank.ShowPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
                 var regId = $("#my-teams-table").jqGrid("getGridParam", "selrow");
+                blank.ShowPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false", false);
             }
         }
     );
