@@ -19,7 +19,7 @@ type BlankController struct {
     Controller
 }
 
-func (this *BlankController) GetPersonRequestFromGroup() {
+func (this *BlankController) GetPersonBlankFromGroup() {
     userId, err := this.CheckSid()
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)

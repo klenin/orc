@@ -122,7 +122,7 @@ function(utils, gridLib, datepicker, kladr) {
                 ShowBlank(data["data"], dialogId, data["role"], data["regId"].toString(), formType);
                 $("#"+dialogId+" #history").hide();
             },
-            "/blankcontroller/getpersonrequestfromgroup"
+            "/blankcontroller/getpersonblankfromgroup"
         );
 
         $("#"+dialogId).dialog({
