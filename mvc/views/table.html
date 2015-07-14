@@ -309,7 +309,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету группы",
                 onClickButton: function() {
                     var regId = $("#grid-table").jqGrid("getGridParam", "selrow");
-                    blank.ShowPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false", false);
+                    blank.ShowPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
                 }
             }
         );
