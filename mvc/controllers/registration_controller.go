@@ -278,7 +278,7 @@ func (this *RegistrationController) Login() {
         sid := utils.GetRandSeq(HASH_SIZE)
         params := map[string]interface{}{"sid": sid, "enabled": true}
         where := map[string]interface{}{"id": id}
-        this.GetModel("users").Update(id, params, where)
+        this.GetModel("users").Update(this.isAdmin(), id, params, where)
         sessions.SetSession(this.Response, map[string]interface{}{"sid": sid})
     }
 
@@ -305,7 +305,7 @@ func (this *RegistrationController) Logout() {
 
     params := map[string]interface{}{"enabled": enabled, "sid": " "}
     where := map[string]interface{}{"id": userId}
-    this.GetModel("users").Update(userId, params, where)
+    this.GetModel("users").Update(this.isAdmin(), userId, params, where)
     sessions.ClearSession(this.Response)
     utils.SendJSReply(map[string]string{"result": "ok"}, this.Response)
 }
@@ -325,7 +325,7 @@ func (this *RegistrationController) ConfirmUser(token string) {
 
     params := map[string]interface{}{"enabled": true, "token": " "}
     where := map[string]interface{}{"id": userId}
-    this.GetModel("users").Update(userId, params, where)
+    this.GetModel("users").Update(this.isAdmin(), userId, params, where)
 
     if this.Response != nil {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Регистрация подтверждена.")

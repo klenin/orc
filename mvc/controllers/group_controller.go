@@ -166,7 +166,7 @@ func (this *GroupController) ConfirmInvitationToGroup(token string) {
 
     params := map[string]interface{}{"status": true, "token": " "}
     where := map[string]interface{}{"token": token}
-    this.GetModel("persons").Update(-1, params, where)
+    this.GetModel("persons").Update(this.isAdmin(), -1, params, where)
 
     if this.Response != nil {
         this.Render([]string{"mvc/views/msg.html"}, "msg", "Вы успешно присоединены к группе.")

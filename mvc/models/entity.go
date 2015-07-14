@@ -370,7 +370,7 @@ func (this *Entity) Delete(id int) {
     db.Exec(query, []interface{}{id})
 }
 
-func (this *Entity) Update(userId int, params, where map[string]interface{}) {
+func (this *Entity) Update(isAdmin bool, userId int, params, where map[string]interface{}) {
     this.LoadModelData(params)
     this.LoadWherePart(where)
     db.QueryUpdate(this).Scan()
@@ -426,7 +426,7 @@ type VirtEntity interface {
     SelectRow(fields []string) *sql.Row
     Delete(id int)
     Add(userId int, params map[string]interface{}) error
-    Update(userId int, params, where map[string]interface{})
+    Update(isAdmin bool, userId int, params, where map[string]interface{})
 
     GetColModel(isAdmin bool, userId int) ([]map[string]interface{})
 }

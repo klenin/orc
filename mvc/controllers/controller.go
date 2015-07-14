@@ -123,7 +123,7 @@ func WellcomeToProfile(w http.ResponseWriter, r *http.Request) {
     sid := utils.GetRandSeq(HASH_SIZE)
     params := map[string]interface{}{"sid": sid, "enabled": true}
     where := map[string]interface{}{"id": id}
-    newContreoller.GetModel("users").Update(-1, params, where)
+    newContreoller.GetModel("users").Update(false, -1, params, where)
     sessions.SetSession(w, map[string]interface{}{"sid": sid})
     http.Redirect(w, r, "/usercontroller/showcabinet", 200)
 }

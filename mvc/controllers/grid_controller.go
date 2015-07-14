@@ -146,7 +146,7 @@ func (this *GridController) EditGridRow(tableName string) {
             http.Error(this.Response, err.Error(), 400)
             return
         }
-        model.Update(userId, params, map[string]interface{}{"id": rowId})
+        model.Update(this.isAdmin(), userId, params, map[string]interface{}{"id": rowId})
         break
 
     case "add":

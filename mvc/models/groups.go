@@ -39,7 +39,7 @@ func (c *ModelManager) Groups() *GroupsModel {
     return model
 }
 
-func (this *GroupsModel) Update(userId int, params, where map[string]interface{}) {
+func (this *GroupsModel) Update(isAdmin bool, userId int, params, where map[string]interface{}) {
     faceId := -1
     query := `SELECT groups.face_id FROM groups
         INNER JOIN faces ON faces.id = groups.face_id
@@ -47,17 +47,18 @@ func (this *GroupsModel) Update(userId int, params, where map[string]interface{}
         WHERE users.id = $1 AND groups.id = $2;`
     err := db.QueryRow(query, []interface{}{userId, where["id"]}).Scan(&faceId)
 
-    if err != nil {
-        log.Println(err.Error())
-        return
-
-    } else if faceId == -1 {
-        log.Println("Нет прав редактировать эту группу")
-        return
+    if !isAdmin {
+        if err != nil || faceId == -1 {
+            log.Println("Нет прав редактировать эту группу")
+            log.Println(err.Error())
+            return
+        }
+        params["face_id"] = faceId
     }
 
-    params["face_id"] = faceId
-    this.Update(userId, params, where)
+    this.LoadModelData(params)
+    this.LoadWherePart(where)
+    db.QueryUpdate(this).Scan()
 }
 
 func (this *GroupsModel) Add(userId int, params map[string]interface{}) error {

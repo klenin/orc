@@ -150,7 +150,7 @@ func (this *UserController) ResetPassword() {
         SelectRow([]string{"enabled"}).
         Scan(&enabled)
 
-    user.Update(id, params, where)
+    user.Update(this.isAdmin(), id, params, where)
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
@@ -276,7 +276,7 @@ func (this *UserController) Login(userId string) {
     params := map[string]interface{}{"sid": sid, "enabled": true}
     where := map[string]interface{}{"id": id}
 
-    this.GetModel("users").Update(id, params, where)
+    this.GetModel("users").Update(this.isAdmin(), id, params, where)
     sessions.SetSession(this.Response, map[string]interface{}{"sid": sid})
 
     http.Redirect(this.Response, this.Request, "/usercontroller/showcabinet", 200)
@@ -328,7 +328,7 @@ func (this *UserController) SendEmailWellcomeToProfile() {
 
     params := map[string]interface{}{"token": token, "enabled": true}
     where := map[string]interface{}{"id": userId}
-    this.GetModel("users").Update(userId, params, where)
+    this.GetModel("users").Update(this.isAdmin(), userId, params, where)
 
     utils.SendJSReply(map[string]interface{}{"result": "Письмо отправлено"}, this.Response)
 }

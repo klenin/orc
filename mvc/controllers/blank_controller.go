@@ -434,7 +434,7 @@ func (this *BlankController) EditParams() {
 
         params := map[string]interface{}{"value": value, "date": date, "user_id": userId}
         where := map[string]interface{}{"id": paramValId}
-        this.GetModel("param_values").Update(userId, params, where)
+        this.GetModel("param_values").Update(this.isAdmin(), userId, params, where)
     }
 
     utils.SendJSReply(map[string]interface{}{"result": "Изменения сохранены"}, this.Response)
