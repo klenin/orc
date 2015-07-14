@@ -1,7 +1,7 @@
 define(["utils", "grid_lib", "datepicker/datepicker", "kladr/kladr"],
 function(utils, gridLib, datepicker, kladr) {
 
-    function drawParam(data, for_saving, admin) {
+    function drawParam(data, forSaving, admin) {
         console.log("drawParam");
 
         var block;
@@ -26,7 +26,7 @@ function(utils, gridLib, datepicker, kladr) {
         }
 
         block.attr("id", data["param_id"]);
-        block.attr("for-saving", for_saving);
+        block.attr("for-saving", forSaving);
         block.attr("name", data["param_name"]);
 
         if (data["value"]) {
