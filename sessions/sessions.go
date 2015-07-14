@@ -27,18 +27,23 @@ func SetSession(response http.ResponseWriter, values map[string]interface{}) {
 }
 
 func GetValue(field string, request *http.Request) interface{} {
-    if cookie, err := request.Cookie("session"); err == nil {
-        cookieValue := make(map[string]interface{})
-        if err = CookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
-            return cookieValue[field]
-        } else {
-            log.Println("session.GetValue [CookieHandler.Decode]: ", err)
-            return nil
-        }
-    } else {
-        log.Println("session.GetValue [request.Cookie]: ", err)
+    if request == nil {
         return nil
     }
+
+    if cookie, err := request.Cookie("session"); err != nil {
+        log.Println("session.GetValue [request.Cookie]: ", err)
+        return nil
+    } else {
+        cookieValue := make(map[string]interface{})
+        if err := CookieHandler.Decode("session", cookie.Value, &cookieValue); err != nil {
+            log.Println("session.GetValue [CookieHandler.Decode]: ", err)
+            return nil
+        } else {
+            return cookieValue[field]
+        }
+    }
+    return nil
 }
 
 func setValue(field string, value interface{}, request *http.Request) {
