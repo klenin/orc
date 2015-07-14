@@ -142,7 +142,6 @@ func (this *UserController) ResetPassword() {
 
     var enabled bool
     salt := strconv.Itoa(int(time.Now().Unix()))
-    params := map[string]interface{}{"enabled": enabled, "salt": salt, "pass": utils.GetMD5Hash(pass + salt)}
     where := map[string]interface{}{"id": id}
 
     user := this.GetModel("users")
@@ -150,6 +149,7 @@ func (this *UserController) ResetPassword() {
         SelectRow([]string{"enabled"}).
         Scan(&enabled)
 
+    params := map[string]interface{}{"enabled": enabled, "salt": salt, "pass": utils.GetMD5Hash(pass + salt)}
     user.Update(this.isAdmin(), id, params, where)
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
