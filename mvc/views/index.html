@@ -86,7 +86,7 @@ function(utils, gridLib, groupLib, blank) {
 
                         } else if (response["result"] === "regExists") {
                             if (teamEvent === "true") {
-                                blank.ShowPersonBlankFromGroup(response["groupRegId"], "-1", "dialog-person-request", "false", true);
+                                blank.ShowGroupBlank(response["groupRegId"], "dialog-person-request");
                             } else if (teamEvent === "false") {
                                 blank.ShowPersonBlank("dialog-person-request", response["regId"]);
                             }

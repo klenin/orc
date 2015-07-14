@@ -182,6 +182,44 @@ func (this *BlankController) GetBlankByRegId() {
         this.Response)
 }
 
+func (this *BlankController) GetGroupBlank() {
+    request, err := utils.ParseJS(this.Request, this.Response)
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    groupRegId, err := strconv.Atoi(request["group_reg_id"].(string))
+    if err != nil {
+        utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+        return
+    }
+
+    query := `SELECT DISTINCT forms.id as form_id, forms.name as form_name,
+            params.id as param_id, params.name as param_name, params.required, params.editable,
+            events.name as event_name, events.id as event_id,
+            param_types.name as type, param_values.id as param_val_id, param_values.value
+        FROM events_forms
+        INNER JOIN events ON events.id = events_forms.event_id
+        INNER JOIN forms ON forms.id = events_forms.form_id
+        INNER JOIN params ON forms.id = params.form_id
+        INNER JOIN param_types ON param_types.id = params.param_type_id
+        INNER JOIN param_values ON params.id = param_values.param_id
+        INNER JOIN group_registrations ON group_registrations.event_id = events.id
+        INNER JOIN groups ON group_registrations.group_id = groups.id
+        INNER JOIN faces ON faces.id = groups.face_id
+        INNER JOIN regs_groupregs ON regs_groupregs.groupreg_id = group_registrations.id
+        INNER JOIN registrations ON regs_groupregs.reg_id = registrations.id AND registrations.event_id = events.id
+        AND registrations.id = param_values.reg_id
+        WHERE group_registrations.id = $1 AND forms.personal = FALSE ORDER BY forms.id, params.id;`
+
+    utils.SendJSReply(
+        map[string]interface{}{
+            "result": "ok",
+            "data": db.Query(query, []interface{}{groupRegId})},
+        this.Response)
+}
+
 func (this *BlankController) GetBlankByEventId(id string) {
     eventId, err := strconv.Atoi(id)
     if utils.HandleErr("[BlankController::GetBlankByEventId] event_id Atoi: ", err, this.Response) {

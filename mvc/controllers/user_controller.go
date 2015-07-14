@@ -99,7 +99,7 @@ func (this *UserController) CheckEnable(id string) {
                 INNER JOIN events ON events.id = registrations.event_id AND events.id = group_registrations.event_id
                 INNER JOIN faces ON faces.id = registrations.face_id
                 INNER JOIN users ON users.id = faces.user_id
-                INNER JOIN groups ON groups.face_id = faces.id AND group_registrations.group_id = groups.id
+                INNER JOIN groups ON group_registrations.group_id = groups.id
                 WHERE users.id = $1 AND events.id = $2 GROUP BY group_registrations.id;`
             db.QueryRow(query, []interface{}{userId, eventId}).Scan(&groupRegId)
             utils.SendJSReply(map[string]interface{}{"result": "regExists", "groupRegId": strconv.Itoa(groupRegId)}, this.Response)

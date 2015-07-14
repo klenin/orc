@@ -869,6 +869,19 @@ function(gridLib, groupLib, blank, userLib, utils) {
         }
     );
 
+
+    $("#teams-table").jqGrid(
+        "navButtonAdd",
+        "#teams-table-pager",
+        {
+            caption: "", buttonicon: "ui-icon-contact", title: "Показать анкету группы",
+            onClickButton: function() {
+                var groupRegId = $("#teams-table").jqGrid("getGridParam", "selrow");
+                blank.ShowGroupBlank(groupRegId, "dialog-group-request");
+            }
+        }
+    );
+
     $(window).bind("resize", function() {
         $("#teams-table").setGridWidth($(window).width()-100, true);
     }).trigger("resize");

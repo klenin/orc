@@ -18,7 +18,7 @@
 require(["utils", "kladr/kladr", "blank", "grid_lib"],
 function(utils, kladr, blank, gridLib) {
     var valid = false;
-    var forms = blank.ShowBlank({{.}}.data, "form-event", {{.}}.role, false, "true");
+    var forms = blank.ShowBlank({{.}}.data, "form-event", {{.}}.role, false, "true", blank.drawParam);
     if (!forms) {
         $("#server-answer").text("Данные отсутсвуют.").css("color", "red");
         return false;

@@ -49,6 +49,27 @@ function(utils, gridLib, datepicker, kladr) {
         return $("<p/>").append(lable).append(block);
     }
 
+    function showParam(data, forSaving, admin) {
+        console.log("showParam");
+
+        var block = $("<div/>", {style: "border: 1px solid #4c9ac3;"});
+
+        block.attr("id", data["param_id"]);
+        block.attr("for-saving", forSaving);
+        block.attr("name", data["param_name"]);
+
+        block.text(data["value"]);
+        block.attr("param_val_id", data["param_val_id"]);
+
+        var lable = $("<label/>", {
+            text: data["param_name"],
+        });
+
+        block.attr("readonly", true);
+
+        return $("<p/>").append(lable).append(block);
+    }
+
     function getFormData(name) {
         console.log("getFormData");
 
@@ -118,7 +139,7 @@ function(utils, gridLib, datepicker, kladr) {
         utils.postRequest(
             data,
             function(data) {
-                ShowBlank(data["data"], dialogId, data["role"], data["regId"].toString(), formType);
+                ShowBlank(data["data"], dialogId, data["role"], data["regId"].toString(), formType, drawParam);
                 $("#"+dialogId+" #history").hide();
             },
             "/blankcontroller/getpersonblankfromgroup"
@@ -153,7 +174,7 @@ function(utils, gridLib, datepicker, kladr) {
         return true;
     }
 
-    function ShowBlank(d, dialogId, role, regId, formType) {
+    function ShowBlank(d, dialogId, role, regId, formType, drawFunc) {
         console.log("ShowBlank data: ", d);
         console.log("ShowBlank role: ", role);
         console.log("ShowBlank formType: ", formType);
@@ -230,7 +251,7 @@ function(utils, gridLib, datepicker, kladr) {
 
             var tr = $("<tr/>").appendTo($("#" + dialogId +" div#form-" + d[i]["form_id"] + " table"));
             var td_1 = $("<td/>").appendTo(tr);
-            $(td_1).append(drawParam(d[i], true, role));
+            $(td_1).append(drawFunc(d[i], true, role));
             tr.append($("<td/>", {id: "export-param-"+d[i]["param_id"]}));
             tr.append($("<td/>", {id: "export-val-"+d[i]["param_id"]}));
             tr.append($("<td/>", {id: "export-edit-history-"+d[i]["param_id"]}));
@@ -306,7 +327,7 @@ function(utils, gridLib, datepicker, kladr) {
         utils.postRequest(
             { "reg_id": regId },
             function(data) {
-                var formIds = ShowBlank(data["data"], dialogId, data["role"], regId, "true");
+                var formIds = ShowBlank(data["data"], dialogId, data["role"], regId, "true", drawParam);
                 if (!formIds) {
                     return false;
                 }
@@ -336,6 +357,41 @@ function(utils, gridLib, datepicker, kladr) {
                     );
 
                 },
+                "Отмена": function() {
+                    $(this).empty();
+                    $(this).dialog("close");
+                },
+            }
+        });
+
+        return true;
+    }
+
+    function ShowGroupBlank(groupRegId, dialogId) {
+        if (!groupRegId) {
+            return false;
+        }
+
+        var data = { "group_reg_id": groupRegId };
+        console.log("ShowGroupBlank: ", data);
+
+        $("#"+dialogId).empty();
+
+        utils.postRequest(
+            data,
+            function(data) {
+                ShowBlank(data["data"], dialogId, false, false, false, showParam);
+                $("#"+dialogId+" #history").hide();
+            },
+            "/blankcontroller/getgroupblank"
+        );
+
+        $("#"+dialogId).dialog({
+            modal: true,
+            toTop: "150",
+            height: "auto",
+            width: "auto",
+            buttons: {
                 "Отмена": function() {
                     $(this).empty();
                     $(this).dialog("close");
@@ -411,6 +467,7 @@ function(utils, gridLib, datepicker, kladr) {
         getListHistoryEvents: getListHistoryEvents,
         ShowBlank: ShowBlank,
         ShowPersonBlank: ShowPersonBlank,
+        ShowGroupBlank: ShowGroupBlank,
         ShowPersonBlankFromGroup: ShowPersonBlankFromGroup,
         ShowServerAns: ShowServerAns,
     };
