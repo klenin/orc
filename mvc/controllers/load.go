@@ -132,9 +132,7 @@ func (this *GridController) Load(tableName string) {
 
     query = `SELECT COUNT(*) FROM (SELECT `+model.GetTableName()+`.id FROM `+model.GetTableName()
     query += where+`) as count;`
-
-    var count int
-    db.QueryRow(query, []interface{}{params}).Scan(&count)
+    count := int(db.Query(query, params)[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -184,9 +182,7 @@ func (this *Handler) UserGroupsLoad() {
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1) as count;`
-
-    var count int
-    db.QueryRow(query, []interface{}{userId}).Scan(&count)
+    count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -239,9 +235,7 @@ func (this *Handler) GroupsLoad() {
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1) as count;`
-
-    var count int
-    db.QueryRow(query, []interface{}{userId}).Scan(&count)
+    count := int(db.Query(query, []interface{}{userId})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
@@ -317,9 +311,7 @@ func (this *Handler) RegistrationsLoad(userId_ string) {
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 AND forms.personal = true
         GROUP BY registrations.id) as count;`
-
-    var count int
-    db.QueryRow(query, []interface{}{userId}).Scan(&count)
+    count := int(db.Query(query, []interface{}{id})[0].(map[string]interface{})["count"].(int))
 
     var totalPages int
     if count > 0 {
