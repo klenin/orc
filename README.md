@@ -21,7 +21,7 @@ or a group registration of participants in events of any type.
 
 ## Getting Source Files
 
-Install [git][3]. Get a copy of repository:
+Install [git][3]. Get a copy of the repository:
 
     $ git clone git@github.com:GuraYaroslava/orc.git
 
@@ -48,7 +48,7 @@ Create a user account called `admin` and grant permission for database called `o
 
 ## Setting Admin credentials
 
-Fix `Name`, `EmailAdmin` and `Password` of administrator data in mailer/mailer.go:
+Fix `Name`, `EmailAdmin` and `Password` of administrator data in `mailer/mailer.go`:
 
     // mailer/mailer.go
     var admin = &Admin{
@@ -110,11 +110,11 @@ Add to httpd-vhosts.conf:
 
 ## Running
 
-Set a local postgres connection string for a database called `orc`:
+Set the local postgres connection string for the database called `orc`:
 
     $ export DATABASE_URL="user=admin host=localhost dbname=orc password=password sslmode=disable"
 
-Set a port (5000 by default):
+Set the port (5000 by default):
 
     $ export PORT="6543"
 
@@ -122,7 +122,7 @@ Run:
 
     $ go build && orc.exe
 
-Clear a database and run the system with a test data:
+Clear the database and run the system with test data:
 
     $ go build && orc.exe -test-data=true
 
