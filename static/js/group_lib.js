@@ -15,7 +15,9 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
                 +"во избежание потери информации.<br/>"
                 +"Участники, которые не подтвердили запрос для присоединения к группе, "
                 +"не будут зарегистрированны в мепроприятии."
-                +"</strong>"));
+                +"</strong>"
+            )
+        );
 
         if (!groupId) {
             $("#"+dialogId).append(
@@ -155,6 +157,8 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
                     console.log("many");
                     teamEvent = true;
                 }
+            });
+
             $("#"+dialogId).append(
                 $("<p/>")
                     .append("<table id=\"group-reg-events-table\"></table>")
