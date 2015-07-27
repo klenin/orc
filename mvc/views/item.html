@@ -18,7 +18,7 @@
 require(["utils", "kladr/kladr", "blank", "grid_lib"],
 function(utils, kladr, blank, gridLib) {
     var valid = false;
-    var forms = blank.ShowBlank({{.}}.data, "form-event", {{.}}.role, false, "true", blank.drawParam);
+    var forms = blank.showBlank({{.}}.data, "form-event", {{.}}.role, false, "true", blank.drawParam);
     if (!forms) {
         $("#server-answer").text("Данные отсутсвуют.").css("color", "red");
         return false;
@@ -107,7 +107,7 @@ function(utils, kladr, blank, gridLib) {
                     $("#now #save-btn").hide();
                     $("div #history").hide();
                 }
-                blank.ShowServerAns(event_id, data, "now #server-answer");
+                blank.showServerAns(event_id, data, "now #server-answer");
             },
             "/registrationcontroller/eventregisteraction/"
         );

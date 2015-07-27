@@ -1,7 +1,7 @@
 define(["utils", "grid_lib", "datepicker/datepicker", "kladr/kladr"],
 function(utils, gridLib, datepicker, kladr) {
 
-    function drawParam(data, forSaving, admin) {
+    function drawParam(data, admin) {
         console.log("drawParam");
 
         var block;
@@ -26,7 +26,7 @@ function(utils, gridLib, datepicker, kladr) {
         }
 
         block.attr("id", data["param_id"]);
-        block.attr("for-saving", forSaving);
+        block.attr("for-saving", true);
         block.attr("name", data["param_name"]);
 
         if (data["value"]) {
@@ -46,16 +46,19 @@ function(utils, gridLib, datepicker, kladr) {
             block.attr("readonly", true);
         }
 
+        block.change(function() {
+            block.attr("wasChanged", true);
+        });
+
         return $("<p/>").append(lable).append(block);
     }
 
-    function showParam(data, forSaving, admin) {
+    function showParam(data, admin) {
         console.log("showParam");
 
-        var block = $("<div/>", {style: "border: 1px solid #4c9ac3;"});
+        var block = $("<div/>");
 
         block.attr("id", data["param_id"]);
-        block.attr("for-saving", forSaving);
         block.attr("name", data["param_name"]);
 
         block.text(data["value"]);
@@ -63,6 +66,7 @@ function(utils, gridLib, datepicker, kladr) {
 
         var lable = $("<label/>", {
             text: data["param_name"],
+            style: "color: #CC6600; font-weight: bold;",
         });
 
         block.attr("readonly", true);
@@ -70,13 +74,13 @@ function(utils, gridLib, datepicker, kladr) {
         return $("<p/>").append(lable).append(block);
     }
 
-    function getFormData(name) {
+    function getFormData(id) {
         console.log("getFormData");
 
         var values = [];
         var empty = false;
         var pattern = /^[ \t\v\r\n\f]{0,}$/;
-        var data = $("#"+name+" [for-saving=true]");
+        var data = $("#"+id+" [for-saving=true][wasChanged=true]");
         console.log(data);
 
         for (var i = 0; i < data.length; ++i) {
@@ -97,6 +101,115 @@ function(utils, gridLib, datepicker, kladr) {
         return empty ? false : values;
     }
 
+    function showBlank(d, dialogId, admin, regId, formType, drawFunc) {
+        console.log("showBlank data: ", d);
+        console.log("showBlank admin: ", admin);
+        console.log("showBlank formType: ", formType);
+
+        if (d.length == 0) {
+            return false;
+        }
+
+        var history = $("<p/>", {id: "history"})
+            .append($("<b/>", {text: "Ранее заполненные анкеты"})).append("<br/>")
+            .append($("<select/>", {}))
+            .append($("<input/>", {type: "button", value: "выбрать", id: "send-btn", name: "submit"}));
+
+        $("#"+dialogId).append(history);
+
+        if (regId) {
+            $("#"+dialogId)
+                .append($("<input/>", {type: "checkbox", id: "edit-history-box", width: "auto"}))
+                .append($("<label/>", {id: "edit-history", style: "display:inline;"}).text("Информация о редактировании полей"));
+
+            $("#"+dialogId+" #edit-history-box").change(function() {
+                console.log("showBlank: ", { "reg_id": regId });
+                utils.postRequest(
+                    { "reg_id": regId, "personal": formType },
+                    function(response) {
+                        if (response["result"] !== "ok") {
+                            showServerAns(-1, response, "now #server-answer");
+                            return false;
+                        }
+
+                        if ($("#"+dialogId+" #edit-history-box").is(":checked")) {
+                            setEditHistoryData(response["data"], dialogId);
+                        } else {
+                            clearEditHistoryData(response["data"], dialogId);
+                        }
+                    },
+                    "/blankcontroller/getedithistorydata"
+                );
+            });
+        }
+
+        $("#"+dialogId).append($("<h1/>")).append($("<div/>"));
+
+        var formIds = [];
+
+        $("#"+dialogId+" h1").text(d[0]["event_name"]);
+
+        var divForms = $("<div/>", {id: "event-"+d[0]["event_id"]});
+        var ulForms = $("<ul/>", {});
+
+        $(divForms).append(ulForms);
+        $(divForms).appendTo("#"+dialogId+" div");
+
+        for (i = 0; i < d.length; ++i) {
+            if ($("#"+dialogId +" div#form-"+d[i]["form_id"]).attr("id") == undefined) {
+                var liForm = $("<li/>", {});
+                var aForm = $("<a/>", {href: "#"+"form-"+d[i]["form_id"]}).text(d[i]["form_name"]);
+
+                $(liForm).append(aForm);
+                $(ulForms).append(liForm);
+
+                var divTabForm = $("<div/>", {id: "form-"+d[i]["form_id"]});
+                $(divForms).append(divTabForm);
+
+                formIds.push(parseInt(d[i]["form_id"]));
+
+                var divParams = $("<div/>", {id: "params-"+d[i]["form_id"]});
+                $(divTabForm).append(divParams);
+
+                var table = $("<table/>");
+                divParams.append(table);
+
+            }
+
+            var tr = $("<tr/>").appendTo($("#"+dialogId +" div#form-"+d[i]["form_id"]+" table"));
+            var td = $("<td/>").appendTo(tr);
+            $(td).append(drawFunc(d[i], admin));
+            tr.append($("<td/>", {id: "export-param-"+d[i]["param_id"]}));
+            tr.append($("<td/>", {id: "export-val-"+d[i]["param_id"]}));
+            tr.append($("<td/>", {id: "export-edit-history-"+d[i]["param_id"]}));
+        }
+
+        $("#"+dialogId+" #"+"event-"+d[0]["event_id"]).tabs();
+
+        console.log("formIds: ", formIds);
+
+        $("#"+dialogId+" #history #send-btn").click(function() {
+            utils.postRequest(
+                {
+                    "event_id": $("#"+dialogId+" #history select").find(":selected").attr("value")
+                },
+                function(response) {
+                    if (response["result"] !== "ok") {
+                        showServerAns(-1, response, "now #server-answer");
+                        return false;
+                    }
+                    exportDataLoad(response["data"], dialogId);
+                },
+                "/blankcontroller/gethistoryrequest"
+            );
+        });
+
+        kladr.kladr();
+
+        return formIds;
+    }
+
+//-----------------------------------------------------------------------------
     function getListHistoryEvents(historyDiv, formIds) {
         console.log("getListHistoryEvents: formIds: ", formIds);
 
@@ -120,8 +233,8 @@ function(utils, gridLib, datepicker, kladr) {
         );
     }
 
-    function ShowPersonBlankFromGroup(groupRegId, faceId, dialogId, formType) {
-        console.log("ShowPersonBlankFromGroup");
+    function showPersonBlankFromGroup(groupRegId, faceId, dialogId, formType) {
+        console.log("showPersonBlankFromGroup");
 
         if (!groupRegId || !faceId) {
             return false;
@@ -132,14 +245,14 @@ function(utils, gridLib, datepicker, kladr) {
             "face_id": faceId,
             "personal": formType,
         };
-        console.log("ShowPersonBlankFromGroup: ", data);
+        console.log("showPersonBlankFromGroup: ", data);
 
         $("#"+dialogId).empty();
 
         utils.postRequest(
             data,
             function(data) {
-                ShowBlank(data["data"], dialogId, data["role"], data["regId"].toString(), formType, drawParam);
+                showBlank(data["data"], dialogId, data["role"], data["regId"].toString(), formType, drawParam);
                 $("#"+dialogId+" #history").hide();
             },
             "/blankcontroller/getpersonblankfromgroup"
@@ -174,160 +287,14 @@ function(utils, gridLib, datepicker, kladr) {
         return true;
     }
 
-    function ShowBlank(d, dialogId, role, regId, formType, drawFunc) {
-        console.log("ShowBlank data: ", d);
-        console.log("ShowBlank role: ", role);
-        console.log("ShowBlank formType: ", formType);
-
-        if (d.length == 0) {
-            return false;
-        }
-
-        var history = $("<p/>", {id: "history"})
-            .append($("<b/>", {text: "Ранее заполненные анкеты"})).append("<br/>")
-            .append($("<select/>", {}))
-            .append($("<input/>", {type: "button", value: "выбрать", id: "send-btn", name: "submit"}));
-
-        $("#"+dialogId).append(history);
-
-        if (regId) {
-            $("#"+dialogId)
-                .append($("<input/>", {type: "checkbox", id: "edit-history-box", width: "auto"}))
-                .append($("<label/>", {id: "edit-history", style: "display:inline;"}).text("Информация о редактировании полей"));
-
-            $("#"+dialogId+" #edit-history-box").change(function() {
-                console.log("ShowBlank: ", { "reg_id": regId });
-                utils.postRequest(
-                    { "reg_id": regId, "personal": formType },
-                    function(response) {
-                        if (response["result"] !== "ok") {
-                            ShowServerAns(-1, response, "now #server-answer");
-                            return false;
-                        }
-
-                        if ($("#"+dialogId+" #edit-history-box").is(":checked")) {
-                            SetEditHistoryData(response["data"], dialogId);
-                        } else {
-                            ClearEditHistoryData(response["data"], dialogId);
-                        }
-                    },
-                    "/blankcontroller/getedithistorydata"
-                );
-            });
-        }
-
-        $("#"+dialogId).append($("<h1/>")).append($("<div/>"));
-
-        var formIds = [];
-
-        $("#" + dialogId + " h1").text(d[0]["event_name"]);
-
-        var div_forms = $("<div/>", {id: "event-" + d[0]["event_id"]});
-        var ul_forms = $("<ul/>", {});
-
-        $(div_forms).append(ul_forms);
-        $(div_forms).appendTo("#" + dialogId + " div");
-
-        for (i = 0; i < d.length; ++i) {
-            if ($("#" + dialogId +" div#form-" + d[i]["form_id"]).attr("id") == undefined) {
-                var li_form = $("<li/>", {});
-                var a_form = $("<a/>", {href: "#" + "form-" + d[i]["form_id"]}).text(d[i]["form_name"]);
-
-                $(li_form).append(a_form);
-                $(ul_forms).append(li_form);
-
-                var div_tab_form = $("<div/>", {id: "form-" + d[i]["form_id"]});
-                $(div_forms).append(div_tab_form);
-
-                formIds.push(parseInt(d[i]["form_id"]));
-
-                var div_params = $("<div/>", {id: "params-" + d[i]["form_id"]});
-                $(div_tab_form).append(div_params);
-
-                var table = $("<table/>");
-                div_params.append(table);
-
-            }
-
-            var tr = $("<tr/>").appendTo($("#" + dialogId +" div#form-" + d[i]["form_id"] + " table"));
-            var td_1 = $("<td/>").appendTo(tr);
-            $(td_1).append(drawFunc(d[i], true, role));
-            tr.append($("<td/>", {id: "export-param-"+d[i]["param_id"]}));
-            tr.append($("<td/>", {id: "export-val-"+d[i]["param_id"]}));
-            tr.append($("<td/>", {id: "export-edit-history-"+d[i]["param_id"]}));
-        }
-
-        $("#" + dialogId + " #" + "event-" + d[0]["event_id"]).tabs();
-
-        console.log("formIds: ", formIds);
-
-        $("#"+dialogId+" #history #send-btn").click(function() {
-            utils.postRequest(
-                {
-                    "event_id": $("#"+dialogId+" #history select").find(":selected").attr("value")
-                },
-                function(response) {
-                    if (response["result"] !== "ok") {
-                        ShowServerAns(-1, response, "now #server-answer");
-                        return false;
-                    }
-                    ExportDataLoad(response["data"], dialogId);
-                },
-                "/blankcontroller/gethistoryrequest"
-            );
-        });
-
-        kladr.kladr();
-
-        return formIds;
-    }
-
-    function ShowServerAns(event_id, data, responseId) {
-        console.log("ShowServerAns");
-
-        if (data.result === "ok") {
-            var msg = "Запрос успешно выполнен. ";
-            if (event_id != 1) {
-                msg += "Ваша заявка на участие будет рассмотрена.";
-            } else {
-                msg += "На вашу электронную почту было отправлено письмо, содержащее ссылку для подтверждения регистрации. "
-                + "Воспользуйтесь этой ссылкой для продолжения работы.";
-            }
-            $("#"+responseId).text(msg).css("color", "green");
-
-        } else if (data.result === "loginExists") {
-            $("#"+responseId).text("Такой логин уже существует.").css("color", "red");
-
-        } else if (data.result === "badLogin") {
-            $("#"+responseId).text("Логин может содержать латинские буквы и/или "
-                + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
-
-        } else if (data.result === "badPassword") {
-            $("#"+responseId).text("Пароль должен иметь длину от 6 "
-                + "до 36 символов.").css("color", "red");
-
-        } else if (data.result === "Unauthorized") {
-            $("#"+responseId).text("Пользователь не авторизован.").css("color", "red");
-
-        } else if (data.result === "authorized") {
-            $("#"+responseId).text("Пользователь уже авторизован.").css("color", "red");
-
-        } else if (data.result === "badEmail") {
-            $("#"+responseId).text("Проверьте правильность введенного Вами email.").css("color", "red");
-
-        } else {
-            $("#"+responseId).text(data.result).css("color", "red");
-        }
-    }
-
-    function ShowPersonBlank(dialogId, regId) {
-        console.log("ShowPersonBlank: reg_id = ", regId);
+    function showPersonBlank(dialogId, regId) {
+        console.log("showPersonBlank: reg_id = ", regId);
         $("#"+dialogId).empty();
 
         utils.postRequest(
             { "reg_id": regId },
             function(data) {
-                var formIds = ShowBlank(data["data"], dialogId, data["role"], regId, "true", drawParam);
+                var formIds = showBlank(data["data"], dialogId, data["role"], regId, "true", drawParam);
                 if (!formIds) {
                     return false;
                 }
@@ -367,20 +334,20 @@ function(utils, gridLib, datepicker, kladr) {
         return true;
     }
 
-    function ShowGroupBlank(groupRegId, dialogId) {
+    function showGroupBlank(groupRegId, dialogId) {
         if (!groupRegId) {
             return false;
         }
 
         var data = { "group_reg_id": groupRegId };
-        console.log("ShowGroupBlank: ", data);
+        console.log("showGroupBlank: ", data);
 
         $("#"+dialogId).empty();
 
         utils.postRequest(
             data,
             function(data) {
-                ShowBlank(data["data"], dialogId, false, false, false, showParam);
+                showBlank(data["data"], dialogId, false, false, false, showParam);
                 $("#"+dialogId+" #history").hide();
             },
             "/blankcontroller/getgroupblank"
@@ -402,62 +369,105 @@ function(utils, gridLib, datepicker, kladr) {
         return true;
     }
 
-    function ExportDataLoad(data, dialogId) {
-        console.log("ExportDataLoad: ", data);
+//-----------------------------------------------------------------------------
+    function exportDataLoad(data, dialogId) {
+        console.log("exportDataLoad: ", data);
 
         for (var i = 0; i < data.length; ++i) {
-            var f_id = data[i]["form_id"];
-            var p_id = data[i]["param_id"];
-            var p_v = data[i]["value"];
+            var formId = data[i]["form_id"];
+            var paramId = data[i]["param_id"];
+            var value = data[i]["value"];
 
-            $("#"+dialogId+" #params-"+f_id +" table #export-param-"+p_id+" input").remove();
-            $("#"+dialogId+" #params-"+f_id +" table #export-val-"+p_id+" p").remove();
-            $("#"+dialogId+" #params-"+f_id +" table #export-param-"+p_id+" br").remove();
+            $("#"+dialogId+" #params-"+formId+" table #export-param-"+paramId+" input").remove();
+            $("#"+dialogId+" #params-"+formId+" table #export-val-"+paramId+" p").remove();
+            $("#"+dialogId+" #params-"+formId+" table #export-param-"+paramId+" br").remove();
+
             if (data[i]["value"] != "") {
-                $("#"+dialogId+" #params-"+f_id +" table #export-val-"+p_id).append(drawParam(data[i], 0, false));
-                $("<br/>").appendTo("#"+dialogId+" #params-"+f_id+" table #export-param-"+p_id);
+                $("#"+dialogId+" #params-"+formId+" table #export-val-"+paramId).append(drawParam(data[i], 0, false));
+                $("<br/>").appendTo("#"+dialogId+" #params-"+formId+" table #export-param-"+paramId);
+
                 $("<input/>", {
-                    "id": "export-btn-"+f_id+"-"+p_id,
+                    "id": "export-btn-"+formId+"-"+paramId,
                     "type": "button",
                     "value": "←",
-                    "data-event-type-id": f_id,
-                    "data-param-id": p_id,
-                    "data-param-val": p_v,
-                }).appendTo("#"+dialogId+" #params-"+f_id+" table #export-param-"+p_id);
+                    "data-event-type-id": formId,
+                    "data-param-id": paramId,
+                    "data-param-val": value,
+                }).appendTo("#"+dialogId+" #params-"+formId+" table #export-param-"+paramId);
 
-                $("#export-btn-"+f_id+"-"+p_id).click(function() {
-                    var f_id = $(this).attr("data-event-type-id");
-                    var p_id = $(this).attr("data-param-id");
-                    var p_v = $(this).attr("data-param-val");
-                    $("#"+dialogId+" #params-"+f_id+" table #"+p_id).val(p_v);
+                $("#export-btn-"+formId+"-"+paramId).click(function() {
+                    var formId = $(this).attr("data-event-type-id");
+                    var paramId = $(this).attr("data-param-id");
+                    var value = $(this).attr("data-param-val");
+                    $("#"+dialogId+" #params-"+formId+" table #"+paramId).val(value);
                 });
             }
         }
     }
 
-    function SetEditHistoryData(data, dialogId) {
-        console.log("SetEditHistoryData: ", data);
+//-----------------------------------------------------------------------------
+    function setEditHistoryData(data, dialogId) {
+        console.log("setEditHistoryData: ", data);
 
         for (var i = 0; i < data.length; ++i) {
-            var f_id = data[i]["form_id"];
-            var p_id = data[i]["param_id"];
-            var p_v = data[i]["edit_date"] ? data[i]["edit_date"].replace(/[T,Z]/g, " ")+" - "+data[i]["login"] : data[i]["login"];
+            var formId = data[i]["form_id"];
+            var paramId = data[i]["param_id"];
+            var value = data[i]["edit_date"] ? data[i]["edit_date"].replace(/[T,Z]/g, " ")+" - "+data[i]["login"] : data[i]["login"];
 
-            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").remove();
-            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id).append($("<div/>"));
-            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").append($("<br/>"));
-            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").append($("<div/>", {text: p_v}));
+            $("#"+dialogId+" #params-"+formId+" table #export-edit-history-"+paramId+" div").remove();
+            $("#"+dialogId+" #params-"+formId+" table #export-edit-history-"+paramId).append($("<div/>"));
+            $("#"+dialogId+" #params-"+formId+" table #export-edit-history-"+paramId+" div").append($("<br/>"));
+            $("#"+dialogId+" #params-"+formId+" table #export-edit-history-"+paramId+" div").append($("<div/>", {text: value}));
         }
     }
 
-    function ClearEditHistoryData(data, dialogId) {
-        console.log("ClearEditHistoryData: ", data);
+    function clearEditHistoryData(data, dialogId) {
+        console.log("clearEditHistoryData: ", data);
 
         for (var i = 0; i < data.length; ++i) {
-            var f_id = data[i]["form_id"];
-            var p_id = data[i]["param_id"];
+            var formId = data[i]["form_id"];
+            var paramId = data[i]["param_id"];
 
-            $("#"+dialogId+" #params-"+f_id +" table #export-edit-history-"+p_id+" div").remove();
+            $("#"+dialogId+" #params-"+formId+" table #export-edit-history-"+paramId+" div").remove();
+        }
+    }
+
+//-----------------------------------------------------------------------------
+    function showServerAns(event_id, data, responseId) {
+        console.log("showServerAns");
+
+        if (data.result === "ok") {
+            var msg = "Запрос успешно выполнен. ";
+            if (event_id != 1) {
+                msg += "Ваша заявка на участие будет рассмотрена.";
+            } else {
+                msg += "На вашу электронную почту было отправлено письмо, содержащее ссылку для подтверждения регистрации. "
+                + "Воспользуйтесь этой ссылкой для продолжения работы.";
+            }
+            $("#"+responseId).text(msg).css("color", "green");
+
+        } else if (data.result === "loginExists") {
+            $("#"+responseId).text("Такой логин уже существует.").css("color", "red");
+
+        } else if (data.result === "badLogin") {
+            $("#"+responseId).text("Логин может содержать латинские буквы и/или "
+                + "цифры и иметь длину от 2 до 36 символов.").css("color", "red");
+
+        } else if (data.result === "badPassword") {
+            $("#"+responseId).text("Пароль должен иметь длину от 6 "
+                + "до 36 символов.").css("color", "red");
+
+        } else if (data.result === "Unauthorized") {
+            $("#"+responseId).text("Пользователь не авторизован.").css("color", "red");
+
+        } else if (data.result === "authorized") {
+            $("#"+responseId).text("Пользователь уже авторизован.").css("color", "red");
+
+        } else if (data.result === "badEmail") {
+            $("#"+responseId).text("Проверьте правильность введенного Вами email.").css("color", "red");
+
+        } else {
+            $("#"+responseId).text(data.result).css("color", "red");
         }
     }
 
@@ -465,11 +475,11 @@ function(utils, gridLib, datepicker, kladr) {
         drawParam: drawParam,
         getFormData: getFormData,
         getListHistoryEvents: getListHistoryEvents,
-        ShowBlank: ShowBlank,
-        ShowPersonBlank: ShowPersonBlank,
-        ShowGroupBlank: ShowGroupBlank,
-        ShowPersonBlankFromGroup: ShowPersonBlankFromGroup,
-        ShowServerAns: ShowServerAns,
+        showBlank: showBlank,
+        showPersonBlank: showPersonBlank,
+        showGroupBlank: showGroupBlank,
+        showPersonBlankFromGroup: showPersonBlankFromGroup,
+        showServerAns: showServerAns,
     };
 
 });

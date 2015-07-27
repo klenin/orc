@@ -86,13 +86,13 @@ function(utils, gridLib, groupLib, blank) {
 
                         } else if (response["result"] === "regExists") {
                             if (teamEvent === "true") {
-                                blank.ShowGroupBlank(response["groupRegId"], "dialog-person-request");
+                                blank.showGroupBlank(response["groupRegId"], "dialog-person-request");
                             } else if (teamEvent === "false") {
-                                blank.ShowPersonBlank("dialog-person-request", response["regId"]);
+                                blank.showPersonBlank("dialog-person-request", response["regId"]);
                             }
 
                         } else {
-                            blank.ShowServerAns(eventId, response, "events #server-answer");
+                            blank.showServerAns(eventId, response, "events #server-answer");
                         }
                     },
                     "/usercontroller/checkenable/"+eventId

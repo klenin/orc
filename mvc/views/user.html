@@ -571,7 +571,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             onClickButton: function() {
                 var selectedRowId = $("#reg-table").jqGrid("getGridParam", "selrow");
                 var regId = $("#reg-table").jqGrid("getCell", selectedRowId, "id");
-                blank.ShowPersonBlank("dialog-person-request", regId);
+                blank.showPersonBlank("dialog-person-request", regId);
             }
         }
     );
@@ -667,7 +667,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                     onClickButton: function() {
                         var personId = $("#"+subgrid_id+"_t").jqGrid("getGridParam", "selrow");
                         var faceId = $("#"+subgrid_id+"_t").jqGrid("getCell", personId, "face_id");
-                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
+                        blank.showPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
                     }
                 }
             );
@@ -783,7 +783,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                     onClickButton: function() {
                         var personId = $("#"+subgrid_id+"_t").jqGrid("getGridParam", "selrow");
                         var faceId = $("#"+subgrid_id+"_t").jqGrid("getCell", personId, "face_id");
-                        blank.ShowPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
+                        blank.showPersonBlankFromGroup(row_id, faceId, "dialog-group-person-request", "true");
                     }
                 }
             );
@@ -818,7 +818,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету группы",
             onClickButton: function() {
                 var regId = $("#my-teams-table").jqGrid("getGridParam", "selrow");
-                blank.ShowPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
+                blank.showPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
             }
         }
     );
@@ -877,7 +877,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             caption: "", buttonicon: "ui-icon-contact", title: "Показать анкету группы",
             onClickButton: function() {
                 var groupRegId = $("#teams-table").jqGrid("getGridParam", "selrow");
-                blank.ShowGroupBlank(groupRegId, "dialog-group-request");
+                blank.showGroupBlank(groupRegId, "dialog-group-request");
             }
         }
     );

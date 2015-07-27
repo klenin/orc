@@ -282,7 +282,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 onClickButton: function() {
                     var id = gridLib.getCurrRowId("grid-table");
                     if (id == -1) return false;
-                    blank.ShowPersonBlank("dialog-persons-request", id);
+                    blank.showPersonBlank("dialog-persons-request", id);
                 }
             }
         );
@@ -309,7 +309,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету группы",
                 onClickButton: function() {
                     var regId = $("#grid-table").jqGrid("getGridParam", "selrow");
-                    blank.ShowPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
+                    blank.showPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
                 }
             }
         );
