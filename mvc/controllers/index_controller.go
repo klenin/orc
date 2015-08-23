@@ -100,7 +100,7 @@ func (this *IndexController) CreateRegistrationEvent() {
 
     var formId1 int
     forms := this.GetModel("forms")
-    forms.LoadModelData(map[string]interface{}{"name": "Регистрационные данные"})
+    forms.LoadModelData(map[string]interface{}{"name": "Регистрационные данные", "personal": true})
     db.QueryInsert(forms, "RETURNING id").Scan(&formId1)
 
     eventsForms := this.GetModel("events_forms")
@@ -158,7 +158,7 @@ func (this *IndexController) CreateRegistrationEvent() {
     db.QueryInsert(params, "").Scan()
 
     var formId2 int
-    forms.LoadModelData(map[string]interface{}{"name": "Общие сведения"})
+    forms.LoadModelData(map[string]interface{}{"name": "Общие сведения", "personal": true})
     db.QueryInsert(forms, "RETURNING id").Scan(&formId2)
 
     eventsForms.LoadModelData(map[string]interface{}{"form_id": formId2, "event_id": eventId})

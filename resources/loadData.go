@@ -146,7 +146,7 @@ func loadForms() {
     for i := 0; i < len(formNamesSourse); i++ {
         formName := strings.TrimSpace(formNamesSourse[i])
         entity := base.Forms()
-        entity.LoadModelData(map[string]interface{}{"name": formName})
+        entity.LoadModelData(map[string]interface{}{"name": formName, "personal": true})
         db.QueryInsert(entity, "").Scan()
     }
 }
