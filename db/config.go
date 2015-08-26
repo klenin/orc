@@ -20,8 +20,6 @@ var Tables = []string{
     "groups",
     "group_registrations",
     "regs_groupregs",
-    "docs",
-    "events_docs",
 }
 
 var TableNames = []string{
@@ -40,6 +38,4 @@ var TableNames = []string{
     "Группы",
     "Регистрации групп",
     "Регистрации групп - Регистрации",
-    "Документы",
-    "Мероприятие - Документы",
 }
