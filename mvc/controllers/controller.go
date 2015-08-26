@@ -38,7 +38,7 @@ type Model struct {
     SubColModel  []map[string]interface{}
 }
 
-func (this *Controller) GetModel(tableName string) models.VirtEntity {
+func (this *Controller) GetModel(tableName string) models.EntityInterface {
     return new(models.ModelManager).GetModel(tableName)
 }
 
@@ -129,7 +129,7 @@ func WellcomeToProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 type VirtController interface {
-    GetModel(tableName string) models.VirtEntity
+    GetModel(tableName string) models.EntityInterface
     Render(filename string, data interface{})
     CheckSid() (id int, result bool)
     isAdmin() bool

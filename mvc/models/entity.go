@@ -394,7 +394,7 @@ func (this *Entity) WhereByParams(filters map[string]interface{}, num int) (wher
     return "", nil, -1
 }
 
-type VirtEntity interface {
+type EntityInterface interface {
     LoadModelData(data map[string]interface{})
     LoadWherePart(data map[string]interface{}) *Entity
     GenerateWherePart(counter int) (string, []interface{})
