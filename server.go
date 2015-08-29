@@ -28,11 +28,14 @@ func main() {
     log.Println("DB CONNECTED")
 
     testData := flag.Bool("test-data", false, "to load test data")
+    resetDB := flag.Bool("reset-db", false, "reset the database")
     flag.Parse()
 
-    new(controllers.BaseController).IndexController().Init(*testData)
-    resources.LoadAdmin()
-    resources.LoadParamTypes()
+    if *resetDB == true {
+        new(controllers.BaseController).IndexController().Init(*testData)
+        resources.LoadAdmin()
+        resources.LoadParamTypes()
+    }
 
     if *testData == true {
         resources.Load()

@@ -63,7 +63,7 @@ Fix a server link:
     // mailer/mailer.go
     const Server = "https://server/link/"
 
-Administrator credentials to login system:
+Administrator credentials to login the system:
 
     Login: admin
     Password: password
@@ -120,11 +120,12 @@ Set the port (5000 by default):
 
 Run:
 
-    $ go build && orc.exe
+    $ run.sh
 
-Clear the database and run the system with test data:
+Test user credentials to login the system (`number` in `[0-19]`):
 
-    $ go build && orc.exe -test-data=true
+    Login: user<number>
+    Password: secret<number>
 
 [1]: https://golang.org
 [2]: http://www.postgresql.org
