@@ -23,12 +23,30 @@ func random(min, max int) int {
     return rand.Intn(max-min) + min
 }
 
-func addDate(d, m, y int) string {
-    return strconv.Itoa(d) + "-" + strconv.Itoa(m) + "-" + strconv.Itoa(y)
+func prepare(v1, v2, v3 string) (v1_, v2_, v3_ string) {
+    if len(v1) <= 1 {
+        v1 = "0" + v1
+    }
+    if len(v2) <= 1 {
+        v2 = "0" + v2
+    }
+    if len(v3) <= 1 {
+        v3 = "0" + v3
+    }
+
+    return v1, v2, v3
 }
 
-func addTime(h, m, s int) string {
-    return strconv.Itoa(h) + ":" + strconv.Itoa(m) + ":" + strconv.Itoa(s)
+func addDate(d, m, y string) string {
+    d, m, y = prepare(d, m, y)
+
+    return d + "-" + m + "-" + y
+}
+
+func addTime(h, m, s string) string {
+    h, m, s = prepare(h, m, s)
+
+    return h + ":" + m + ":" + s
 }
 
 func Load() {
@@ -128,9 +146,9 @@ func loadEvents() {
         eventName := strings.TrimSpace(eventNameSource[rand.Intn(len(eventNameSource))])
         eventName += " по дисциплине "
         eventName += "\"" + strings.TrimSpace(subjectNameSource[rand.Intn(len(subjectNameSource))]) + "\""
-        dateStart := addDate(random(1894, 2014), random(1, 12), random(1, 28))
-        dateFinish := addDate(random(1894, 2014), random(1, 12), random(1, 28))
-        time := addTime(random(0, 11), random(1, 60), random(1, 60))
+        dateStart := addDate(strconv.Itoa(random(1894, 2014)), strconv.Itoa(random(1, 12)), strconv.Itoa(random(1, 28)))
+        dateFinish := addDate(strconv.Itoa(random(1894, 2014)), strconv.Itoa(random(1, 12)), strconv.Itoa(random(1, 28)))
+        time := addTime(strconv.Itoa(random(0, 11)), strconv.Itoa(random(1, 60)), strconv.Itoa(random(1, 60)))
         params := map[string]interface{}{"name": eventName, "data_start": dateStart, "date_finish": dateFinish, "time": time, "url": ""}
         entity := base.Events()
         entity.LoadModelData(params)
