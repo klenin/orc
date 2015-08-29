@@ -411,8 +411,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                         var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                         if (!groupId) return false;
                         groupLib.AddPerson("dialog-add-person", groupId);
-                        // !!!
-                        window.location.reload();
                     }
                 }
             );
