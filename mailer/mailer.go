@@ -15,13 +15,13 @@ const Server = "https://server/link/"
 var err error
 
 type Admin struct {
-    Name   string
+    Name       string
 
-    EmailAdmin  string
-    Password    string
+    Email      string
+    Password   string
 
     SMTPServer string
-    Port        int
+    Port       int
 }
 
 type SmtpTemplateData struct {
@@ -38,27 +38,27 @@ type SmtpTemplateData struct {
     Password        string
 }
 
-var admin = &Admin{
+var Admin_ = &Admin{
     Name:       "Name of Admin",
-    EmailAdmin: "Email of admin",
+    Email:      "Email of admin",
     Password:   "Password of email",
     SMTPServer: "smtp.gmail.com",
     Port:       587}
 
 var auth = smtp.PlainAuth(
     "",
-    admin.EmailAdmin,
-    admin.Password,
-    admin.SMTPServer)
+    Admin_.Email,
+    Admin_.Password,
+    Admin_.SMTPServer)
 
 func SendEmail(address, tmp string, context *SmtpTemplateData) bool {
     var doc bytes.Buffer
     template.Must(template.New("email").Parse(tmp)).Execute(&doc, context)
 
     err = smtp.SendMail(
-        admin.SMTPServer+":"+strconv.Itoa(admin.Port),
+        Admin_.SMTPServer+":"+strconv.Itoa(Admin_.Port),
         auth,
-        admin.EmailAdmin,
+        Admin_.Email,
         []string{address},
         doc.Bytes())
 
@@ -70,7 +70,7 @@ func SendConfirmEmail(to, address, token string) bool {
     log.Println("SendConfirmEmail: to: ", to)
 
     context := &SmtpTemplateData{
-        From: admin.Name,
+        From: Admin_.Name,
         To: to,
         Subject: "Подтверждение регистрации",
         ConfirmationUrl: Server+"/registrationcontroller/confirmuser/"+token,
@@ -86,7 +86,7 @@ func SendEmailToConfirmRejectPersonRequest(to, address, event string, confirm bo
     var emailTemplate string
 
     context := &SmtpTemplateData{
-        From: admin.Name,
+        From: Admin_.Name,
         To: to,
         Subject: `Подтверждение заявки на участие в мероприятии "`+event+`"`,
         EventName: event}
@@ -106,7 +106,7 @@ func InviteToGroup(to, address, token, headName, groupName string) bool {
     log.Println("InviteToGroup: to: ", to)
 
     context := &SmtpTemplateData{
-        From: admin.Name,
+        From: Admin_.Name,
         To: to,
         Subject: `Приглашение в группу "`+groupName+`"`,
         ConfirmationUrl: Server+"/groupcontroller/confirminvitationtogroup/"+token,
@@ -122,7 +122,7 @@ func AttendAnEvent(to, address, eventName, groupName string) bool {
     log.Println("AttendAnEvent: to: ", to)
 
     context := &SmtpTemplateData{
-        From: admin.Name,
+        From: Admin_.Name,
         To: to,
         Subject: `Уведомление об участии в мероприятии "`+eventName+`"`,
         GroupName: groupName,
@@ -136,7 +136,7 @@ func SendEmailWellcomeToProfile(to, address, token string) bool {
     log.Println("SendEmailWellcomeToProfile: to: ", to)
 
     context := &SmtpTemplateData{
-        From: admin.Name,
+        From: Admin_.Name,
         To: to,
         Subject: `Система учета учатников мероприятий`,
         ConfirmationUrl: Server+"/wellcometoprofile/"+token,}
