@@ -206,7 +206,7 @@ func (this *PersonsModel) GetColModel(isAdmin bool, userId int) []map[string]int
                 INNER JOIN faces as f ON f.id = reg.face_id
                 INNER JOIN events ON events.id = reg.event_id
                 INNER JOIN params as p ON p.id = param_values.param_id
-                INNER JOIN users ON users.id = f.user_id GROUP BY f.id ORDER BY f.id
+                GROUP BY f.id ORDER BY f.id
             ), ';') as name;`
 
         faces = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
@@ -236,7 +236,7 @@ func (this *PersonsModel) GetColModel(isAdmin bool, userId int) []map[string]int
                 INNER JOIN faces as f ON f.id = reg.face_id
                 INNER JOIN events ON events.id = reg.event_id
                 INNER JOIN params as p ON p.id = param_values.param_id
-                INNER JOIN users ON users.id = f.user_id GROUP BY f.id ORDER BY f.id
+                GROUP BY f.id ORDER BY f.id
             ), ';') as name;`
 
         faces = db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

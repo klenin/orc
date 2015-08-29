@@ -268,18 +268,30 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
 
         var lf = $("<label/>", { "text": "Фамилия" });
         var f = $("<input/>", { "id": 5, "for-saving": true, "required": true });
+        f.change(function() {
+            f.attr("wasChanged", true);
+        });
         block.append(lf).append(f);
 
         var li = $("<label/>", { "text": "Имя" });
         var i = $("<input/>", { "id": 6, "for-saving": true, "required": true });
+        i.change(function() {
+            i.attr("wasChanged", true);
+        });
         block.append(li).append(i);
 
         var lo = $("<label/>", { "text": "Отчество" });
         var o = $("<input/>", { "id": 7, "for-saving": true, "required": true });
+        o.change(function() {
+            o.attr("wasChanged", true);
+        });
         block.append(lo).append(o);
 
         var le = $("<label/>", { "text": "Email" });
         var e = $("<input/>", { "id": 4, "for-saving": true, "required": true });
+        e.change(function() {
+            e.attr("wasChanged", true);
+        });
         block.append(le).append(e);
 
         $("#"+dialogId).append(block);
@@ -292,7 +304,7 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
             buttons: {
                 "Добавить участника": function() {
                     var values = blank.getFormData(dialogId);
-                    if (!values) {
+                    if (values.length < 4) {
                         return false;
                     }
                     var data = {"group_id": groupId, "data": values };
