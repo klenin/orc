@@ -2,6 +2,7 @@ package resources
 
 import (
     "errors"
+    "github.com/orc/mailer"
     "github.com/orc/db"
     "github.com/orc/mvc/controllers"
     "github.com/orc/mvc/models"
@@ -41,11 +42,16 @@ func LoadAdmin() {
     base := new(controllers.BaseController)
     date := time.Now().Format("2006-01-02T15:04:05Z00:00")
 
-    result, regId := base.RegistrationController().Register("admin", "password", "secret.oasis.3805@gmail.com", "admin")
+    result, regId := base.RegistrationController().Register("admin", "password", mailer.Admin_.Email, "admin")
     if result != "ok" {
         utils.HandleErr("[LoadAdmin]: "+result, nil, nil)
+
         return
     }
+
+    query := `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
+        VALUES (4, $1, $2, NULL, $3);`
+    db.Exec(query, []interface{}{mailer.Admin_.Email, date, regId})
 
     for k := 5; k < 8; k++ {
         query := `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
@@ -53,7 +59,7 @@ func LoadAdmin() {
         db.Exec(query, []interface{}{date, regId})
     }
 
-    query := `SELECT users.token FROM registrations
+    query = `SELECT users.token FROM registrations
         INNER JOIN events ON registrations.event_id = events.id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN users ON users.id = faces.user_id
@@ -62,6 +68,7 @@ func LoadAdmin() {
 
     if len(res) == 0 {
         utils.HandleErr("[LoadAdmin]: ", errors.New("Data are not faund."), nil)
+
         return
     }
 
@@ -76,12 +83,17 @@ func loadUsers() {
     for i := 0; i < USER_COUNT; i++ {
         rand.Seed(int64(i))
         userName := "user"+strconv.Itoa(i)
+        userEmail := userName+"@mail.ru"
 
-        result, regId := base.RegistrationController().Register(userName, "secret"+strconv.Itoa(i), "", "user")
+        result, regId := base.RegistrationController().Register(userName, "secret"+strconv.Itoa(i), userEmail, "user")
         if result != "ok" {
             utils.HandleErr("[loadUsers]: "+result, nil, nil)
             continue
         }
+
+        query := `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
+            VALUES (4, $1, $2, NULL, $3);`
+        db.Exec(query, []interface{}{userEmail, date, regId})
 
         for k := 5; k < 8; k++ {
             query := `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
@@ -89,7 +101,7 @@ func loadUsers() {
             db.Exec(query, []interface{}{date, regId})
         }
 
-        query := `SELECT users.token FROM registrations
+        query = `SELECT users.token FROM registrations
             INNER JOIN events ON registrations.event_id = events.id
             INNER JOIN faces ON faces.id = registrations.face_id
             INNER JOIN users ON users.id = faces.user_id
