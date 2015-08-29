@@ -89,9 +89,8 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
     db.QueryRow("SELECT name FROM groups WHERE id = $1;", []interface{}{groupId}).Scan(&groupName)
 
     query = `SELECT param_values.value
-        FROM reg_param_vals
-        INNER JOIN registrations ON registrations.id = reg_param_vals.reg_id
-        INNER JOIN param_values ON param_values.id = reg_param_vals.param_val_id
+        FROM param_values
+        INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN faces ON faces.id = registrations.face_id
