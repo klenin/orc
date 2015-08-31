@@ -87,8 +87,7 @@ func (this *IndexController) LoadContestsFromCats() {
 
 func (this *IndexController) CreateRegistrationEvent() {
     var eventId int
-    event := this.GetModel("events")
-    err := event.
+    this.GetModel("events").
         LoadModelData(map[string]interface{}{
             "name": "Регистрация для входа в систему",
             "date_start": "2006-01-02",
