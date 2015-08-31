@@ -86,7 +86,7 @@ function(utils, gridLib, groupLib, blank) {
 
                         } else if (response["result"] === "regExists") {
                             if (teamEvent === "true") {
-                                blank.showGroupBlank(response["groupRegId"], "dialog-person-request");
+                                location.href = "/usercontroller/showcabinet/users#tabs-4";
                             } else if (teamEvent === "false") {
                                 blank.showPersonBlank("dialog-person-request", response["regId"]);
                             }
