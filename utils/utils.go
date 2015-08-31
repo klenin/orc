@@ -30,9 +30,11 @@ func HandleErr(message string, err error, w http.ResponseWriter) bool {
             switch err.Code.Name() {
             case "unique_violation":
                 http.Error(w, "Нарушение ограничения уникальности", http.StatusNotModified)
+
                 return true
             case "datetime_field_overflow":
                 http.Error(w, "Выход за границы временных значений", http.StatusNotModified)
+
                 return true
             }
         }
@@ -47,6 +49,7 @@ func HandleErr(message string, err error, w http.ResponseWriter) bool {
 
         return true
     }
+
     return false
 }
 
@@ -65,6 +68,7 @@ func ArrayInterfaceToString(array []interface{}) []string {
             result[i] = v.(string)
         }
     }
+
     return result
 }
 
@@ -83,7 +87,7 @@ func ConvertTypeModel(type_ string, value reflect.Value) (interface{}, bool) {
     panic("convertTypeModel: unknown type")
 }
 
-func ConvertTypeForModel(type_ string, value interface{}) interface{} {
+func CheckTypeValue(type_ string, value interface{}) interface{} {
     if value == nil {
         return nil
     }
@@ -101,17 +105,20 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
             if err != nil {
                 return nil
             }
-            log.Println("ConvertTypeForModel-int: ", strconv.Itoa(v))
+            log.Println("CheckTypeValue-int: ", strconv.Itoa(v))
+
             return v
         case "text", "date", "time", "timestamp":
-            log.Println("ConvertTypeForModel-text-date-time-timestamp: ", value.(string))
+            log.Println("CheckTypeValue-text-date-time-timestamp: ", value.(string))
+
             return value
         case "boolean":
             v, err := strconv.ParseBool(value.(string))
             if err != nil {
                 return nil
             }
-            log.Println("ConvertTypeForModel-boolean: ", v)
+            log.Println("CheckTypeValue-boolean: ", v)
+
             return v
         }
         break
@@ -119,29 +126,34 @@ func ConvertTypeForModel(type_ string, value interface{}) interface{} {
     case interface{}:
         switch type_ {
         case "int":
-            log.Println("__ConvertTypeForModel-int: ", strconv.Itoa(value.(int)))
+            log.Println("__CheckTypeValue-int: ", strconv.Itoa(value.(int)))
+
             return value.(int)
         case "text", "date", "time", "timestamp":
-            log.Println("__ConvertTypeForModel-text-date-time: ", value.(string))
+            log.Println("__CheckTypeValue-text-date-time: ", value.(string))
+
             return value.(string)
         case "boolean":
-            log.Println("__ConvertTypeForModel-boolean: ", value.(bool))
+            log.Println("__CheckTypeValue-boolean: ", value.(bool))
+
             return value.(bool)
         }
-        panic("utils.ConvertTypeForModel: interface - unknown type: " + type_)
+        panic("utils.CheckTypeValue: interface - unknown type: " + type_)
     }
-    panic("utils.ConvertTypeForModel: unknown type: " + type_)
+    panic("utils.CheckTypeValue: unknown type: " + type_)
 }
 
 func MatchRegexp(pattern, str string) bool {
     result, err := regexp.MatchString(pattern, str)
     HandleErr("utils.MatchRegexp: ", err, nil)
+
     return result
 }
 
 func GetMD5Hash(text string) string {
     hasher := md5.New()
     hasher.Write([]byte(text))
+
     return hex.EncodeToString(hasher.Sum(nil))
 }
 
@@ -149,6 +161,7 @@ func GetRandSeq(size int) string {
     rb := make([]byte, size)
     _, err := rand.Read(rb)
     HandleErr("utils.GetRandSeq: ", err, nil)
+
     return base64.URLEncoding.EncodeToString(rb)
 }
 

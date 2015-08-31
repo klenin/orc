@@ -138,9 +138,6 @@ func (this *Entity) GetConditionName() string {
 
 func (this *Entity) SetOrder(orderBy string) *Entity {
     this.orderBy = orderBy
-func (this *Entity) LoadModelData(data map[string]interface{}) {
-    rv := reflect.ValueOf(this.Fields)
-    rt := rv.Type()
 
     return this
 }
@@ -208,28 +205,38 @@ func (this *Entity) SetWherePart(where map[string]interface{}) *Entity {
     return this
 }
 
+func (this *Entity) LoadModelData(data map[string]interface{}) *Entity {
+    refOfValue := reflect.ValueOf(this.fields); refOfType := refOfValue.Type()
     for key, val := range data {
-        for i := 0; i < rt.Elem().NumField(); i++ {
-            tag := rt.Elem().Field(i).Tag.Get("name")
+        for i := 0; i < refOfType.Elem().NumField(); i++ {
+            tag := refOfType.Elem().Field(i).Tag.Get("name")
             if tag == key {
-                log.Println("tag: ", tag)
-                value := utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), val)
+                method := "Set"+strings.ToUpper(string(refOfType.Elem().Field(i).Name[0]))+string(refOfType.Elem().Field(i).Name[1:])
+                refMethod := refOfValue.MethodByName(method)
+                log.Println("method: ", method)
+                if !refMethod.IsValid() {
+                    log.Println("Method is not exists!")
+                    continue
+                }
+                value := utils.CheckTypeValue(refOfType.Elem().Field(i).Tag.Get("type"), val)
                 if value == nil {
                     continue
                 }
-                rv.Elem().Field(i).Set(reflect.ValueOf(value))
+                refOfValue.MethodByName(method).Call([]reflect.Value{reflect.ValueOf(value)})
             }
         }
     }
+
+    return this
 }
 
-func (this *Entity) LoadWherePart(data map[string]interface{}) (*Entity) {
-    if data == nil {
+func (this *Entity) LoadWherePart(data map[string]interface{}) *Entity {
+    if data == nil || len(data) == 0 {
         return this
     }
 
-    rv := reflect.ValueOf(this.WherePart)
-    rt := reflect.ValueOf(this.Fields).Type()
+    rv := reflect.ValueOf(this.wherePart)
+    rt := reflect.ValueOf(this.fields).Type()
 
     for key, val := range data {
         for i := 0; i < rt.Elem().NumField(); i++ {
@@ -242,7 +249,7 @@ func (this *Entity) LoadWherePart(data map[string]interface{}) (*Entity) {
                 rv.Interface().(map[string]interface{})[key] = make([]interface{}, 0)
                 arr := make([]interface{}, 0)
                 for _, vv := range val.([]interface{}) {
-                    v_ := utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), vv)
+                    v_ := utils.CheckTypeValue(rt.Elem().Field(i).Tag.Get("type"), vv)
                     if v_ == nil {
                         continue
                     }
@@ -251,10 +258,10 @@ func (this *Entity) LoadWherePart(data map[string]interface{}) (*Entity) {
                 rv.Interface().(map[string]interface{})[key] = arr
                 continue
             }
-
-            rv.Interface().(map[string]interface{})[key] = utils.ConvertTypeForModel(rt.Elem().Field(i).Tag.Get("type"), val)
+            rv.Interface().(map[string]interface{})[key] = utils.CheckTypeValue(rt.Elem().Field(i).Tag.Get("type"), val)
         }
     }
+
     return this
 }
 
@@ -262,7 +269,7 @@ func (this Entity) GenerateWherePart(counter int) (string, []interface{}) {
     var key []string
     var val []interface{}
 
-    for k, v := range this.WherePart {
+    for k, v := range this.wherePart {
         if reflect.TypeOf(v).Name() == "" {
             for _, vv := range v.([]interface{}) {
                 key = append(key, k+"=$"+strconv.Itoa(counter))
@@ -279,44 +286,10 @@ func (this Entity) GenerateWherePart(counter int) (string, []interface{}) {
     return strings.Join(key, " "+this.GetConditionName()+" "), val
 }
 
-func (this *Entity) SetOrder(orderBy string) {
-    rt := reflect.ValueOf(this.Fields).Type()
-    for i := 0; i < rt.Elem().NumField(); i++ {
-        if rt.Elem().Field(i).Tag.Get("name") == orderBy {
-            reflect.ValueOf(this).Elem().FieldByName("OrderBy").Set(reflect.ValueOf(orderBy))
-            break
-        }
-    }
-}
 
-func (this *Entity) SetCondition(c ConditionEnumElem) {
-    reflect.ValueOf(this).Elem().FieldByName("Condition").Set(reflect.ValueOf(c))
-}
-
-func (this *Entity) SetLimit(limit interface{}) {
-    switch limit.(type) {
-    case string:
-        if limit.(string) != "ALL" {
-            panic("[Entity::SetLimit] Invalid value")
         }
-        reflect.ValueOf(this).Elem().FieldByName("Limit").Set(reflect.ValueOf(limit))
-        break
-    case int:
-        if limit.(int) < 0 {
-            panic("[Entity::SetLimit] Invalid value")
-        }
-        reflect.ValueOf(this).Elem().FieldByName("Limit").Set(reflect.ValueOf(limit))
-        break
-    default:
-        panic("[Entity::SetLimit] Invalid type")
-    }
-}
 
-func (this *Entity) SetOffset(offset int) {
-    if offset < 0 {
-        panic("[Entity::SerOffset] Invalid value")
     }
-    reflect.ValueOf(this).Elem().FieldByName("Offset").SetInt(int64(offset))
 }
 
 func (this *Entity) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
@@ -510,9 +483,6 @@ func (this *Entity) WhereByParams(filters map[string]interface{}, num int) (wher
 }
 
 type EntityInterface interface {
-    LoadModelData(data map[string]interface{})
-    LoadWherePart(data map[string]interface{}) *Entity
-    GenerateWherePart(counter int) (string, []interface{})
     GetTableName() string
     SetTableName(string) *Entity
 
@@ -556,6 +526,10 @@ type EntityInterface interface {
     GetSorting() string
 
     SetWherePart(map[string]interface{}) *Entity
+
+    LoadModelData(map[string]interface{}) *Entity
+    LoadWherePart(map[string]interface{}) *Entity
+    GenerateWherePart(int) (string, []interface{})
 
     Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
