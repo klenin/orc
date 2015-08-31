@@ -286,9 +286,35 @@ func (this Entity) GenerateWherePart(counter int) (string, []interface{}) {
     return strings.Join(key, " "+this.GetConditionName()+" "), val
 }
 
+func (this *Entity) Select_(fields []string) []interface{} {
+    query := "SELECT %s FROM %s"
+    if len(this.wherePart) != 0 {
+        where, params := this.GenerateWherePart(1)
+        params = append(params, this.orderBy)
+        query += " WHERE %s ORDER BY $" + strconv.Itoa(len(params))
 
+        switch this.limit.(type) {
+        case string:
+            query += " LIMIT ALL"
+            break
+        case int:
+            query += " LIMIT $" + strconv.Itoa(len(params))
+            params = append(params, this.limit)
+            break
+        default:
+            panic("Invalid type of limit")
         }
 
+        params = append(params, this.offset)
+        query += " OFFSET $" + strconv.Itoa(len(params)) + ";"
+
+        return db.Query(fmt.Sprintf(query, strings.Join(fields, ", "), this.tableName, where), params)
+    } else {
+        query += " ORDER BY $1 LIMIT $2 OFFSET $3;"
+
+        return db.Query(
+            fmt.Sprintf(query, strings.Join(fields, ", "), this.tableName),
+            []interface{}{this.GetOrder(), this.GetLimit(), this.GetOffset()})
     }
 }
 
@@ -470,7 +496,18 @@ func (this *Entity) Add(userId int, params map[string]interface{}) error {
 }
 
 func (this *Entity) SelectRow(fields []string) *sql.Row {
-    return db.SelectRow(this, fields)
+    query := "SELECT %s FROM %s"
+
+    if len(this.wherePart) != 0 {
+        query += " WHERE %s;"
+        where, params := this.GenerateWherePart(1)
+
+        return db.QueryRow(fmt.Sprintf(query, strings.Join(fields, ", "), this.tableName, where), params)
+    } else {
+        query += ";"
+
+        return db.QueryRow(fmt.Sprintf(query, strings.Join(fields, ", "), this.tableName), nil)
+    }
 }
 
 func (this *Entity) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
@@ -534,6 +571,7 @@ type EntityInterface interface {
     WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
 
     Select(fields []string, filters map[string]interface{}) ([]interface{})
+    Select_(fields []string) []interface{}
     SelectRow(fields []string) *sql.Row
 
     Delete(id int)

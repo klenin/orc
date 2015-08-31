@@ -335,18 +335,21 @@ func (this *BlankController) GetListHistoryEvents() {
     userId, err := this.CheckSid()
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
+
         return
     }
 
     data, err := utils.ParseJS(this.Request, this.Response)
     if  err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
     ids := map[string]interface{}{"form_id": make([]interface{}, 0)}
     if data["form_ids"] == nil || len(data["form_ids"].([]interface{})) == 0 {
         utils.SendJSReply(map[string]interface{}{"result": "Нет данных о формах анкеты"}, this.Response)
+
         return
     }
 
@@ -355,11 +358,14 @@ func (this *BlankController) GetListHistoryEvents() {
     }
 
     eventsForms := this.GetModel("events_forms")
-    eventsForms.LoadWherePart(ids).SetCondition(models.OR)
-    events := db.Select(eventsForms, []string{"event_id"})
+    events := eventsForms.
+        LoadWherePart(ids).
+        SetCondition(models.OR).
+        Select_([]string{"event_id"})
 
     if len(events) == 0 {
         utils.SendJSReply(map[string]interface{}{"result": "Нет данных"}, this.Response)
+
         return
     }
 

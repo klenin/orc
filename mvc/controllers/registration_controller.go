@@ -248,6 +248,7 @@ func (this *RegistrationController) Login() {
     data, err := utils.ParseJS(this.Request, this.Response)
     if utils.HandleErr("[RegistrationController::Login]: ", err, this.Response) {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
@@ -290,6 +291,7 @@ func (this *RegistrationController) Logout() {
     if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
         utils.SendJSReply(map[string]string{"result": "badSid"}, this.Response)
+
         return
     }
 
@@ -300,6 +302,7 @@ func (this *RegistrationController) Logout() {
         Scan(&enabled);
         utils.HandleErr("[RegistrationController::Logout]: ", err, this.Response) {
         utils.SendJSReply(map[string]string{"result": err.Error()}, this.Response)
+
         return
     }
 
@@ -312,14 +315,16 @@ func (this *RegistrationController) Logout() {
 
 func (this *RegistrationController) ConfirmUser(token string) {
     var userId int
-    user := this.GetModel("users")
-    user.GetFields().(*models.User).Token = token
-    err := db.SelectRow(user, []string{"id"}).Scan(&userId)
+    err := this.GetModel("users").
+        LoadWherePart(map[string]interface{}{"token": token}).
+        SelectRow([]string{"id"}).
+        Scan(&userId)
 
     if utils.HandleErr("[RegistrationController::ConfirmUser]: ", err, this.Response) {
         if this.Response != nil {
             this.Render([]string{"mvc/views/msg.html"}, "msg", err.Error())
         }
+
         return
     }
 
@@ -334,14 +339,16 @@ func (this *RegistrationController) ConfirmUser(token string) {
 
 func (this *RegistrationController) RejectUser(token string) {
     var userId int
-    user := this.GetModel("users")
-    user.GetFields().(*models.User).Token = token
-    err := db.SelectRow(user, []string{"id"}).Scan(&userId)
+    err := this.GetModel("users").
+        LoadWherePart(map[string]interface{}{"token": token}).
+        SelectRow([]string{"id"}).
+        Scan(&userId)
 
     if utils.HandleErr("[RegistrationController::RejectUser]: ", err, this.Response) {
         if this.Response != nil {
             this.Render([]string{"mvc/views/msg.html"}, "msg", err.Error())
         }
+
         return
     }
 
