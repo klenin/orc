@@ -15,25 +15,26 @@ type User struct {
     Enabled bool   `name:"enabled" type:"boolean" null:"NULL" extra:""`
 }
 
-func (c *ModelManager) Users() *UsersModel {
+
+
+
+
+func (*ModelManager) Users() *UsersModel {
     model := new(UsersModel)
-
-    model.TableName = "users"
-    model.Caption = "Пользователи"
-
-    model.Columns = []string{"id", "login", "role", "enabled"}
-    model.ColNames = []string{"ID", "Логин", "Роль", "Состояние"}
-
-    model.Fields = new(User)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.SetTableName("users").
+        SetCaption("Пользователи").
+        SetColumns([]string{"id", "login", "role", "enabled"}).
+        SetColNames([]string{"ID", "Логин", "Роль", "Состояние"}).
+        SetFields(new(User)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

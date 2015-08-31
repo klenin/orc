@@ -15,25 +15,26 @@ type EventForm struct {
     FormId  int `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
 }
 
-func (c *ModelManager) EventsForms() *EventsFormsModel {
+
+
+
+
+func (*ModelManager) EventsForms() *EventsFormsModel {
     model := new(EventsFormsModel)
-
-    model.TableName = "events_forms"
-    model.Caption = "Мероприятия - Формы"
-
-    model.Columns = []string{"id", "event_id", "form_id"}
-    model.ColNames = []string{"ID", "Мероприятие", "Форма"}
-
-    model.Fields = new(EventForm)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.SetTableName("events_forms").
+        SetCaption("Мероприятия - Формы").
+        SetColumns([]string{"id", "event_id", "form_id"}).
+        SetColNames([]string{"ID", "Мероприятие", "Форма"}).
+        SetFields(new(EventForm)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

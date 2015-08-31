@@ -15,25 +15,26 @@ type EventsTypes struct {
     TypeId  int `name:"type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"event_types" refField:"id" refFieldShow:"name"`
 }
 
-func (c *ModelManager) EventsTypes() *EventsTypesModel {
+
+
+
+
+func (*ModelManager) EventsTypes() *EventsTypesModel {
     model := new(EventsTypesModel)
-
-    model.TableName = "events_types"
-    model.Caption = "Мероприятия - Типы"
-
-    model.Columns = []string{"id", "event_id", "type_id"}
-    model.ColNames = []string{"ID", "Мероприятие", "Тип"}
-
-    model.Fields = new(EventsTypes)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.SetTableName("events_types").
+        SetCaption("Мероприятия - Типы").
+        SetColumns([]string{"id", "event_id", "type_id"}).
+        SetColNames([]string{"ID", "Мероприятие", "Тип"}).
+        SetFields(new(EventType)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

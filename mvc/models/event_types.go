@@ -10,25 +10,26 @@ type EventTypes struct {
     Description string `name:"description" type:"text" null:"NOT NULL" extra:""`
 }
 
-func (c *ModelManager) EventTypes() *EventTypesModel {
+
+
+
+
+func (*ModelManager) EventTypes() *EventTypesModel {
     model := new(EventTypesModel)
-
-    model.TableName = "event_types"
-    model.Caption = "Типы мероприятий"
-
-    model.Columns = []string{"id", "name", "description"}
-    model.ColNames = []string{"ID", "Тип", "Описание"}
-
-    model.Fields = new(EventTypes)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.SetTableName("event_types").
+        SetCaption("Типы мероприятий").
+        SetColumns([]string{"id", "name", "description"}).
+        SetColNames([]string{"ID", "Тип", "Описание"}).
+        SetFields(new(EventTypes)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

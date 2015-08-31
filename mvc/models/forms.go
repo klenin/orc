@@ -10,25 +10,26 @@ type Forms struct {
     Personal bool   `name:"personal" type:"boolean" null:"NOT NULL" extra:""`
 }
 
-func (c *ModelManager) Forms() *FormsModel {
+
+
+
+
+func (*ModelManager) Forms() *FormsModel {
     model := new(FormsModel)
-
-    model.TableName = "forms"
-    model.Caption = "Формы"
-
-    model.Columns = []string{"id", "name", "personal"}
-    model.ColNames = []string{"ID", "Название", "Персональная"}
-
-    model.Fields = new(Forms)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    // model.Sub = true
-    // model.SubTable = []string{"events_forms"}
-    // model.SubField = "form_id"
+    model.SetTableName("forms").
+        SetCaption("Формы").
+        SetColumns([]string{"id", "name", "personal"}).
+        SetColNames([]string{"ID", "Название", "Персональная"}).
+        SetFields(new(Form)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

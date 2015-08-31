@@ -16,25 +16,26 @@ type Groups struct {
     Owner int    `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
 }
 
-func (c *ModelManager) Groups() *GroupsModel {
+
+
+
+
+func (*ModelManager) Groups() *GroupsModel {
     model := new(GroupsModel)
-
-    model.TableName = "groups"
-    model.Caption = "Группы"
-
-    model.Columns = []string{"id", "name", "face_id"}
-    model.ColNames = []string{"ID", "Название", "Владелец"}
-
-    model.Fields = new(Groups)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = true
-    model.SubTable = []string{"persons"}
-    model.SubField = "group_id"
+    model.SetTableName("groups").
+        SetCaption("Группы").
+        SetColumns([]string{"id", "name", "face_id"}).
+        SetColNames([]string{"ID", "Название", "Владелец"}).
+        SetFields(new(Group)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(true).
+        SetSubTables([]string{"persons"}).
+        SetSubField("group_id")
 
     return model
 }

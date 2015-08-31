@@ -15,25 +15,26 @@ type RegsGroupRegs struct {
     RegId      int `name:"reg_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"registrations" refField:"id" refFieldShow:"id"`
 }
 
-func (c *ModelManager) RegsGroupRegs() *RegsGroupRegsModel {
+
+
+
+
+func (*ModelManager) RegsGroupRegs() *RegsGroupRegsModel {
     model := new(RegsGroupRegsModel)
-
-    model.TableName = "regs_groupregs"
-    model.Caption = "Регистрации групп - Регистрации"
-
-    model.Columns = []string{"id", "groupreg_id", "reg_id"}
-    model.ColNames = []string{"ID", "Регистрации групп", "Регистрации"}
-
-    model.Fields = new(RegsGroupRegs)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.SetTableName("regs_groupregs").
+        SetCaption("Регистрации групп - Регистрации").
+        SetColumns([]string{"id", "groupreg_id", "reg_id"}).
+        SetColNames([]string{"ID", "Регистрации групп", "Регистрации"}).
+        SetFields(new(RegGroupReg)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

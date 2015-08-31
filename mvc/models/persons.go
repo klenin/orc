@@ -21,25 +21,26 @@ type Person struct {
     Status  bool   `name:"status" type:"boolean" null:"NOT NULL" extra:""`
 }
 
-func (c *ModelManager) Persons() *PersonsModel {
+
+
+
+
+func (*ModelManager) Persons() *PersonsModel {
     model := new(PersonsModel)
-
-    model.TableName = "persons"
-    model.Caption = "Участники"
-
-    model.Columns = []string{"id", "face_id", "group_id", "status"}
-    model.ColNames = []string{"ID", "Физическое лицо", "Группа", "Статус"}
-
-    model.Fields = new(Person)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.SetTableName("persons").
+        SetCaption("Участники").
+        SetColumns([]string{"id", "face_id", "group_id", "status"}).
+        SetColNames([]string{"ID", "Физическое лицо", "Группа", "Статус"}).
+        SetFields(new(Person)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

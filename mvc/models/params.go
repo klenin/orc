@@ -20,25 +20,26 @@ type Param struct {
 
 }
 
-func (c *ModelManager) Params() *ParamsModel {
+
+
+
+
+func (*ModelManager) Params() *ParamsModel {
     model := new(ParamsModel)
-
-    model.TableName = "params"
-    model.Caption = "Параметры"
-
-    model.Columns = []string{"id", "name", "param_type_id", "form_id", "identifier", "required", "editable"}
-    model.ColNames = []string{"ID", "Название", "Тип", "Форма", "Идентификатор", "Требование", "Редактирование"}
-
-    model.Fields = new(Param)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.SetTableName("params").
+        SetCaption("Параметры").
+        SetColumns([]string{"id", "name", "param_type_id", "form_id", "identifier", "required", "editable"}).
+        SetColNames([]string{"ID", "Название", "Тип", "Форма", "Идентификатор", "Требование", "Редактирование"}).
+        SetFields(new(Param)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

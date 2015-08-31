@@ -16,25 +16,26 @@ type GroupRegistration struct {
     Status  bool `name:"status" type:"boolean" null:"NOT NULL" extra:""`
 }
 
-func (c *ModelManager) GroupRegistrations() *GroupRegistrationModel {
-    model := new(GroupRegistrationModel)
 
-    model.TableName = "group_registrations"
-    model.Caption = "Регистрации групп"
 
-    model.Columns = []string{"id", "event_id", "group_id", "status"}
-    model.ColNames = []string{"ID", "Мероприятие", "Группа", "Статус"}
 
-    model.Fields = new(GroupRegistration)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
 
-    model.Sub = true
-    model.SubTable = []string{"persons"}
-    model.SubField = "group_id"
+func (*ModelManager) GroupRegistrations() *GroupRegistrationsModel {
+    model := new(GroupRegistrationsModel)
+    model.SetTableName("group_registrations").
+        SetCaption("Регистрации групп").
+        SetColumns([]string{"id", "event_id", "group_id", "status"}).
+        SetColNames([]string{"ID", "Мероприятие", "Группа", "Статус"}).
+        SetFields(new(GroupRegistration)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(true).
+        SetSubTables([]string{"persons"}).
+        SetSubField("group_id")
 
     return model
 }

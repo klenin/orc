@@ -14,25 +14,26 @@ type Event struct {
     Url        string `name:"url" type:"text" null:"NULL" extra:""`
 }
 
-func (c *ModelManager) Events() *EventsModel {
+
+
+
+
+func (*ModelManager) Events() *EventsModel {
     model := new(EventsModel)
-
-    model.TableName = "events"
-    model.Caption = "Мероприятия"
-
-    model.Columns = []string{"id", "name", "date_start", "date_finish", "time", "team", "url"}
-    model.ColNames = []string{"ID", "Название", "Дата начала", "Дата окончания", "Время", "Командное", "Сайт"}
-
-    model.Fields = new(Event)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    // model.Sub = true
-    // model.SubTable = []string{"events_types"}
-    // model.SubField = "event_id"
+    model.SetTableName("events").
+        SetCaption("Мероприятия").
+        SetColumns([]string{"id", "name", "date_start", "date_finish", "time", "team", "url"}).
+        SetColNames([]string{"ID", "Название", "Дата начала", "Дата окончания", "Время", "Командное", "Сайт"}).
+        SetFields(new(Event)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

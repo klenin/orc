@@ -20,67 +20,114 @@ const (
 )
 
 type Entity struct {
-    TableName string
-    Caption   string
+    tableName  string
+    caption    string
+    fields     interface{}
+    columns    []string
+    colNames   []string
+    sub        bool
+    subTables  []string
+    subField   string
+    wherePart  map[string]interface{}
+    condition  ConditionEnumElem
+    orderBy    string
+    limit      interface{}
+    offset     int
+    sorting    string
+}
 
-    Fields interface{}
+func (this *Entity) SetTableName(name string) *Entity {
+    this.tableName = name
 
-    Columns  []string
-    ColNames []string
-
-    Sub      bool
-    SubTable []string
-    SubField string
-
-    WherePart map[string]interface{}
-    Condition ConditionEnumElem
-    OrderBy   string
-    Limit     interface{}
-    Offset    int
+    return this
 }
 
 func (this *Entity) GetTableName() string {
-    return this.TableName
+    return this.tableName
+}
+
+func (this *Entity) SetCaption(caption string) *Entity {
+    this.caption = caption
+
+    return this
 }
 
 func (this *Entity) GetCaption() string {
-    return this.Caption
+    return this.caption
+}
+
+func (this *Entity) SetSub(sub bool) *Entity {
+    this.sub = sub
+
+    return this
 }
 
 func (this *Entity) GetSub() bool {
-    return this.Sub
+    return this.sub
+}
+
+func (this *Entity) SetSubTables(subTables []string) *Entity {
+    this.subTables = subTables
+
+    return this
 }
 
 func (this *Entity) GetSubTable(index int) string {
-    return this.SubTable[index]
+    return this.subTables[index]
+}
+
+func (this *Entity) SetSubField(fieldName string) *Entity {
+    this.subField = fieldName
+
+    return this
 }
 
 func (this *Entity) GetSubField() string {
-    return this.SubField
+    return this.subField
+}
+
+func (this *Entity) SetColumns(columns []string) *Entity {
+    this.columns = columns
+
+    return this
 }
 
 func (this *Entity) GetColumns() []string {
-    return this.Columns
+    return this.columns
 }
 
 func (this *Entity) GetColumnByIdx(index int) string {
-    return this.Columns[index]
+    return this.columns[index]
 }
 
-func (this *Entity) GetColumnSlice(index int) []string {
-    return this.Columns[index:]
+func (this *Entity) SetColNames(colNames []string) *Entity {
+    this.colNames = colNames
+
+    return this
 }
 
 func (this *Entity) GetColNames() []string {
-    return this.ColNames
+    return this.colNames
+}
+
+func (this *Entity) SetFields(fields interface{}) *Entity {
+    this.fields = fields
+
+    return this
 }
 
 func (this *Entity) GetFields() interface{} {
-    return this.Fields
+    return this.fields
+}
+
+func (this *Entity) SetCondition(condition ConditionEnumElem) *Entity {
+    this.condition = condition
+
+    return this
 }
 
 func (this *Entity) GetConditionName() string {
-    switch this.Condition {
+    switch this.condition {
     case OR:
         return "OR"
     case AND:
@@ -89,9 +136,77 @@ func (this *Entity) GetConditionName() string {
     panic("Entity.GetConditionName: Invalid condition")
 }
 
+func (this *Entity) SetOrder(orderBy string) *Entity {
+    this.orderBy = orderBy
 func (this *Entity) LoadModelData(data map[string]interface{}) {
     rv := reflect.ValueOf(this.Fields)
     rt := rv.Type()
+
+    return this
+}
+
+func (this *Entity) GetOrder() string {
+    return this.orderBy
+}
+
+func (this *Entity) SetLimit(limit interface{}) *Entity {
+    switch limit.(type) {
+    case string:
+        if limit.(string) != "ALL" {
+            panic("[Entity::SetLimit] Invalid value")
+        }
+        this.limit = limit
+
+        return this
+    case int:
+        if limit.(int) < 0 {
+            panic("[Entity::SetLimit] Invalid value")
+        }
+        this.limit = limit
+
+        return this
+
+    default:
+        panic("[Entity::SetLimit] Invalid type")
+    }
+}
+
+func (this *Entity) GetLimit() interface{} {
+    return this.limit
+}
+
+func (this *Entity) SetOffset(offset int) *Entity {
+    if offset < 0 {
+        panic("[Entity::SetOffset] Invalid value")
+    }
+    this.offset = offset
+
+    return this
+}
+
+func (this *Entity) GetOffset() int {
+    return this.offset
+}
+
+func (this *Entity) SetSorting(sorting string) *Entity {
+    if sorting == "ASC" || sorting == "DESC" || sorting == "asc" || sorting == "desc" {
+        this.sorting = sorting
+    } else {
+        panic("[Entity::SetSorting] Invalid value")
+    }
+
+    return this
+}
+
+func (this *Entity) GetSorting() string {
+    return this.sorting
+}
+
+func (this *Entity) SetWherePart(where map[string]interface{}) *Entity {
+    this.wherePart = where
+
+    return this
+}
 
     for key, val := range data {
         for i := 0; i < rt.Elem().NumField(); i++ {
@@ -398,27 +513,49 @@ type EntityInterface interface {
     LoadModelData(data map[string]interface{})
     LoadWherePart(data map[string]interface{}) *Entity
     GenerateWherePart(counter int) (string, []interface{})
-
-    GetConditionName() string
-    SetCondition(c ConditionEnumElem)
-
-    SetOrder(orderBy string)
-    SetLimit(limit interface{})
-    SetOffset(offset int)
-
     GetTableName() string
-    GetCaption() string
+    SetTableName(string) *Entity
 
-    GetFields() interface{}
+    GetCaption() string
+    SetCaption(string) *Entity
 
     GetSub() bool
-    GetSubTable(index int) string
+    SetSub(bool) *Entity
+
     GetSubField() string
+    SetSubField(string) *Entity
 
     GetColumns() []string
+    SetColumns([]string) *Entity
+
     GetColNames() []string
-    GetColumnByIdx(index int) string
-    GetColumnSlice(index int) []string
+    SetColNames([]string) *Entity
+
+    GetFields() interface{}
+    SetFields(interface{}) *Entity
+
+    GetSubTable(int) string
+    SetSubTables([]string) *Entity
+
+    GetColumnByIdx(int) string
+
+    GetConditionName() string
+
+    SetCondition(ConditionEnumElem) *Entity
+
+    SetOrder(string) *Entity
+    GetOrder() string
+
+    SetLimit(interface{}) *Entity
+    GetLimit() interface{}
+
+    SetOffset(int) *Entity
+    GetOffset() int
+
+    SetSorting(string) *Entity
+    GetSorting() string
+
+    SetWherePart(map[string]interface{}) *Entity
 
     Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)

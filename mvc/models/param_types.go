@@ -9,25 +9,25 @@ type ParamTypes struct {
     Name string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
 }
 
-func (c *ModelManager) ParamTypes() *ParamTypesModel {
+
+
+
+func (*ModelManager) ParamTypes() *ParamTypesModel {
     model := new(ParamTypesModel)
-
-    model.TableName = "param_types"
-    model.Caption = "Типы параметров"
-
-    model.Columns = []string{"id", "name"}
-    model.ColNames = []string{"ID", "Название"}
-
-    model.Fields = new(ParamTypes)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
-
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+    model.SetTableName("param_types").
+        SetCaption("Типы параметров").
+        SetColumns([]string{"id", "name"}).
+        SetColNames([]string{"ID", "Название"}).
+        SetFields(new(ParamType)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }

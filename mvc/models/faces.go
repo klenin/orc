@@ -16,25 +16,26 @@ type Face struct {
     UserId int `name:"user_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
 }
 
-func (c *ModelManager) Faces() *FaceModel {
-    model := new(FaceModel)
 
-    model.TableName = "faces"
-    model.Caption = "Физические лица"
 
-    model.Columns = []string{"id", "user_id"}
-    model.ColNames = []string{"ID", "Пользователь"}
 
-    model.Fields = new(Face)
-    model.WherePart = make(map[string]interface{}, 0)
-    model.Condition = AND
-    model.OrderBy = "id"
-    model.Limit = "ALL"
-    model.Offset = 0
 
-    model.Sub = false
-    model.SubTable = nil
-    model.SubField = ""
+func (*ModelManager) Faces() *FacesModel {
+    model := new(FacesModel)
+    model.SetTableName("faces").
+        SetCaption("Физические лица").
+        SetColumns([]string{"id", "user_id"}).
+        SetColNames([]string{"ID", "Пользователь"}).
+        SetFields(new(Face)).
+        SetCondition(AND).
+        SetOrder("id").
+        SetLimit("ALL").
+        SetOffset(0).
+        SetSorting("ASC").
+        SetWherePart(make(map[string]interface{}, 0)).
+        SetSub(false).
+        SetSubTables(nil).
+        SetSubField("")
 
     return model
 }
