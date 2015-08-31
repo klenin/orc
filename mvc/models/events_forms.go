@@ -5,19 +5,35 @@ import (
     "strconv"
 )
 
+type EventForm struct {
+    id      int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    eventId int `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    formId  int `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
+}
+
+func (this *EventForm) GetId() int {
+    return this.id
+}
+
+func (this *EventForm) GetEventId() int {
+    return this.eventId
+}
+
+func (this *EventForm) SetEventId(eventId int) {
+    this.eventId = eventId
+}
+
+func (this *EventForm) GetFormId() int {
+    return this.formId
+}
+
+func (this *EventForm) SetFormId(formId int) {
+    this.formId = formId
+}
+
 type EventsFormsModel struct {
     Entity
 }
-
-type EventForm struct {
-    Id      int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    EventId int `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
-    FormId  int `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
-}
-
-
-
-
 
 func (*ModelManager) EventsForms() *EventsFormsModel {
     model := new(EventsFormsModel)
@@ -79,7 +95,7 @@ func (this *EventsFormsModel) Select(fields []string, filters map[string]interfa
     return db.Query(query, params)
 }
 
-func (this *EventsFormsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*EventsFormsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT events.id || ':' || events.name FROM events GROUP BY events.id ORDER BY events.id), ';') as name;`
     events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

@@ -5,20 +5,44 @@ import (
     "strconv"
 )
 
-type RegistrationModel struct {
+type Registration struct {
+    id      int  `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    faceId  int  `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
+    eventId int  `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    status  bool `name:"status" type:"boolean" null:"NOT NULL" extra:""`
+}
+
+func (this *Registration) GetId() int {
+    return this.id
+}
+
+func (this *Registration) GetFaceId() int {
+    return this.faceId
+}
+
+func (this *Registration) SetFaceId(faceId int) {
+    this.faceId = faceId
+}
+
+func (this *Registration) GetEventId() int {
+    return this.eventId
+}
+
+func (this *Registration) SetEventId(eventId int) {
+    this.eventId = eventId
+}
+
+func (this *Registration) SetStatus(status bool) {
+    this.status = status
+}
+
+func (this *Registration) GetStatus() bool {
+    return this.status
+}
+
+type RegistrationsModel struct {
     Entity
 }
-
-type Registration struct {
-    Id      int  `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    FaceId  int  `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
-    EventId int  `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
-    Status  bool `name:"status" type:"boolean" null:"NOT NULL" extra:""`
-}
-
-
-
-
 
 func (*ModelManager) Registrations() *RegistrationsModel {
     model := new(RegistrationsModel)
@@ -40,7 +64,7 @@ func (*ModelManager) Registrations() *RegistrationsModel {
     return model
 }
 
-func (this *RegistrationModel) Delete(id int) {
+func (*RegistrationsModel) Delete(id int) {
     query := `DELETE FROM param_values WHERE param_values.reg_id = $1;`
     db.Query(query, []interface{}{id})
 
@@ -101,7 +125,7 @@ func (this *RegistrationsModel) Select(fields []string, filters map[string]inter
     return db.Query(query, params)
 }
 
-func (this *RegistrationModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*RegistrationsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT events.id || ':' || events.name FROM events GROUP BY events.id ORDER BY events.id), ';') as name;`
     events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

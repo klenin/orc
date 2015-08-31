@@ -1,16 +1,25 @@
 package models
 
+type ParamType struct {
+    id   int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    name string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+}
+
+func (this *ParamType) GetId() int {
+    return this.id
+}
+
+func (this *ParamType) SetName(name string) {
+    this.name = name
+}
+
+func (this *ParamType) GetName() string {
+    return this.name
+}
+
 type ParamTypesModel struct {
     Entity
 }
-
-type ParamTypes struct {
-    Id   int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
-}
-
-
-
 
 func (*ModelManager) ParamTypes() *ParamTypesModel {
     model := new(ParamTypesModel)
@@ -32,7 +41,7 @@ func (*ModelManager) ParamTypes() *ParamTypesModel {
     return model
 }
 
-func (this *ParamTypesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*ParamTypesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

@@ -5,22 +5,62 @@ import (
     "strconv"
 )
 
+type ParamValue struct {
+    id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    paramId int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
+    value   string `name:"value" type:"text" null:"NULL" extra:""`
+    regId   int    `name:"reg_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"registrations" refField:"id" refFieldShow:"id"`
+    date    string `name:"date" type:"timestamp" null:"NOT NULL" extra:""`
+    userId  int    `name:"user_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
+}
+
+func (this *ParamValue) GetId() int {
+    return this.id
+}
+
+func (this *ParamValue) SetParamId(paramId int) {
+    this.paramId = paramId
+}
+
+func (this *ParamValue) GetParamId() int {
+    return this.paramId
+}
+
+func (this *ParamValue) SetValue(value string) {
+    this.value = value
+}
+
+func (this *ParamValue) GetValue() string {
+    return this.value
+}
+
+func (this *ParamValue) SetRegId(regId int) {
+    this.regId = regId
+}
+
+func (this *ParamValue) GetRegId() int {
+    return this.regId
+}
+
+func (this *ParamValue) SetDate(date string) {
+    this.date = date
+}
+
+func (this *ParamValue) GetDate() string {
+    return this.date
+}
+
+func (this *ParamValue) SetUserId(userId int) {
+    this.userId = userId
+}
+
+func (this *ParamValue) GetUserId() int {
+    return this.userId
+}
+
 type ParamValuesModel struct {
     Entity
 }
-
-type ParamValues struct {
-    Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    ParamId int    `name:"param_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"params" refField:"id" refFieldShow:"name"`
-    Value   string `name:"value" type:"text" null:"NULL" extra:""`
-    RegId   int    `name:"reg_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"registrations" refField:"id" refFieldShow:"id"`
-    Date    string `name:"date" type:"timestamp" null:"NOT NULL" extra:""`
-    UserId  int    `name:"user_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
-}
-
-
-
-
 
 func (*ModelManager) ParamValues() *ParamValuesModel {
     model := new(ParamValuesModel)
@@ -93,7 +133,7 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
     return db.Query(query, params)
 }
 
-func (this *ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*ParamValuesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     var query, params string
 
     if isAdmin {

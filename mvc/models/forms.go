@@ -1,18 +1,34 @@
 package models
 
+type Form struct {
+    id       int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    name     string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    personal bool   `name:"personal" type:"boolean" null:"NOT NULL" extra:""`
+}
+
+func (this *Form) GetId() int {
+    return this.id
+}
+
+func (this *Form) SetName(name string) {
+    this.name = name
+}
+
+func (this *Form) GetName() string {
+    return this.name
+}
+
+func (this *Form) SetPersonal(personal bool) {
+    this.personal = personal
+}
+
+func (this *Form) GetPersonal() bool {
+    return this.personal
+}
+
 type FormsModel struct {
     Entity
 }
-
-type Forms struct {
-    Id       int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name     string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
-    Personal bool   `name:"personal" type:"boolean" null:"NOT NULL" extra:""`
-}
-
-
-
-
 
 func (*ModelManager) Forms() *FormsModel {
     model := new(FormsModel)
@@ -34,7 +50,7 @@ func (*ModelManager) Forms() *FormsModel {
     return model
 }
 
-func (this *FormsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*FormsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

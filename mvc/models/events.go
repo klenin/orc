@@ -1,22 +1,70 @@
 package models
 
+type Event struct {
+    id         int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    name       string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    dateStart  string `name:"date_start" type:"date" null:"NOT NULL" extra:""`
+    dateFinish string `name:"date_finish" type:"date" null:"NOT NULL" extra:""`
+    time       string `name:"time" type:"time" null:"NOT NULL" extra:""`
+    team       bool   `name:"team" type:"boolean" null:"NOT NULL" extra:""`
+    url        string `name:"url" type:"text" null:"NULL" extra:""`
+}
+
+func (this *Event) GetId() int {
+    return this.id
+}
+
+func (this *Event) SetName(name string) {
+    this.name = name
+}
+
+func (this *Event) GetName() string {
+    return this.name
+}
+
+func (this *Event) SetDateStart(dateStart string) {
+    this.dateStart = dateStart
+}
+
+func (this *Event) GetDateStart() string {
+    return this.dateStart
+}
+
+func (this *Event) SetDateFinish(dateFinish string) {
+    this.dateFinish = dateFinish
+}
+
+func (this *Event) GetDateFinish() string {
+    return this.dateFinish
+}
+
+func (this *Event) SetTime(time string) {
+    this.time = time
+}
+
+func (this *Event) GetTime() string {
+    return this.time
+}
+
+func (this *Event) SetTeam(team bool) {
+    this.team = team
+}
+
+func (this *Event) GetTeam() bool {
+    return this.team
+}
+
+func (this *Event) SetUrl(url string) {
+    this.url = url
+}
+
+func (this *Event) GetUrl() string {
+    return this.url
+}
+
 type EventsModel struct {
     Entity
 }
-
-type Event struct {
-    Id         int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name       string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
-    DateStart  string `name:"date_start" type:"date" null:"NOT NULL" extra:""`
-    DateFinish string `name:"date_finish" type:"date" null:"NOT NULL" extra:""`
-    Time       string `name:"time" type:"time" null:"NOT NULL" extra:""`
-    Team       bool   `name:"team" type:"boolean" null:"NOT NULL" extra:""`
-    Url        string `name:"url" type:"text" null:"NULL" extra:""`
-}
-
-
-
-
 
 func (*ModelManager) Events() *EventsModel {
     model := new(EventsModel)
@@ -38,7 +86,7 @@ func (*ModelManager) Events() *EventsModel {
     return model
 }
 
-func (this *EventsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*EventsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

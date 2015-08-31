@@ -7,18 +7,26 @@ import (
     "strings"
 )
 
-type FaceModel struct {
+type Face struct {
+    id     int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    userId int `name:"user_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
+}
+
+func (this *Face) GetId() int {
+    return this.id
+}
+
+func (this *Face) GetUserId() int {
+    return this.userId
+}
+
+func (this *Face) SetUserId(userId int) {
+    this.userId = userId
+}
+
+type FacesModel struct {
     Entity
 }
-
-type Face struct {
-    Id     int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    UserId int `name:"user_id" type:"int" null:"NULL" extra:"REFERENCES" refTable:"users" refField:"id" refFieldShow:"login"`
-}
-
-
-
-
 
 func (*ModelManager) Faces() *FacesModel {
     model := new(FacesModel)
@@ -74,7 +82,7 @@ func (this *FacesModel) Select(fields []string, filters map[string]interface{}) 
     return db.Query(query, params)
 }
 
-func (this *FaceModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*FacesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT users.id || ':' || users.login FROM users GROUP BY users.id ORDER BY users.id), ';') as name;`
     logins := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)
@@ -128,7 +136,7 @@ func (this *FaceModel) GetColModel(isAdmin bool, userId int) []map[string]interf
     }
 }
 
-func (this *FaceModel) WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int) {
+func (this *FacesModel) WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int) {
     where = ""
     if filters == nil {
         return where, nil, -1

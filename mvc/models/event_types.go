@@ -1,18 +1,34 @@
 package models
 
+type EventTypes struct {
+    id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    name        string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    description string `name:"description" type:"text" null:"NOT NULL" extra:""`
+}
+
+func (this *EventTypes) GetId() int {
+    return this.id
+}
+
+func (this *EventTypes) SetName(name string) {
+    this.name = name
+}
+
+func (this *EventTypes) GetName() string {
+    return this.name
+}
+
+func (this *EventTypes) SetDescription(description string) {
+    this.description = description
+}
+
+func (this *EventTypes) GetDescription() string {
+    return this.description
+}
+
 type EventTypesModel struct {
     Entity
 }
-
-type EventTypes struct {
-    Id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name        string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
-    Description string `name:"description" type:"text" null:"NOT NULL" extra:""`
-}
-
-
-
-
 
 func (*ModelManager) EventTypes() *EventTypesModel {
     model := new(EventTypesModel)
@@ -34,7 +50,7 @@ func (*ModelManager) EventTypes() *EventTypesModel {
     return model
 }
 
-func (this *EventTypesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*EventTypesModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     return []map[string]interface{} {
         0: map[string]interface{} {
             "index": "id",

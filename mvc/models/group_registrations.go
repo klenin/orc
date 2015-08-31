@@ -5,20 +5,44 @@ import (
     "strconv"
 )
 
-type GroupRegistrationModel struct {
+type GroupRegistration struct {
+    id      int  `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    eventId int  `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
+    groupId int  `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
+    status  bool `name:"status" type:"boolean" null:"NOT NULL" extra:""`
+}
+
+func (this *GroupRegistration) GetId() int {
+    return this.id
+}
+
+func (this *GroupRegistration) GetEventId() int {
+    return this.eventId
+}
+
+func (this *GroupRegistration) SetEventId(eventId int) {
+    this.eventId = eventId
+}
+
+func (this *GroupRegistration) GetGroupId() int {
+    return this.groupId
+}
+
+func (this *GroupRegistration) SetGroupId(groupId int) {
+    this.groupId = groupId
+}
+
+func (this *GroupRegistration) SetStatus(status bool) {
+    this.status = status
+}
+
+func (this *GroupRegistration) GetStatus() bool {
+    return this.status
+}
+
+type GroupRegistrationsModel struct {
     Entity
 }
-
-type GroupRegistration struct {
-    Id      int  `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    EventId int  `name:"event_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"events" refField:"id" refFieldShow:"name"`
-    GroupId int  `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
-    Status  bool `name:"status" type:"boolean" null:"NOT NULL" extra:""`
-}
-
-
-
-
 
 func (*ModelManager) GroupRegistrations() *GroupRegistrationsModel {
     model := new(GroupRegistrationsModel)
@@ -40,7 +64,7 @@ func (*ModelManager) GroupRegistrations() *GroupRegistrationsModel {
     return model
 }
 
-func (this *GroupRegistrationModel) Delete(id int) {
+func (*GroupRegistrationsModel) Delete(id int) {
     query := `DELETE
         FROM param_values
         WHERE param_values.reg_id in
@@ -101,7 +125,7 @@ func (this *GroupRegistrationsModel) Select(fields []string, filters map[string]
     return db.Query(query, params)
 }
 
-func (this *GroupRegistrationModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*GroupRegistrationsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT events.id || ':' || events.name FROM events GROUP BY events.id ORDER BY events.id), ';') as name;`
     events := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

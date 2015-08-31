@@ -9,21 +9,51 @@ import (
     "strconv"
 )
 
-type PersonsModel struct {
-    Entity
-}
+const HASH_SIZE = 32
 
 type Person struct {
-    Id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    FaceId  int    `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
-    GroupId int    `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
-    Token   string `name:"token" type:"text" null:"NOT NULL" extra:""`
-    Status  bool   `name:"status" type:"boolean" null:"NOT NULL" extra:""`
+    id      int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    faceId  int    `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
+    groupId int    `name:"group_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"groups" refField:"id" refFieldShow:"name"`
+    token   string `name:"token" type:"text" null:"NOT NULL" extra:""`
+    status  bool   `name:"status" type:"boolean" null:"NOT NULL" extra:""`
 }
 
+func (this *Person) GetId() int {
+    return this.id
+}
 
+func (this *Person) GetFaceId() int {
+    return this.faceId
+}
 
+func (this *Person) SetFaceId(faceId int) {
+    this.faceId = faceId
+}
 
+func (this *Person) GetGroupId() int {
+    return this.groupId
+}
+
+func (this *Person) SetGroupId(groupId int) {
+    this.groupId = groupId
+}
+
+func (this *Person) SetToken(token string) {
+    this.token = token
+}
+
+func (this *Person) GetToken() string {
+    return this.token
+}
+
+func (this *Person) SetStatus(status bool) {
+    this.status = status
+}
+
+func (this *Person) GetStatus() bool {
+    return this.status
+}
 
 func (*ModelManager) Persons() *PersonsModel {
     model := new(PersonsModel)
@@ -45,7 +75,9 @@ func (*ModelManager) Persons() *PersonsModel {
     return model
 }
 
-const HASH_SIZE = 32
+type PersonsModel struct {
+    Entity
+}
 
 func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
     var to string
@@ -165,7 +197,7 @@ func (this *PersonsModel) Select(fields []string, filters map[string]interface{}
     return db.Query(query, params)
 }
 
-func (this *PersonsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*PersonsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     var query, groups, faces string
 
     if isAdmin {

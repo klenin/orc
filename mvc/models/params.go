@@ -5,24 +5,71 @@ import (
     "strconv"
 )
 
+type Param struct {
+    id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    name        string `name:"name" type:"text" null:"NOT NULL" extra:""`
+    formId      int    `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
+    paramTypeId int    `name:"param_type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"param_types" refField:"id" refFieldShow:"name"`
+    identifier  int    `name:"identifier" type:"int" null:"NOT NULL" extra:"UNIQUE"`
+    required    bool   `name:"required" type:"boolean" null:"NOT NULL" extra:""`
+    editable    bool   `name:"editable" type:"boolean" null:"NOT NULL" extra:""`
+}
+
+func (this *Param) GetId() int {
+    return this.id
+}
+
+func (this *Param) SetName(name string) {
+    this.name = name
+}
+
+func (this *Param) GetName() string {
+    return this.name
+}
+
+func (this *Param) GetFormId() int {
+    return this.formId
+}
+
+func (this *Param) SetFormId(formId int) {
+    this.formId = formId
+}
+
+func (this *Param) SetParamTypeId(paramTypeId int) {
+    this.paramTypeId = paramTypeId
+}
+
+func (this *Param) GetParamTypeId() int {
+    return this.paramTypeId
+}
+
+func (this *Param) SetIdentifier(identifier int) {
+    this.identifier = identifier
+}
+
+func (this *Param) GetIdentifier() int {
+    return this.identifier
+}
+
+func (this *Param) SetRequired(required bool) {
+    this.required = required
+}
+
+func (this *Param) GetRequired() bool {
+    return this.required
+}
+
+func (this *Param) SetEditable(editable bool) {
+    this.editable = editable
+}
+
+func (this *Param) GetEditable() bool {
+    return this.editable
+}
+
 type ParamsModel struct {
     Entity
 }
-
-type Param struct {
-    Id          int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name        string `name:"name" type:"text" null:"NOT NULL" extra:""`
-    FormId      int    `name:"form_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"forms" refField:"id" refFieldShow:"name"`
-    ParamTypeId int    `name:"param_type_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"param_types" refField:"id" refFieldShow:"name"`
-    Identifier  int    `name:"identifier" type:"int" null:"NOT NULL" extra:"UNIQUE"`
-    Required    bool   `name:"required" type:"boolean" null:"NOT NULL" extra:""`
-    Editable    bool   `name:"editable" type:"boolean" null:"NOT NULL" extra:""`
-
-}
-
-
-
-
 
 func (*ModelManager) Params() *ParamsModel {
     model := new(ParamsModel)
@@ -92,7 +139,7 @@ func (this *ParamsModel) Select(fields []string, filters map[string]interface{})
     return db.Query(query, params)
 }
 
-func (this *ParamsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*ParamsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT param_types.id || ':' || param_types.name FROM param_types GROUP BY param_types.id ORDER BY param_types.id), ';') as name;`
     types := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

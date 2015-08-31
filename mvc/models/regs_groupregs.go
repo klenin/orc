@@ -5,19 +5,35 @@ import (
     // "strconv"
 )
 
+type RegGroupReg struct {
+    id         int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    groupRegId int `name:"groupreg_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"group_registrations" refField:"id" refFieldShow:"id"`
+    regId      int `name:"reg_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"registrations" refField:"id" refFieldShow:"id"`
+}
+
+func (this *RegGroupReg) GetId() int {
+    return this.id
+}
+
+func (this *RegGroupReg) SetGroupRegId(groupRegId int) {
+    this.groupRegId = groupRegId
+}
+
+func (this *RegGroupReg) GetGroupRegId() int {
+    return this.groupRegId
+}
+
+func (this *RegGroupReg) SetRegId(regId int) {
+    this.regId = regId
+}
+
+func (this *RegGroupReg) GetRegId() int {
+    return this.regId
+}
+
 type RegsGroupRegsModel struct {
     Entity
 }
-
-type RegsGroupRegs struct {
-    Id         int `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    GroupRegId int `name:"groupreg_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"group_registrations" refField:"id" refFieldShow:"id"`
-    RegId      int `name:"reg_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"registrations" refField:"id" refFieldShow:"id"`
-}
-
-
-
-
 
 func (*ModelManager) RegsGroupRegs() *RegsGroupRegsModel {
     model := new(RegsGroupRegsModel)
@@ -39,7 +55,7 @@ func (*ModelManager) RegsGroupRegs() *RegsGroupRegsModel {
     return model
 }
 
-func (this *RegsGroupRegsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*RegsGroupRegsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     query := `SELECT array_to_string(
         array(SELECT group_registrations.id || ':' || group_registrations.id FROM group_registrations GROUP BY group_registrations.id ORDER BY group_registrations.id), ';') as name;`
     groupRegs := db.Query(query, nil)[0].(map[string]interface{})["name"].(string)

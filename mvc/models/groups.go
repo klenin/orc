@@ -6,19 +6,35 @@ import (
     "strconv"
 )
 
+type Group struct {
+    id    int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
+    name  string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
+    owner int    `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
+}
+
+func (this *Group) GetId() int {
+    return this.id
+}
+
+func (this *Group) SetName(name string) {
+    this.name = name
+}
+
+func (this *Group) GetName() string {
+    return this.name
+}
+
+func (this *Group) SetOwner(owner int) {
+    this.owner = owner
+}
+
+func (this *Group) GetOwner() int {
+    return this.owner
+}
+
 type GroupsModel struct {
     Entity
 }
-
-type Groups struct {
-    Id    int    `name:"id" type:"int" null:"NOT NULL" extra:"PRIMARY"`
-    Name  string `name:"name" type:"text" null:"NOT NULL" extra:"UNIQUE"`
-    Owner int    `name:"face_id" type:"int" null:"NOT NULL" extra:"REFERENCES" refTable:"faces" refField:"id" refFieldShow:"id"`
-}
-
-
-
-
 
 func (*ModelManager) Groups() *GroupsModel {
     model := new(GroupsModel)
@@ -77,7 +93,7 @@ func (this *GroupsModel) Add(userId int, params map[string]interface{}) error {
     return nil
 }
 
-func (this *GroupsModel) Delete(id int) {
+func (*GroupsModel) Delete(id int) {
     query := `DELETE
         FROM persons
         WHERE persons.group_id = $1;`
@@ -131,7 +147,7 @@ func (this *GroupsModel) Select(fields []string, filters map[string]interface{})
     return db.Query(query, params)
 }
 
-func (this *GroupsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
+func (*GroupsModel) GetColModel(isAdmin bool, userId int) []map[string]interface{} {
     var query, faces string
     if isAdmin {
         query = `SELECT array_to_string(
