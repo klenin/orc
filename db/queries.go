@@ -64,11 +64,11 @@ func QueryCreateSecuence(tableName string) {
 
 func QueryCreateTable(m interface{}) {
     model := reflect.ValueOf(m)
-    tableName := model.Elem().FieldByName("TableName").String()
+    tableName := model.Elem().FieldByName("tableName").String()
 
     QueryCreateSecuence(tableName)
     query := "CREATE TABLE IF NOT EXISTS %s ("
-    mF := model.Elem().FieldByName("Fields").Elem().Type()
+    mF := model.Elem().FieldByName("fields").Elem().Type()
     for i := 0; i < mF.Elem().NumField(); i++ {
         query += mF.Elem().Field(i).Tag.Get("name") + " "
         query += mF.Elem().Field(i).Tag.Get("type") + " "
