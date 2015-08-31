@@ -542,7 +542,7 @@ type EntityInterface interface {
     GetColModel(isAdmin bool, userId int) ([]map[string]interface{})
 }
 
-func (this *ModelManager) GetModel(tableName string) VirtEntity {
+func (this *ModelManager) GetModel(tableName string) EntityInterface {
     switch tableName {
     case "events":
         return this.Events()
@@ -574,6 +574,9 @@ func (this *ModelManager) GetModel(tableName string) VirtEntity {
         return this.GroupRegistrations()
     case "regs_groupregs":
         return this.RegsGroupRegs()
+    default:
+        panic("Table is dont exists!")
     }
+
     return nil
 }
