@@ -73,9 +73,7 @@ func (this *GroupsModel) Update(isAdmin bool, userId int, params, where map[stri
         params["face_id"] = faceId
     }
 
-    this.LoadModelData(params)
-    this.LoadWherePart(where)
-    db.QueryUpdate(this).Scan()
+    this.LoadModelData(params).LoadWherePart(where).QueryUpdate().Scan()
 }
 
 func (this *GroupsModel) Add(userId int, params map[string]interface{}) error {

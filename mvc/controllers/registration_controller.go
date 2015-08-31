@@ -5,9 +5,9 @@ import (
     "github.com/lib/pq"
     "github.com/orc/db"
     // "github.com/orc/mailer"
-    "github.com/orc/mvc/models"
     "github.com/orc/sessions"
     "github.com/orc/utils"
+    "log"
     "net/http"
     "strconv"
     "strings"
@@ -28,6 +28,7 @@ func (this *RegistrationController) EventRegisterAction() {
     data, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
@@ -35,6 +36,7 @@ func (this *RegistrationController) EventRegisterAction() {
 
     if eventId == 1 && sessions.CheckSession(this.Response, this.Request) {
         utils.SendJSReply(map[string]interface{}{"result": "authorized"}, this.Response)
+
         return
     }
 
@@ -42,6 +44,7 @@ func (this *RegistrationController) EventRegisterAction() {
         userId, err := this.CheckSid()
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
+
             return
         }
 
@@ -55,15 +58,18 @@ func (this *RegistrationController) EventRegisterAction() {
 
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
             return
         }
 
-        registration := this.GetModel("registrations")
-        registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId, "status": false})
-        db.QueryInsert(registration, "RETURNING id").Scan(&regId)
+        this.GetModel("registrations").
+            LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId, "status": false}).
+            QueryInsert("RETURNING id").
+            Scan(&regId)
 
         if err = this.InsertUserParams(userId, regId, data["data"].([]interface{})); err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
             return
         }
 
@@ -81,6 +87,7 @@ func (this *RegistrationController) EventRegisterAction() {
             if paramId == 1 {
                 if utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
                     utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр 'Логин'."}, this.Response)
+
                     return
                 }
                 userLogin = value
@@ -90,6 +97,7 @@ func (this *RegistrationController) EventRegisterAction() {
             } else if paramId == 2 || paramId == 3 {
                 if utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
                     utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр 'Пароль/Подтвердите пароль'."}, this.Response)
+
                     return
                 }
                 userPass = value
@@ -99,6 +107,7 @@ func (this *RegistrationController) EventRegisterAction() {
             } else if paramId == 4 {
                 if utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
                     utils.SendJSReply(map[string]interface{}{"result": "Заполните параметр 'Email'."}, this.Response)
+
                     return
                 }
                 email = value
@@ -113,6 +122,7 @@ func (this *RegistrationController) EventRegisterAction() {
         result, regId = this.Register(userLogin, userPass, email, "user")
         if result != "ok" && regId == -1 {
             utils.SendJSReply(map[string]interface{}{"result": result}, this.Response)
+
             return
         }
 
@@ -127,11 +137,13 @@ func (this *RegistrationController) EventRegisterAction() {
         if err != nil {
             db.QueryDeleteByIds("users", strconv.Itoa(userId))
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
             return
         }
 
     } else {
         utils.SendJSReply(map[string]interface{}{"result": "Unauthorized"}, this.Response)
+
         return
     }
 
@@ -166,6 +178,7 @@ func (this *RegistrationController) InsertUserParams(userId, regId int, data []i
         if required && utils.MatchRegexp("^[ \t\v\r\n\f]{0,}$", value) {
             db.QueryDeleteByIds("param_vals", strings.Join(paramValueIds, ", "))
             db.QueryDeleteByIds("registrations", strconv.Itoa(regId))
+
             return errors.New("Заполните параметр '"+name+"'.")
         }
 
@@ -174,11 +187,17 @@ func (this *RegistrationController) InsertUserParams(userId, regId int, data []i
         }
 
         var paramValId int
-        paramValues := this.GetModel("param_values")
-        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId, "reg_id": regId})
-        err = db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
+        err = this.GetModel("param_values").
+            LoadModelData(map[string]interface{}{
+                "param_id": paramId,
+                "value": value,
+                "date": date,
+                "user_id": userId,
+                "reg_id": regId}).
+            QueryInsert("RETURNING id").
+            Scan(&paramValId)
         if err, ok := err.(*pq.Error); ok {
-            println(err.Code.Name())
+            log.Println(err.Code.Name())
         }
 
         paramValueIds = append(paramValueIds, strconv.Itoa(paramValId))
@@ -219,24 +238,27 @@ func (this *RegistrationController) Register(login, password, email, role string
         // }
 
         var userId int
-        user := this.GetModel("users")
-        user.LoadModelData(map[string]interface{}{
-            "login": login,
-            "pass":  pass,
-            "salt":  salt,
-            "role":  role,
-            "token": token,
-            "enabled": false})
-        db.QueryInsert(user, "RETURNING id").Scan(&userId)
+        this.GetModel("users").
+            LoadModelData(map[string]interface{}{
+                "login": login,
+                "pass":  pass,
+                "salt":  salt,
+                "role":  role,
+                "token": token,
+                "enabled": false}).
+            QueryInsert("RETURNING id").
+            Scan(&userId)
 
         var faceId int
-        face := this.GetModel("faces")
-        face.LoadModelData(map[string]interface{}{"user_id": userId})
-        db.QueryInsert(face, "RETURNING id").Scan(&faceId)
+        this.GetModel("faces").
+            LoadModelData(map[string]interface{}{"user_id": userId}).
+            QueryInsert("RETURNING id").
+            Scan(&faceId)
 
-        registration := this.GetModel("registrations")
-        registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1, "status": false})
-        db.QueryInsert(registration, "RETURNING id").Scan(&regId)
+        this.GetModel("registrations").
+            LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1, "status": false}).
+            QueryInsert("RETURNING id").
+            Scan(&regId)
 
         return result, regId
     }

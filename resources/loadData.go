@@ -20,6 +20,7 @@ var base = new(models.ModelManager)
 
 func random(min, max int) int {
     rand.Seed(int64(time.Now().Second()))
+
     return rand.Intn(max-min) + min
 }
 
@@ -156,9 +157,7 @@ func loadEvents() {
             "time": time,
             "team": false,
             "url": ""}
-        entity := base.Events()
-        entity.LoadModelData(params)
-        db.QueryInsert(entity, "").Scan()
+        base.Events().LoadModelData(params).QueryInsert("").Scan()
     }
 }
 
@@ -170,9 +169,7 @@ func loadEventTypes() {
         //rand.Seed(int64(i))
         eventTypeName := strings.TrimSpace(eventTypeNamesSourse[i])
         params := map[string]interface{}{"name": eventTypeName, "description": "", "topicality": topicality[rand.Intn(2)]}
-        entity := base.EventTypes()
-        entity.LoadModelData(params)
-        db.QueryInsert(entity, "").Scan()
+        base.EventTypes().LoadModelData(params).QueryInsert("").Scan()
     }
 }
 
@@ -181,9 +178,10 @@ func loadForms() {
     formNamesSourse := strings.Split(string(formNames), "\n")
     for i := 0; i < len(formNamesSourse); i++ {
         formName := strings.TrimSpace(formNamesSourse[i])
-        entity := base.Forms()
-        entity.LoadModelData(map[string]interface{}{"name": formName, "personal": true})
-        db.QueryInsert(entity, "").Scan()
+        base.Forms().
+            LoadModelData(map[string]interface{}{"name": formName, "personal": true}).
+            QueryInsert("").
+            Scan()
     }
 }
 
@@ -192,8 +190,9 @@ func LoadParamTypes() {
     paramTypesSourse := strings.Split(string(paramTypesNames), "\n")
     for i := 0; i < len(paramTypesSourse); i++ {
         paramType := strings.TrimSpace(paramTypesSourse[i])
-        entity := base.ParamTypes()
-        entity.LoadModelData(map[string]interface{}{"name": paramType})
-        db.QueryInsert(entity, "").Scan()
+        base.ParamTypes().
+            LoadModelData(map[string]interface{}{"name": paramType}).
+            QueryInsert("").
+            Scan()
     }
 }

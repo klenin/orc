@@ -5,6 +5,7 @@ import (
     "github.com/orc/db"
     // "github.com/orc/mailer"
     "github.com/orc/utils"
+    "log"
     "net/http"
     "strconv"
     "strings"
@@ -69,9 +70,10 @@ func (this *GroupController) Register() {
     }
 
     var groupregId int
-    groupReg := this.GetModel("group_registrations")
-    groupReg.LoadModelData(map[string]interface{}{"event_id": eventId, "group_id": groupId, "status": false})
-    db.QueryInsert(groupReg, "RETURNING id").Scan(&groupregId)
+    this.GetModel("group_registrations").
+        LoadModelData(map[string]interface{}{"event_id": eventId, "group_id": groupId, "status": false}).
+        QueryInsert("RETURNING id").
+        Scan(&groupregId)
 
     query = `SELECT persons.status, faces.id as face_id, users.id as user_id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
@@ -100,21 +102,32 @@ func (this *GroupController) Register() {
 
         regId := this.regExists(personUserId, eventId)
         if regId == -1 {
-            regs := this.GetModel("registrations")
-            regs.LoadModelData(map[string]interface{}{"face_id": personFaceId, "event_id": eventId, "status": false})
-            db.QueryInsert(regs, "RETURNING id").Scan(&regId)
+            this.GetModel("registrations").
+                LoadModelData(map[string]interface{}{
+                    "face_id": personFaceId,
+                    "event_id": eventId,
+                    "status": false}).
+                QueryInsert("RETURNING id").
+                Scan(&regId)
 
             for _, elem := range params {
                 paramId := int(elem.(map[string]interface{})["id"].(int))
-                paramValues := this.GetModel("param_values")
-                paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": " ", "date": date, "user_id": userId, "reg_id": regId})
-                db.QueryInsert(paramValues, "").Scan()
+                this.GetModel("param_values").
+                    LoadModelData(map[string]interface{}{
+                        "param_id": paramId,
+                        "value": " ",
+                        "date": date,
+                        "user_id": userId,
+                        "reg_id": regId}).
+                    QueryInsert("").
+                    Scan()
             }
         }
 
-        regsGroupRegs := this.GetModel("regs_groupregs")
-        regsGroupRegs.LoadModelData(map[string]interface{}{"groupreg_id": groupregId, "reg_id": regId})
-        db.QueryInsert(regsGroupRegs, "").Scan()
+        this.GetModel("regs_groupregs").
+            LoadModelData(map[string]interface{}{"groupreg_id": groupregId, "reg_id": regId}).
+            QueryInsert("").
+            Scan()
 
         // to := v.(map[string]interface{})["name"].(string)
         // address := v.(map[string]interface{})["email"].(string)
@@ -132,20 +145,27 @@ func (this *GroupController) Register() {
         params := db.Query(query, []interface{}{eventId})
 
         var regId int
-        regs := this.GetModel("registrations")
-        regs.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId, "status": false})
-        db.QueryInsert(regs, "RETURNING id").Scan(&regId)
+        this.GetModel("registrations").
+            LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": eventId, "status": false}).
+            QueryInsert("RETURNING id").
+            Scan(&regId)
 
         for _, elem := range params {
-            paramId := int(elem.(map[string]interface{})["id"].(int))
-            paramValues := this.GetModel("param_values")
-            paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": " ", "date": date, "user_id": userId, "reg_id": regId})
-            db.QueryInsert(paramValues, "").Scan()
+            this.GetModel("param_values").
+                LoadModelData(map[string]interface{}{
+                    "param_id": int(elem.(map[string]interface{})["id"].(int)),
+                    "value": " ",
+                    "date": date,
+                    "user_id": userId,
+                    "reg_id": regId}).
+                QueryInsert("").
+                Scan()
         }
 
-        regsGroupRegs := this.GetModel("regs_groupregs")
-        regsGroupRegs.LoadModelData(map[string]interface{}{"groupreg_id": groupregId, "reg_id": regId})
-        db.QueryInsert(regsGroupRegs, "").Scan()
+        this.GetModel("regs_groupregs").
+            LoadModelData(map[string]interface{}{"groupreg_id": groupregId, "reg_id": regId}).
+            QueryInsert("").
+            Scan()
     }
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
@@ -249,23 +269,25 @@ func (this *GroupController) AddPerson() {
     }
 
     var faceId int
-    face := this.GetModel("faces")
-    db.QueryInsert(face, "RETURNING id").Scan(&faceId)
+    this.GetModel("faces").QueryInsert("RETURNING id").Scan(&faceId)
 
-    persons := this.GetModel("persons")
-    persons.LoadModelData(map[string]interface{}{"face_id": faceId, "group_id": groupId, "status": false, "token": token})
-    db.QueryInsert(persons, "").Scan()
+    this.GetModel("persons").
+        LoadModelData(map[string]interface{}{"face_id": faceId, "group_id": groupId, "status": false, "token": token}).
+        QueryInsert("").
+        Scan()
 
     var regId int
-    registration := this.GetModel("registrations")
-    registration.LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1, "status": false})
-    db.QueryInsert(registration, "RETURNING id").Scan(&regId)
+    this.GetModel("registrations").
+        LoadModelData(map[string]interface{}{"face_id": faceId, "event_id": 1, "status": false}).
+        QueryInsert("RETURNING id").
+        Scan(&regId)
 
     var paramValueIds []string
 
     for _, element := range request["data"].([]interface{}) {
         paramId, err := strconv.Atoi(element.(map[string]interface{})["id"].(string))
         if err != nil {
+            log.Println(err.Error())
             continue
         }
 
@@ -285,10 +307,16 @@ func (this *GroupController) AddPerson() {
 
         var paramValId int
         paramValues := this.GetModel("param_values")
-        paramValues.LoadModelData(map[string]interface{}{"param_id": paramId, "value": value, "date": date, "user_id": userId, "reg_id": regId})
-        err = db.QueryInsert(paramValues, "RETURNING id").Scan(&paramValId)
+        err = paramValues.LoadModelData(map[string]interface{}{
+            "param_id": paramId,
+            "value": value,
+            "date": date,
+            "user_id": userId,
+            "reg_id": regId}).
+            QueryInsert("RETURNING id").
+            Scan(&paramValId)
         if err, ok := err.(*pq.Error); ok {
-            println(err.Code.Name())
+            log.Println(err.Code.Name())
         }
 
         paramValueIds = append(paramValueIds, strconv.Itoa(paramValId))

@@ -72,19 +72,23 @@ func ArrayInterfaceToString(array []interface{}) []string {
     return result
 }
 
-func ConvertTypeModel(type_ string, value reflect.Value) (interface{}, bool) {
+func UpdateOrNot(type_ string, value reflect.Value) (interface{}, bool) {
     switch type_ {
     case "int":
         log.Println("val: ", strconv.Itoa(int(value.Int())))
+
         return value.Int(), value.Int() != 0
     case "text", "date", "time", "timestamp":
         log.Println("val: ", value.String())
+
         return value.String(), value.String() != ""
     case "boolean":
         log.Println("val: ", value.Bool())
+
         return value.Bool(), true
+    default:
+        panic("UpdateOrNot: unknown type")
     }
-    panic("convertTypeModel: unknown type")
 }
 
 func CheckTypeValue(type_ string, value interface{}) interface{} {
@@ -180,5 +184,6 @@ func ParseJS(r *http.Request, rw http.ResponseWriter) (request map[string]interf
     if err != nil {
         return nil, err
     }
+
     return request, nil
 }

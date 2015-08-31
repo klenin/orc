@@ -260,8 +260,10 @@ func (this *GridController) ImportForms() {
                 continue
             }
 
-            eventsForms.LoadModelData(map[string]interface{}{"event_id":  eventId, "form_id": formId})
-            db.QueryInsert(eventsForms, "").Scan()
+            eventsForms.
+                LoadModelData(map[string]interface{}{"event_id":  eventId, "form_id": formId}).
+                QueryInsert("").
+                Scan()
         }
     }
 

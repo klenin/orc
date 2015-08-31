@@ -144,8 +144,7 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
         return errors.New("Участник скорее всего указал неправильный email, отправить письмо-приглашенине невозможно")
     }
 
-    this.LoadModelData(params)
-    db.QueryInsert(this, "").Scan()
+    this.LoadModelData(params).QueryInsert("").Scan()
     return nil
 }
 

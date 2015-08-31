@@ -2,6 +2,7 @@ package models
 
 import (
     "database/sql"
+    "fmt"
     "github.com/orc/utils"
     "github.com/orc/db"
     "reflect"
@@ -483,15 +484,66 @@ func (this *Entity) Delete(id int) {
     db.Exec(query, []interface{}{id})
 }
 
+func (this *Entity) QueryUpdate() *sql.Row {
+    j := 1
+    query := "UPDATE %s SET "
+    tFields := reflect.ValueOf(this.fields).Type().Elem()
+    vFields := reflect.ValueOf(this.fields).Elem()
+    params := make([]interface{}, 0)
+
+    for i := 1; i < tFields.NumField(); i++ {
+        value, ok := utils.UpdateOrNot(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
+        if !ok {
+            continue
+        }
+        query += tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(j) + ", "
+        params = append(params, value)
+        j++
+    }
+    query = query[0 : len(query)-2]
+
+    if len(this.wherePart) != 0 {
+        query += " WHERE %s;"
+        v1, v2 := this.GenerateWherePart(j)
+
+        return db.QueryRow(fmt.Sprintf(query, this.tableName, v1), append(params, v2...))
+    } else {
+        query += ";"
+
+        return db.QueryRow(fmt.Sprintf(query, this.tableName), params)
+    }
+}
+
 func (this *Entity) Update(isAdmin bool, userId int, params, where map[string]interface{}) {
     this.LoadModelData(params)
     this.LoadWherePart(where)
-    db.QueryUpdate(this).Scan()
+    this.QueryUpdate().Scan()
+}
+
+func (this *Entity) QueryInsert(extra string) *sql.Row {
+    i := 1
+    query := "INSERT INTO %s ("
+    tFields := reflect.ValueOf(this.fields).Type().Elem()
+    vFields := reflect.ValueOf(this.fields).Elem()
+    params := make([]interface{}, 0)
+
+    for i = 1; i < tFields.NumField(); i++ {
+        value, ok := utils.UpdateOrNot(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
+        if !ok && tFields.Field(i).Tag.Get("null") == "NULL" {
+            value = nil
+        }
+        query += tFields.Field(i).Tag.Get("name") + ", "
+        params = append(params, value)
+    }
+    query = query[0 : len(query)-2]; query += ") VALUES (%s) %s;"
+
+    return db.QueryRow(fmt.Sprintf(query, this.tableName, strings.Join(db.MakeParams(i-1), ", "), extra), params)
 }
 
 func (this *Entity) Add(userId int, params map[string]interface{}) error {
     this.LoadModelData(params)
-    db.QueryInsert(this, "").Scan()
+    this.QueryInsert("").Scan()
+
     return nil
 }
 
@@ -573,6 +625,9 @@ type EntityInterface interface {
     Select(fields []string, filters map[string]interface{}) ([]interface{})
     Select_(fields []string) []interface{}
     SelectRow(fields []string) *sql.Row
+
+    QueryUpdate() *sql.Row
+    QueryInsert(string) *sql.Row
 
     Delete(id int)
     Add(userId int, params map[string]interface{}) error
