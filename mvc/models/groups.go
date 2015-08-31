@@ -87,7 +87,7 @@ func (this *GroupsModel) Delete(id int) {
     db.Query(query, []interface{}{id})
 }
 
-func (this *GroupsModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+func (this *GroupsModel) Select(fields []string, filters map[string]interface{}) (result []interface{}) {
     if len(fields) == 0 {
         return nil
     }
@@ -109,39 +109,24 @@ func (this *GroupsModel) Select(fields []string, filters map[string]interface{},
     }
 
     query = query[:len(query)-2]
-
     query += ` FROM param_values
         INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN faces ON faces.id = registrations.face_id
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN groups ON groups.face_id = faces.id`
-
     where, params, _ := this.Where(filters, 1)
-
     if where != "" {
         query += ` WHERE ` + where + ` AND params.id in (5, 6, 7) AND events.id = 1 GROUP BY groups.id`
     } else {
         query += ` WHERE params.id in (5, 6, 7) AND events.id = 1 GROUP BY groups.id`
     }
-
-    if sidx != "" {
-        query += ` ORDER BY groups.`+sidx
-    }
-
-    query += ` `+ sord
-
-    if limit != -1 {
-        params = append(params, limit)
-        query += ` LIMIT $`+strconv.Itoa(len(params))
-    }
-
-    if offset != -1 {
-        params = append(params, offset)
-        query += ` OFFSET $`+strconv.Itoa(len(params))
-    }
-
-    query += `;`
+    query += ` ORDER BY groups.` + this.orderBy
+    query += ` `+ this.GetSorting()
+    params = append(params, this.GetLimit())
+    query += ` LIMIT $` + strconv.Itoa(len(params))
+    params = append(params, this.GetOffset())
+    query += ` OFFSET $` + strconv.Itoa(len(params)) + ";"
 
     return db.Query(query, params)
 }

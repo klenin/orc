@@ -117,7 +117,7 @@ func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
     return nil
 }
 
-func (this *PersonsModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+func (this *PersonsModel) Select(fields []string, filters map[string]interface{}) (result []interface{}) {
     if len(fields) == 0 {
         return nil
     }
@@ -142,7 +142,6 @@ func (this *PersonsModel) Select(fields []string, filters map[string]interface{}
     }
 
     query = query[:len(query)-2]
-
     query += ` FROM param_values
         INNER JOIN registrations ON registrations.id = param_values.reg_id
         INNER JOIN faces ON faces.id = registrations.face_id
@@ -150,32 +149,18 @@ func (this *PersonsModel) Select(fields []string, filters map[string]interface{}
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN persons ON persons.face_id = faces.id
         INNER JOIN groups ON groups.face_id = groups.id`
-
     where, params, _ := this.Where(filters, 1)
-
     if where != "" {
         query += ` WHERE ` + where + ` AND params.id in (5, 6, 7) AND events.id = 1 GROUP BY persons.id, groups.id`
     } else {
         query += ` WHERE params.id in (5, 6, 7) AND events.id = 1 GROUP BY persons.id, groups.id`
     }
-
-    if sidx != "" {
-        query += ` ORDER BY persons.`+sidx
-    }
-
-    query += ` `+ sord
-
-    if limit != -1 {
-        params = append(params, limit)
-        query += ` LIMIT $`+strconv.Itoa(len(params))
-    }
-
-    if offset != -1 {
-        params = append(params, offset)
-        query += ` OFFSET $`+strconv.Itoa(len(params))
-    }
-
-    query += `;`
+    query += ` ORDER BY persons.` + this.orderBy
+    query += ` `+ this.GetSorting()
+    params = append(params, this.GetLimit())
+    query += ` LIMIT $` + strconv.Itoa(len(params))
+    params = append(params, this.GetOffset())
+    query += ` OFFSET $` + strconv.Itoa(len(params)) + ";"
 
     return db.Query(query, params)
 }

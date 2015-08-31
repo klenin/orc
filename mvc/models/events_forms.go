@@ -39,7 +39,7 @@ func (*ModelManager) EventsForms() *EventsFormsModel {
     return model
 }
 
-func (this *EventsFormsModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+func (this *EventsFormsModel) Select(fields []string, filters map[string]interface{}) (result []interface{}) {
     if len(fields) == 0 {
         return nil
     }
@@ -61,34 +61,20 @@ func (this *EventsFormsModel) Select(fields []string, filters map[string]interfa
     }
 
     query = query[:len(query)-2]
-
     query += ` FROM events_forms
         INNER JOIN events ON events.id = events_forms.event_id
         INNER JOIN forms ON forms.id = events_forms.form_id`
-
     where, params, _ := this.Where(filters, 1)
     if where != "" {
         where = " WHERE " + where
     }
     query += where
-
-    if sidx != "" {
-        query += ` ORDER BY events_forms.`+sidx
-    }
-
-    query += ` `+ sord
-
-    if limit != -1 {
-        params = append(params, limit)
-        query += ` LIMIT $`+strconv.Itoa(len(params))
-    }
-
-    if offset != -1 {
-        params = append(params, offset)
-        query += ` OFFSET $`+strconv.Itoa(len(params))
-    }
-
-    query += `;`
+    query += ` ORDER BY events_forms.` + this.GetOrder()
+    query += ` `+ this.GetSorting()
+    params = append(params, this.GetLimit())
+    query += ` LIMIT $` + strconv.Itoa(len(params))
+    params = append(params, this.GetOffset())
+    query += ` OFFSET $` + strconv.Itoa(len(params)) + `;`
 
     return db.Query(query, params)
 }

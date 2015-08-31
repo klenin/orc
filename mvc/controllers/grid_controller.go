@@ -398,9 +398,10 @@ func (this *GridController) JsonToExcel(tableName string) {
     }
 
     fields := utils.ArrayInterfaceToString(request["fields"].([]interface{}))
-    sord := request["sord"].(string)
-    sidx := request["sidx"].(string)
-    data := this.GetModel(tableName).Select(fields, filters, -1, -1, sord, sidx)
+    data := this.GetModel(tableName).
+        SetSorting(request["sord"].(string)).
+        SetOrder(request["sidx"].(string)).
+        Select(fields, filters)
 
     this.Response.Header().Set("Content-type", "text/csv")
     w := csv.NewWriter(this.Response)

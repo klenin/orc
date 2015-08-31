@@ -42,7 +42,7 @@ func (*ModelManager) ParamValues() *ParamValuesModel {
     return model
 }
 
-func (this *ParamValuesModel) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+func (this *ParamValuesModel) Select(fields []string, filters map[string]interface{}) (result []interface{}) {
     if len(fields) == 0 {
         return nil
     }
@@ -73,37 +73,22 @@ func (this *ParamValuesModel) Select(fields []string, filters map[string]interfa
     }
 
     query = query[:len(query)-2]
-
     query += ` FROM registrations
         INNER JOIN param_values ON param_values.reg_id = registrations.id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN forms ON forms.id = params.form_id
         INNER JOIN users ON users.id = param_values.user_id
         INNER JOIN events ON events.id = registrations.event_id`
-
     where, params, _ := this.Where(filters, 1)
     if where != "" {
         where = " WHERE " + where
     }
-    query += where
-
-    if sidx != "" {
-        query += ` ORDER BY param_values.`+sidx
-    }
-
-    query += ` `+ sord
-
-    if limit != -1 {
-        params = append(params, limit)
-        query += ` LIMIT $`+strconv.Itoa(len(params))
-    }
-
-    if offset != -1 {
-        params = append(params, offset)
-        query += ` OFFSET $`+strconv.Itoa(len(params))
-    }
-
-    query += `;`
+    query += ` ORDER BY param_values.` + this.orderBy
+    query += ` `+ this.GetSorting()
+    params = append(params, this.GetLimit())
+    query += ` LIMIT $` + strconv.Itoa(len(params))
+    params = append(params, this.GetOffset())
+    query += ` OFFSET $` + strconv.Itoa(len(params)) + ";"
 
     return db.Query(query, params)
 }

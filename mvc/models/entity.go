@@ -292,7 +292,7 @@ func (this Entity) GenerateWherePart(counter int) (string, []interface{}) {
     }
 }
 
-func (this *Entity) Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{}) {
+func (this *Entity) Select(fields []string, filters map[string]interface{}) (result []interface{}) {
     if len(fields) == 0 {
         return nil
     }
@@ -301,25 +301,24 @@ func (this *Entity) Select(fields []string, filters map[string]interface{}, limi
     if where != "" {
         where = " WHERE " + where
     }
-    query := `SELECT `+strings.Join(fields, ", ")+` FROM `+this.GetTableName()+where
+    query := `SELECT ` + strings.Join(fields, ", ") + ` FROM ` + this.GetTableName() + where
+    query += ` ORDER BY ` + this.GetTableName() + "." + this.orderBy
+    query += ` `+ this.sorting
 
-    if sidx != "" {
-        query += ` ORDER BY `+this.GetTableName()+"."+sidx
+    switch this.limit.(type) {
+    case string:
+        query += " LIMIT ALL"
+        break
+    case int:
+        query += " LIMIT $" + strconv.Itoa(len(params))
+        params = append(params, this.GetLimit())
+        break
+    default:
+        panic("Invalid type of limit")
     }
 
-    query += ` `+ sord
-
-    if limit != -1 {
-        params = append(params, limit)
-        query += ` LIMIT $`+strconv.Itoa(len(params))
-    }
-
-    if offset != -1 {
-        params = append(params, offset)
-        query += ` OFFSET $`+strconv.Itoa(len(params))
-    }
-
-    query += `;`
+    params = append(params, this.GetOffset())
+    query += ` OFFSET $` + strconv.Itoa(len(params)) + `;`
 
     return db.Query(query, params)
 }
@@ -533,8 +532,10 @@ type EntityInterface interface {
 
     Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
     WhereByParams(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int)
-    Select(fields []string, filters map[string]interface{}, limit, offset int, sord, sidx string) (result []interface{})
+
+    Select(fields []string, filters map[string]interface{}) ([]interface{})
     SelectRow(fields []string) *sql.Row
+
     Delete(id int)
     Add(userId int, params map[string]interface{}) error
     Update(isAdmin bool, userId int, params, where map[string]interface{})
