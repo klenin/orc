@@ -186,7 +186,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                         // document.location = "data:application/octet-stream;filename=data.csv," + encodeURIComponent(data);
 
                         var link = document.createElement("a");
-                        link.download = {{.model.TableName}}+".csv";
+                        link.download = {{.model.TableName}}+(new Date()).getTime()+".csv";
                         link.href = "data:application/csv;charset=utf-8," + encodeURIComponent(data);
                         link.click();
                         delete link;
