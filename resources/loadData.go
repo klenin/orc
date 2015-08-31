@@ -149,7 +149,13 @@ func loadEvents() {
         dateStart := addDate(strconv.Itoa(random(1894, 2014)), strconv.Itoa(random(1, 12)), strconv.Itoa(random(1, 28)))
         dateFinish := addDate(strconv.Itoa(random(1894, 2014)), strconv.Itoa(random(1, 12)), strconv.Itoa(random(1, 28)))
         time := addTime(strconv.Itoa(random(0, 11)), strconv.Itoa(random(1, 60)), strconv.Itoa(random(1, 60)))
-        params := map[string]interface{}{"name": eventName, "data_start": dateStart, "date_finish": dateFinish, "time": time, "url": ""}
+        params := map[string]interface{}{
+            "name": eventName,
+            "date_start": dateStart,
+            "date_finish": dateFinish,
+            "time": time,
+            "team": false,
+            "url": ""}
         entity := base.Events()
         entity.LoadModelData(params)
         db.QueryInsert(entity, "").Scan()
