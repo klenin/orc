@@ -65,18 +65,31 @@ func (*ModelManager) GroupRegistrations() *GroupRegistrationsModel {
 }
 
 func (*GroupRegistrationsModel) Delete(id int) {
-    query := `DELETE
-        FROM param_values
-        WHERE param_values.reg_id in
-            (SELECT regs_groupregs.reg_id
-                FROM regs_groupregs WHERE regs_groupregs.groupreg_id = $1);`
-    db.Query(query, []interface{}{id})
-
-    query = `DELETE
+    // TODO: TT
+    query := `with TT AS (
+        DELETE
         FROM registrations
-        WHERE registrations.id in
-            (SELECT regs_groupregs.reg_id
-                FROM regs_groupregs WHERE regs_groupregs.groupreg_id = $1);`
+        WHERE registrations.id in (
+            SELECT rs_gs.reg_id
+            FROM regs_groupregs rs_gs
+            WHERE rs_gs.groupreg_id = $1
+            AND array_length(array(
+                SELECT regs_groupregs.groupreg_id
+                FROM regs_groupregs
+                WHERE regs_groupregs.reg_id = rs_gs.reg_id
+            ), 1) = 1
+        ) returning registrations.id
+    )
+    DELETE FROM param_values WHERE param_values.reg_id in (
+        SELECT rs_gs.reg_id
+        FROM regs_groupregs rs_gs
+        WHERE rs_gs.groupreg_id = $1
+        AND array_length(array(
+            SELECT regs_groupregs.groupreg_id
+            FROM regs_groupregs
+            WHERE regs_groupregs.reg_id = rs_gs.reg_id
+        ), 1) = 1
+    );`
     db.Query(query, []interface{}{id})
 
     query = `DELETE FROM group_registrations WHERE id = $1;`
