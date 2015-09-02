@@ -4,7 +4,7 @@ import (
     "errors"
     "github.com/lib/pq"
     "github.com/orc/db"
-    // "github.com/orc/mailer"
+    "github.com/orc/mailer"
     "github.com/orc/sessions"
     "github.com/orc/utils"
     "log"
@@ -233,9 +233,9 @@ func (this *RegistrationController) Register(login, password, email, role string
     } else {
         token := utils.GetRandSeq(HASH_SIZE)
 
-        // if !mailer.SendConfirmEmail(login, email, token) {
-        //     return "badEmail", -1
-        // }
+        if !mailer.SendConfirmEmail(login, email, token) {
+            return "badEmail", -1
+        }
 
         var userId int
         this.GetModel("users").

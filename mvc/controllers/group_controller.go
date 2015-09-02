@@ -3,7 +3,7 @@ package controllers
 import (
     "github.com/lib/pq"
     "github.com/orc/db"
-    // "github.com/orc/mailer"
+    "github.com/orc/mailer"
     "github.com/orc/utils"
     "log"
     "net/http"
@@ -129,11 +129,11 @@ func (this *GroupController) Register() {
             QueryInsert("").
             Scan()
 
-        // to := v.(map[string]interface{})["name"].(string)
-        // address := v.(map[string]interface{})["email"].(string)
-        // if !mailer.AttendAnEvent(to, address, eventName, groupName) {
-        //     utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с уведомлением не отправлено."}, this.Response)
-        // }
+        to := v.(map[string]interface{})["name"].(string)
+        address := v.(map[string]interface{})["email"].(string)
+        if !mailer.AttendAnEvent(to, address, eventName, groupName) {
+            utils.SendJSReply(map[string]interface{}{"result": "Ошибка. Письмо с уведомлением не отправлено."}, this.Response)
+        }
     }
 
     if teamEvent == true {

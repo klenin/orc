@@ -80,8 +80,7 @@ type PersonsModel struct {
 }
 
 func (this *PersonsModel) Add(userId int, params map[string]interface{}) error {
-    var to string
-    var address string
+    var to, address string
 
     token := utils.GetRandSeq(HASH_SIZE)
     params["token"] = token
