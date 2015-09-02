@@ -357,7 +357,9 @@ func (this *Handler) UserGroupRegistrationsLoad(isTeam string) {
         return
     }
 
-    query := `SELECT group_registrations.id, group_registrations.event_id, group_registrations.group_id FROM group_registrations
+    query := `SELECT group_registrations.id, group_registrations.event_id,
+            group_registrations.group_id
+        FROM group_registrations
         INNER JOIN events ON events.id = group_registrations.event_id
         INNER JOIN groups ON groups.id = group_registrations.group_id
         INNER JOIN faces ON faces.id = groups.face_id
@@ -413,15 +415,16 @@ func (this *Handler) GroupRegistrationsLoad() {
     sidx := this.Request.FormValue("sidx")
     start := limit * page - limit
 
-    query := `SELECT group_registrations.id, group_registrations.event_id, group_registrations.group_id
+    query := `SELECT group_registrations.id, group_registrations.event_id,
+            group_registrations.group_id
         FROM group_registrations
         INNER JOIN events ON events.id = group_registrations.event_id
         INNER JOIN groups ON groups.id = group_registrations.group_id
         INNER JOIN persons ON persons.group_id = groups.id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1 ORDER BY $2 LIMIT $3 OFFSET $4;`
-    rows := db.Query(query, []interface{}{userId, sidx, limit, start})
+        WHERE users.id = $1 AND events.team = $2 ORDER BY $3 LIMIT $4 OFFSET $5;`
+    rows := db.Query(query, []interface{}{userId, true, sidx, limit, start})
 
     query = `SELECT COUNT(*) FROM (SELECT group_registrations.id
         FROM group_registrations
@@ -430,10 +433,10 @@ func (this *Handler) GroupRegistrationsLoad() {
         INNER JOIN persons ON persons.group_id = groups.id
         INNER JOIN faces ON faces.id = persons.face_id
         INNER JOIN users ON users.id = faces.user_id
-        WHERE users.id = $1 GROUP BY group_registrations.id) as count;`
+        WHERE users.id = $1 AND events.team = $2 GROUP BY group_registrations.id) as count;`
 
     var count int
-    db.QueryRow(query, []interface{}{userId}).Scan(&count)
+    db.QueryRow(query, []interface{}{userId, true}).Scan(&count)
 
     var totalPages int
     if count > 0 {
