@@ -75,10 +75,9 @@ func (this *GroupController) Register() {
         QueryInsert("RETURNING id").
         Scan(&groupregId)
 
-    query = `SELECT persons.status, faces.id as face_id, users.id as user_id FROM persons
+    query = `SELECT persons.status, faces.id as face_id FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
         INNER JOIN faces ON faces.id = persons.face_id
-        INNER JOIN users ON users.id = faces.user_id
         WHERE groups.id = $1;`
     data := db.Query(query, []interface{}{groupId})
 
@@ -94,7 +93,11 @@ func (this *GroupController) Register() {
     for _, v := range data {
         status := v.(map[string]interface{})["status"].(bool)
         personFaceId := v.(map[string]interface{})["face_id"].(int)
-        personUserId := v.(map[string]interface{})["user_id"].(int)
+        var personUserId int
+        this.GetModel("faces").
+        LoadWherePart(map[string]interface{}{"id": personFaceId}).
+        SelectRow([]string{"user_id"}).
+        Scan(&personUserId)
 
         if !status {
             continue
