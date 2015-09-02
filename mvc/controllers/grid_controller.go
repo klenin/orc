@@ -16,7 +16,7 @@ import (
     "time"
 )
 
-func (c *BaseController) GridController() *GridController {
+func (*BaseController) GridController() *GridController {
     return new(GridController)
 }
 
@@ -28,12 +28,14 @@ func (this *GridController) GetSubTable() {
     userId, err := this.CheckSid()
     if err != nil {
         http.Error(this.Response, "Unauthorized", 400)
+
         return
     }
 
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         http.Error(this.Response, err.Error(), 400)
+
         return
     }
 
@@ -59,11 +61,13 @@ func (this *GridController) CreateGrid(tableName string) {
     userId, err := this.CheckSid()
     if err != nil {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+
         return
     }
 
     if !this.isAdmin() {
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
+
         return
     }
 
@@ -89,6 +93,7 @@ func (this *GridController) CreateGrid(tableName string) {
 
     if tableName == "search" {
         this.Render([]string{"mvc/views/search.html"}, "search", map[string]interface{}{"params": params, "faces": faces})
+
         return
     }
 
@@ -124,6 +129,7 @@ func (this *GridController) EditGridRow(tableName string) {
     userId, err := this.CheckSid()
     if err != nil{
         http.Redirect(this.Response, this.Request, "", http.StatusUnauthorized)
+
         return
     }
 
@@ -131,6 +137,7 @@ func (this *GridController) EditGridRow(tableName string) {
     if model == nil {
         utils.HandleErr("[GridController::Edit] GetModel: ", errors.New("Unexpected table name"), this.Response)
         http.Error(this.Response, "Unexpected table name", 400)
+
         return
     }
 
@@ -144,6 +151,7 @@ func (this *GridController) EditGridRow(tableName string) {
         rowId, err := strconv.Atoi(this.Request.PostFormValue("id"))
         if err != nil {
             http.Error(this.Response, err.Error(), 400)
+
             return
         }
         model.Update(this.isAdmin(), userId, params, map[string]interface{}{"id": rowId})
@@ -161,6 +169,7 @@ func (this *GridController) EditGridRow(tableName string) {
             id, err := strconv.Atoi(v)
             if err != nil {
                 http.Error(this.Response, err.Error(), 400)
+
                 return
             }
             model.Delete(id)
@@ -173,23 +182,27 @@ func (this *GridController) EditGridRow(tableName string) {
 func (this *GridController) GetEventTypesByEventId() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+
         return
     }
 
     if !this.isAdmin() {
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
+
         return
     }
 
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
     eventId, err := strconv.Atoi(request["event_id"].(string))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
@@ -205,23 +218,27 @@ func (this *GridController) GetEventTypesByEventId() {
 func (this *GridController) ImportForms() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+
         return
     }
 
     if !this.isAdmin() {
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
+
         return
     }
 
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
     eventId, err := strconv.Atoi(request["event_id"].(string))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
@@ -229,6 +246,7 @@ func (this *GridController) ImportForms() {
         typeId, err := strconv.Atoi(v.(string))
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
             return
         }
 
@@ -274,21 +292,25 @@ func (this *GridController) ImportForms() {
 func (this *GridController) GetPersonsByEventId() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+
         return
     }
 
     if !this.isAdmin() {
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
+
         return
     }
 
     if this.Request.URL.Query().Get("event") == "" || this.Request.URL.Query().Get("params") == "" {
+
         return
     }
 
     eventId, err := strconv.Atoi(this.Request.URL.Query().Get("event"))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
@@ -296,6 +318,7 @@ func (this *GridController) GetPersonsByEventId() {
 
     if len(paramsIds) == 0 {
         utils.SendJSReply(map[string]interface{}{"result": "Выберите параметры."}, this.Response)
+
         return
     }
 
@@ -306,6 +329,7 @@ func (this *GridController) GetPersonsByEventId() {
         paramId, err := strconv.Atoi(v)
         if err != nil {
             utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
             return
         }
         query += "$"+strconv.Itoa(k+1)+", "
@@ -347,24 +371,28 @@ func (this *GridController) GetPersonsByEventId() {
 func (this *GridController) GetParamsByEventId() {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+
         return
     }
 
     if !this.isAdmin() {
         utils.SendJSReply(map[string]interface{}{"result": errors.New("Forbidden")}, this.Response)
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
+
         return
     }
 
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
     eventId, err := strconv.Atoi(request["event_id"].(string))
     if err != nil {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
         return
     }
 
@@ -383,12 +411,14 @@ func (this *GridController) GetParamsByEventId() {
 func (this *GridController) JsonToExcel(tableName string) {
     if !sessions.CheckSession(this.Response, this.Request) {
         http.Redirect(this.Response, this.Request, "/", http.StatusUnauthorized)
+
         return
     }
 
     request, err := utils.ParseJS(this.Request, this.Response)
     if err != nil {
         http.Error(this.Response, fmt.Sprintf(err.Error()), 400)
+
         return
     }
 

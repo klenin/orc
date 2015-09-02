@@ -38,7 +38,7 @@ type Model struct {
     SubColModel  []map[string]interface{}
 }
 
-func (this *Controller) GetModel(tableName string) models.EntityInterface {
+func (*Controller) GetModel(tableName string) models.EntityInterface {
     return new(models.ModelManager).GetModel(tableName)
 }
 
@@ -89,7 +89,7 @@ func (this *Controller) isAdmin() bool {
     return role == "admin"
 }
 
-func (this *Controller) regExists(userId, eventId int) int {
+func (*Controller) regExists(userId, eventId int) int {
     var regId int
     query := `SELECT registrations.id
         FROM registrations

@@ -12,7 +12,7 @@ import (
     "time"
 )
 
-func (c *BaseController) GroupController() *GroupController {
+func (*BaseController) GroupController() *GroupController {
     return new(GroupController)
 }
 
