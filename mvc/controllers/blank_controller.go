@@ -11,7 +11,7 @@ import (
     "time"
 )
 
-func (c *BaseController) BlankController() *BlankController {
+func (*BaseController) BlankController() *BlankController {
     return new(BlankController)
 }
 
@@ -32,10 +32,16 @@ func (this *BlankController) GetPersonBlankFromGroup() {
         return
     }
 
-    personalForm := request["personal"].(string)
-    if personalForm != "true" && personalForm != "false" {
-        utils.SendJSReply(map[string]interface{}{"result": "Invalid personalForm"}, this.Response)
-        return
+    var personalForm bool
+    switch request["personal"].(string) {
+    case "true":
+        personalForm = true
+        break
+    case "false":
+        personalForm = false
+        break
+    default:
+        panic("Invalid bool value")
     }
 
     faceId, err := strconv.Atoi(request["face_id"].(string))
@@ -54,20 +60,7 @@ func (this *BlankController) GetPersonBlankFromGroup() {
 
     if faceId == -1 {
         if this.isAdmin() {
-            query := `SELECT faces.id, registrations.id
-                FROM regs_groupregs
-                INNER JOIN group_registrations ON group_registrations.id = regs_groupregs.groupreg_id
-                INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
-                INNER JOIN groups ON groups.id = group_registrations.group_id
-                INNER JOIN faces ON faces.id = groups.face_id AND faces.id = registrations.face_id
-                INNER JOIN events ON events.id = registrations.event_id
-                INNER JOIN events_forms ON events_forms.event_id = events.id
-                INNER JOIN forms ON forms.id = events_forms.form_id
-                INNER JOIN params ON forms.id = params.form_id
-                INNER JOIN param_types ON param_types.id = params.param_type_id
-                INNER JOIN param_values ON params.id = param_values.param_id AND param_values.reg_id = registrations.id
-                WHERE group_registrations.id = $1 AND forms.personal = false;`
-            db.QueryRow(query, []interface{}{groupRegId}).Scan(&faceId, &regId)
+            db.QueryRow(db.QueryGetCaptFaceIdAndRegId, []interface{}{groupRegId}).Scan(&faceId, &regId)
         } else {
             if err := this.GetModel("faces").
                 LoadWherePart(map[string]interface{}{"user_id": userId}).
@@ -75,68 +68,24 @@ func (this *BlankController) GetPersonBlankFromGroup() {
                 Scan(&faceId);
                 err != nil {
                 utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
+
                 return
             }
-
-            query := `SELECT registrations.id
-                FROM regs_groupregs
-                INNER JOIN group_registrations ON group_registrations.id = regs_groupregs.groupreg_id
-                INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
-                INNER JOIN faces ON faces.id = registrations.face_id
-                INNER JOIN groups ON groups.face_id = faces.id AND groups.id = group_registrations.group_id
-                INNER JOIN events ON events.id = registrations.event_id
-                INNER JOIN events_forms ON events_forms.event_id = events.id
-                INNER JOIN forms ON forms.id = events_forms.form_id
-                INNER JOIN params ON forms.id = params.form_id
-                INNER JOIN param_types ON param_types.id = params.param_type_id
-                INNER JOIN param_values ON params.id = param_values.param_id AND param_values.reg_id = registrations.id
-                WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = false;`
-            db.QueryRow(query, []interface{}{groupRegId, faceId}).Scan(&regId)
+            db.QueryRow(db.QueryGetCaptRegIdByGroupRegIdAndFaceId, []interface{}{groupRegId, faceId}).Scan(&regId)
         }
     } else {
-        query := `SELECT registrations.id
-                FROM regs_groupregs
-                INNER JOIN group_registrations ON group_registrations.id = regs_groupregs.groupreg_id
-                INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
-                INNER JOIN faces ON faces.id = registrations.face_id
-                INNER JOIN persons ON persons.face_id = faces.id AND persons.group_id = group_registrations.group_id
-                INNER JOIN events ON events.id = registrations.event_id
-                INNER JOIN events_forms ON events_forms.event_id = events.id
-                INNER JOIN forms ON forms.id = events_forms.form_id
-                INNER JOIN params ON forms.id = params.form_id
-                INNER JOIN param_types ON param_types.id = params.param_type_id
-                INNER JOIN param_values ON params.id = param_values.param_id AND param_values.reg_id = registrations.id
-                WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = true;`
-        db.QueryRow(query, []interface{}{groupRegId, faceId}).Scan(&regId)
+        db.QueryRow(db.QueryGetRegIdByGroupRegIdAndFaceId, []interface{}{groupRegId, faceId}).Scan(&regId)
     }
 
-    log.Println("faceId: ", faceId)
-    log.Println("groupRegId: ", groupRegId)
-    log.Println("regId: ", regId)
-    log.Println("formType: ", personalForm)
+    log.Println("faceId: ", faceId, ", groupRegId: ", groupRegId, ", regId: ", regId, ", formType: ", personalForm)
 
-    query := `SELECT forms.id as form_id, forms.name as form_name,
-            params.id as param_id, params.name as param_name, params.required, params.editable,
-            events.name as event_name, events.id as event_id,
-            param_types.name as type, param_values.id as param_val_id, param_values.value
-        FROM events_forms
-        INNER JOIN events ON events.id = events_forms.event_id
-        INNER JOIN forms ON forms.id = events_forms.form_id
-        INNER JOIN params ON forms.id = params.form_id
-        INNER JOIN param_types ON param_types.id = params.param_type_id
-        INNER JOIN param_values ON params.id = param_values.param_id
-        INNER JOIN registrations ON registrations.id = param_values.reg_id
-        INNER JOIN faces ON faces.id = registrations.face_id
-        INNER JOIN group_registrations ON group_registrations.event_id = events.id
-        INNER JOIN groups ON group_registrations.group_id = groups.id
-        INNER JOIN regs_groupregs ON regs_groupregs.reg_id = registrations.id
-            AND regs_groupregs.groupreg_id = group_registrations.id
-        WHERE group_registrations.id = $1 AND faces.id = $2 AND forms.personal = $3 ORDER BY forms.id, params.id;`
+    blank := new(models.BlankManager).NewGroupBlank(personalForm)
+    blank.SetGroupRegId(groupRegId).SetFaceId(faceId)
 
     utils.SendJSReply(
         map[string]interface{}{
             "result": "ok",
-            "data": db.Query(query, []interface{}{groupRegId, faceId, personalForm}),
+            "data": blank.GetBlank(),
             "role": this.isAdmin(),
             "regId": regId},
         this.Response)
@@ -160,24 +109,17 @@ func (this *BlankController) GetBlankByRegId() {
         return
     }
 
-    query := `SELECT forms.id as form_id, forms.name as form_name,
-            params.id as param_id, params.name as param_name, params.required, params.editable,
-            events.name as event_name, events.id as event_id,
-            param_types.name as type, param_values.id as param_val_id, param_values.value
-        FROM events_forms
-        INNER JOIN events ON events.id = events_forms.event_id
-        INNER JOIN forms ON forms.id = events_forms.form_id
-        INNER JOIN params ON forms.id = params.form_id
-        INNER JOIN param_types ON param_types.id = params.param_type_id
-        INNER JOIN param_values ON params.id = param_values.param_id
-        INNER JOIN registrations ON registrations.id = param_values.reg_id
-            AND events.id = registrations.event_id
-        WHERE registrations.id = $1 AND forms.personal = true ORDER BY forms.id, params.id;`
+    blank := new(models.BlankManager).NewPersonalBlank(true).SetRegId(regId)
+    result := blank.GetBlank()
+
+    if len(result) == 0 {
+        result = blank.SetPersonal(false).GetBlank()
+    }
 
     utils.SendJSReply(
         map[string]interface{}{
             "result": "ok",
-            "data": db.Query(query, []interface{}{regId}),
+            "data": result,
             "role": this.isAdmin()},
         this.Response)
 }
@@ -195,28 +137,10 @@ func (this *BlankController) GetGroupBlank() {
         return
     }
 
-    query := `SELECT DISTINCT forms.id as form_id, forms.name as form_name,
-            params.id as param_id, params.name as param_name, params.required, params.editable,
-            events.name as event_name, events.id as event_id,
-            param_types.name as type, param_values.id as param_val_id, param_values.value
-        FROM events_forms
-        INNER JOIN events ON events.id = events_forms.event_id
-        INNER JOIN forms ON forms.id = events_forms.form_id
-        INNER JOIN params ON forms.id = params.form_id
-        INNER JOIN param_types ON param_types.id = params.param_type_id
-        INNER JOIN param_values ON params.id = param_values.param_id
-        INNER JOIN group_registrations ON group_registrations.event_id = events.id
-        INNER JOIN groups ON group_registrations.group_id = groups.id
-        INNER JOIN faces ON faces.id = groups.face_id
-        INNER JOIN regs_groupregs ON regs_groupregs.groupreg_id = group_registrations.id
-        INNER JOIN registrations ON regs_groupregs.reg_id = registrations.id AND registrations.event_id = events.id
-        AND registrations.id = param_values.reg_id
-        WHERE group_registrations.id = $1 AND forms.personal = FALSE ORDER BY forms.id, params.id;`
-
     utils.SendJSReply(
         map[string]interface{}{
             "result": "ok",
-            "data": db.Query(query, []interface{}{groupRegId})},
+            "data": new(models.BlankManager).NewGroupBlank(false).SetGroupRegId(groupRegId).GetTeamBlank()},
         this.Response)
 }
 
@@ -228,21 +152,14 @@ func (this *BlankController) GetBlankByEventId(id string) {
 
     if !sessions.CheckSession(this.Response, this.Request) && eventId != 1 {
         this.Render([]string{"mvc/views/loginpage.html", "mvc/views/login.html"}, "loginpage", nil)
+
         return
     }
 
-    query := `SELECT forms.id as form_id, forms.name as form_name,
-            params.id as param_id, params.name as param_name, params.required, params.editable,
-            param_types.name as type, events.name as event_name, events.id as event_id
-        FROM events_forms
-        INNER JOIN events ON events.id = events_forms.event_id
-        INNER JOIN forms ON forms.id = events_forms.form_id
-        INNER JOIN params ON forms.id = params.form_id
-        INNER JOIN param_types ON param_types.id = params.param_type_id
-        WHERE events.id = $1 AND forms.personal = true ORDER BY forms.id, params.id;`
-    res := db.Query(query, []interface{}{eventId})
-
-    this.Render([]string{"mvc/views/item.html"}, "item", map[string]interface{}{"data": res})
+    this.Render(
+        []string{"mvc/views/item.html"},
+        "item",
+        map[string]interface{}{"data": new(models.BlankManager).NewPersonalBlank(true).GetEmptyBlank(eventId)})
 }
 
 //-----------------------------------------------------------------------------
