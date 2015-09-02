@@ -62,15 +62,11 @@ func (this *GroupsModel) Update(isAdmin bool, userId int, params, where map[stri
         INNER JOIN faces ON faces.id = groups.face_id
         INNER JOIN users ON users.id = faces.user_id
         WHERE users.id = $1 AND groups.id = $2;`
-    err := db.QueryRow(query, []interface{}{userId, where["id"]}).Scan(&faceId)
+    db.QueryRow(query, []interface{}{userId, where["id"]}).Scan(&faceId)
 
-    if !isAdmin {
-        if err != nil || faceId == -1 {
-            log.Println("Нет прав редактировать эту группу")
-            log.Println(err.Error())
-            return
-        }
-        params["face_id"] = faceId
+    if !isAdmin && faceId == -1 {
+        log.Println("Нет прав редактировать эту группу")
+        return
     }
 
     this.LoadModelData(params).LoadWherePart(where).QueryUpdate().Scan()
