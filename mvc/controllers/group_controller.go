@@ -270,7 +270,7 @@ func (this *GroupController) AddPerson() {
 
     date := time.Now().Format("2006-01-02T15:04:05Z00:00")
     token := utils.GetRandSeq(HASH_SIZE)
-    // to, address, headName := "", "", ""
+    to, address, headName := "", "", ""
 
     query := `SELECT param_values.value
         FROM param_values
@@ -287,9 +287,9 @@ func (this *GroupController) AddPerson() {
         return
 
     } else {
-        // headName = data[0].(map[string]interface{})["value"].(string)
-        // headName += " " + data[1].(map[string]interface{})["value"].(string)
-        // headName += " " + data[2].(map[string]interface{})["value"].(string)
+        headName = data[0].(map[string]interface{})["value"].(string)
+        headName += " " + data[1].(map[string]interface{})["value"].(string)
+        headName += " " + data[2].(map[string]interface{})["value"].(string)
     }
 
     var faceId int
@@ -346,19 +346,19 @@ func (this *GroupController) AddPerson() {
         paramValueIds = append(paramValueIds, strconv.Itoa(paramValId))
 
         if paramId == 4 {
-            // address = value
+            address = value
         } else if paramId == 5 || paramId == 6 || paramId == 7 {
-            // to += value + " "
+            to += value + " "
         }
     }
 
-    // if !mailer.InviteToGroup(to, address, token, headName, groupName) {
-    //     utils.SendJSReply(
-    //         map[string]interface{}{
-    //             "result": "Вы указали неправильный email, отправить письмо-приглашенине невозможно"},
-    //         this.Response)
-    //     return
-    // }
+    if !mailer.InviteToGroup(to, address, token, headName, groupName) {
+        utils.SendJSReply(
+            map[string]interface{}{
+                "result": "Вы указали неправильный email, отправить письмо-приглашенине невозможно"},
+            this.Response)
+        return
+    }
 
     utils.SendJSReply(map[string]interface{}{"result": "ok"}, this.Response)
 }
