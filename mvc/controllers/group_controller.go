@@ -75,9 +75,30 @@ func (this *GroupController) Register() {
         QueryInsert("RETURNING id").
         Scan(&groupregId)
 
-    query = `SELECT persons.status, faces.id as face_id FROM persons
+    query = `SELECT persons.status, persons.group_id, f.id as face_id,
+        array_to_string(
+        array(
+            SELECT param_values.value
+            FROM param_values
+            INNER JOIN registrations ON registrations.id = param_values.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN params ON params.id = param_values.param_id
+            WHERE param_values.param_id IN (5, 6, 7) AND events.id = 1 AND faces.id = f.id ORDER BY param_values.param_id
+        ), ' ') as name,
+
+        (SELECT param_values.value
+            FROM param_values
+            INNER JOIN registrations ON registrations.id = param_values.reg_id
+            INNER JOIN faces ON faces.id = registrations.face_id
+            INNER JOIN events ON events.id = registrations.event_id
+            INNER JOIN params ON params.id = param_values.param_id
+            WHERE param_values.param_id = 4 AND events.id = 1 AND faces.id = f.id
+        ) as email
+
+        FROM persons
         INNER JOIN groups ON groups.id = persons.group_id
-        INNER JOIN faces ON faces.id = persons.face_id
+        INNER JOIN faces as f ON f.id = persons.face_id
         WHERE groups.id = $1;`
     data := db.Query(query, []interface{}{groupId})
 
