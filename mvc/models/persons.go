@@ -178,7 +178,7 @@ func (this *PersonsModel) Select(fields []string, filters map[string]interface{}
         INNER JOIN events ON events.id = registrations.event_id
         INNER JOIN params ON params.id = param_values.param_id
         INNER JOIN persons ON persons.face_id = faces.id
-        INNER JOIN groups ON groups.face_id = groups.id`
+        INNER JOIN groups ON groups.id = persons.group_id`
     where, params, _ := this.Where(filters, 1)
     if where != "" {
         query += ` WHERE ` + where + ` AND params.id in (5, 6, 7) AND events.id = 1 GROUP BY persons.id, groups.id`
