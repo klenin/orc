@@ -2,8 +2,8 @@ package controllers
 
 import (
     "encoding/json"
-    "github.com/orc/db"
-    "github.com/orc/utils"
+    "github.com/klenin/orc/db"
+    "github.com/klenin/orc/utils"
     "io/ioutil"
     "net/http"
     "strconv"

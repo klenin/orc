@@ -2,9 +2,9 @@ package controllers
 
 import (
     "github.com/lib/pq"
-    "github.com/orc/db"
-    "github.com/orc/mailer"
-    "github.com/orc/utils"
+    "github.com/klenin/orc/db"
+    "github.com/klenin/orc/mailer"
+    "github.com/klenin/orc/utils"
     "log"
     "net/http"
     "strconv"

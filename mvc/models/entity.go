@@ -3,8 +3,8 @@ package models
 import (
     "database/sql"
     "fmt"
-    "github.com/orc/utils"
-    "github.com/orc/db"
+    "github.com/klenin/orc/utils"
+    "github.com/klenin/orc/db"
     "reflect"
     "strconv"
     "strings"

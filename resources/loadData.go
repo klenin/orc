@@ -2,11 +2,11 @@ package resources
 
 import (
     "errors"
-    "github.com/orc/mailer"
-    "github.com/orc/db"
-    "github.com/orc/mvc/controllers"
-    "github.com/orc/mvc/models"
-    "github.com/orc/utils"
+    "github.com/klenin/orc/mailer"
+    "github.com/klenin/orc/db"
+    "github.com/klenin/orc/mvc/controllers"
+    "github.com/klenin/orc/mvc/models"
+    "github.com/klenin/orc/utils"
     "io/ioutil"
     "math/rand"
     "strconv"

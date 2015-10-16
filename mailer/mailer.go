@@ -2,7 +2,7 @@ package mailer
 
 import (
     "bytes"
-    "github.com/orc/utils"
+    "github.com/klenin/orc/utils"
     "log"
     "net/smtp"
     "strconv"

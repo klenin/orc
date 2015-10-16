@@ -1,7 +1,7 @@
 package models
 
 import (
-    "github.com/orc/db"
+    "github.com/klenin/orc/db"
     "log"
     "strconv"
     "strings"

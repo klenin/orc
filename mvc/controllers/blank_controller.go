@@ -1,10 +1,10 @@
 package controllers
 
 import (
-    "github.com/orc/db"
-    "github.com/orc/mvc/models"
-    "github.com/orc/sessions"
-    "github.com/orc/utils"
+    "github.com/klenin/orc/db"
+    "github.com/klenin/orc/mvc/models"
+    "github.com/klenin/orc/sessions"
+    "github.com/klenin/orc/utils"
     "log"
     "net/http"
     "strconv"

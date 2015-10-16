@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/orc",
+	"ImportPath": "github.com/klenin/orc",
 	"GoVersion": "go1.2",
 	"Deps": [
 		{

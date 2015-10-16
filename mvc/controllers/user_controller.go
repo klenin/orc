@@ -2,10 +2,10 @@ package controllers
 
 import (
     "database/sql"
-    "github.com/orc/db"
-    "github.com/orc/mailer"
-    "github.com/orc/sessions"
-    "github.com/orc/utils"
+    "github.com/klenin/orc/db"
+    "github.com/klenin/orc/mailer"
+    "github.com/klenin/orc/sessions"
+    "github.com/klenin/orc/utils"
     "net/http"
     "strconv"
     "time"

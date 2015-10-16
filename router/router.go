@@ -1,7 +1,7 @@
 package router
 
 import (
-    "github.com/orc/mvc/controllers"
+    "github.com/klenin/orc/mvc/controllers"
     "net/http"
     "reflect"
     "strings"

@@ -2,11 +2,11 @@ package main
 
 import (
     "flag"
-    "github.com/orc/db"
+    "github.com/klenin/orc/db"
     "database/sql"
-    "github.com/orc/resources"
-    "github.com/orc/router"
-    "github.com/orc/mvc/controllers"
+    "github.com/klenin/orc/resources"
+    "github.com/klenin/orc/router"
+    "github.com/klenin/orc/mvc/controllers"
     "log"
     "net/http"
     "os"
