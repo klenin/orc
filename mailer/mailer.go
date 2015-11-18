@@ -1,16 +1,17 @@
 package mailer
 
 import (
+    "os"
     "bytes"
     "github.com/klenin/orc/utils"
     "log"
     "net/smtp"
-    "strconv"
     "text/template"
 )
 
 const HASH_SIZE = 32
-const Server = "https://server/link/"
+
+var Server = os.Getenv("SERVER_URI")
 
 var err error
 
@@ -21,7 +22,7 @@ type Admin struct {
     Password   string
 
     SMTPServer string
-    Port       int
+    Port       string
 }
 
 type SmtpTemplateData struct {
@@ -39,11 +40,11 @@ type SmtpTemplateData struct {
 }
 
 var Admin_ = &Admin{
-    Name:       "Name of Admin",
-    Email:      "Email of admin",
-    Password:   "Password of email",
-    SMTPServer: "smtp.gmail.com",
-    Port:       587}
+    Name:       os.Getenv("ADMIN_NAME"),
+    Email:      os.Getenv("EMAIL"),
+    Password:   os.Getenv("EMAIL_PASSWORD"),
+    SMTPServer: os.Getenv("SMTP_SERVER"),
+    Port:       os.Getenv("SMTP_PORT")}
 
 var auth = smtp.PlainAuth(
     "",
@@ -56,7 +57,7 @@ func SendEmail(address, tmp string, context *SmtpTemplateData) bool {
     template.Must(template.New("email").Parse(tmp)).Execute(&doc, context)
 
     err = smtp.SendMail(
-        Admin_.SMTPServer+":"+strconv.Itoa(Admin_.Port),
+        Admin_.SMTPServer+":"+Admin_.Port,
         auth,
         Admin_.Email,
         []string{address},

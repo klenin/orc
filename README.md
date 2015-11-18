@@ -48,20 +48,26 @@ Create a user account called `admin` and grant permission for database called `o
 
 ## Setting Admin credentials
 
-Fix `Name`, `EmailAdmin` and `Password` of administrator data in `mailer/mailer.go`:
+In order to send emails with team invitations, login confirmations etc., You need to configure Admin credentials.
+In this context, admin is the person who represents project's service.
 
-    // mailer/mailer.go
-    var admin = &Admin{
-        Name:       "Name of Admin",
-        EmailAdmin: "Email of admin",
-        Password:   "Password of email",
-        SMTPServer: "smtp.gmail.com",
-        Port:       587}
+Set following environment variables fo executable:
+ADMIN_NAME -- admin's name
+EMAIL -- the email to send messages from
+EMAIL_PASSWORD -- mailbox password
+SMTP_SERVER -- mailing servise SMTP address
+SMTP_PORT -- mailing service SMTP port
+SERVER_URI -- server URI to use with mailing templates
 
-Fix a server link:
+###example:
 
-    // mailer/mailer.go
-    const Server = "https://server/link/"
+export \
+    ADMIN_NAME="Admin" \
+    EMAIL="example@gmail.com" \
+    SMTP_SERVER="smtp.gmail.com" \
+    SMTP_PORT="587" \
+    EMAIL_PASSWORD="password" \
+    SERVER_URI="https://server/link/"
 
 Administrator credentials to login the system:
 
