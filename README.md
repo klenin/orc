@@ -19,21 +19,30 @@ or a group registration of participants in events of any type.
 
 [PostgreSQL][2] v9.3 or higher.
 
-## Getting Source Files
+## Getting code and running
 
-Install [git][3]. Get a copy of the repository:
+- Install [git][3].
+- Configure your `GOROOT` and `GOPATH` environment variables.
+- Install godep:
 
-    $ git clone git@github.com:GuraYaroslava/orc.git
+    $ go get git@github.com:tools/godep.git
 
-## Installation of Go-packages
+- Get a copy of the repository:
+
+    $ godep get git@github.com:klenin/orc.git
+
+- Configure Your environment as described in following sections.
+
+- Run:
+    $ $GOPATH/bin/orc
+
+## External dependencies
 
 - [package pq][4] ([godoc](http://godoc.org/github.com/lib/pq))
-
-        $ go get github.com/lib/pq
-
 - [package securecookie][5] ([godoc](http://godoc.org/github.com/gorilla/securecookie))
 
-        $ go get github.com/gorilla/securecookie
+All external dependenies are vendored with project's source code.
+Consequently, there is no need to install them separately.
 
 ## Preparation of database
 
@@ -73,6 +82,11 @@ Administrator credentials to login the system:
 
     Login: admin
     Password: password
+
+## Running as heroku app
+
+- install heroku and follow it's [documentation guidelines](https://devcenter.heroku.com/articles/getting-started-with-go#introduction)
+- configure [heroku environment variables](https://devcenter.heroku.com/articles/config-vars) before running!
 
 ## Configuring [Apache][6]
 
