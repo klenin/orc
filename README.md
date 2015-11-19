@@ -3,7 +3,7 @@ ORC
 
 Course work.
 
-**ORC** helps to participants simplify interaction with
+**ORC** helps participants to simplify interaction with
 organizers of various competitions, events, tournaments, seminars,
 conferences, etc.
 
