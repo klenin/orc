@@ -15,7 +15,7 @@ or a group registration of participants in events of any type.
 
 ## Requirements
 
-[Go][1] v1.2 or higher.
+[Go][1] v1.5.1 or higher.
 
 [PostgreSQL][2] v9.3 or higher.
 
