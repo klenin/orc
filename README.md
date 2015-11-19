@@ -25,16 +25,31 @@ or a group registration of participants in events of any type.
 - Configure your `GOROOT` and `GOPATH` environment variables.
 - Install godep:
 
+```console
     $ go get git@github.com:tools/godep.git
+```
 
 - Get a copy of the repository:
 
+
+```console
     $ godep get git@github.com:klenin/orc.git
+```
 
 - Configure Your environment as described in following sections.
 
 - Run:
+
+```console
     $ $GOPATH/bin/orc
+```
+There is also `run.sh` file, providing some ease of local test running e.g. database creation and filling it with local test data.
+
+
+Test user credentials to login the system (`number` in `[0-19]`):
+
+    Login: user<number>
+    Password: secret<number>
 
 ## External dependencies
 
@@ -70,6 +85,7 @@ SERVER_URI -- server URI to use with mailing templates
 
 ###example:
 
+```console
 export \
     ADMIN_NAME="Admin" \
     EMAIL="example@gmail.com" \
@@ -77,11 +93,26 @@ export \
     SMTP_PORT="587" \
     EMAIL_PASSWORD="password" \
     SERVER_URI="https://server/link/"
+```
 
 Administrator credentials to login the system:
 
     Login: admin
     Password: password
+
+## Database and port anvironment variables
+
+Set the local postgres connection string for the database called `orc`:
+
+```console
+    $ export DATABASE_URL="user=admin host=localhost dbname=orc password=password sslmode=disable"
+```
+
+Set the port (5000 by default):
+
+```console
+    $ export PORT="6543"
+```
 
 ## Running as heroku app
 
@@ -96,12 +127,15 @@ Redirection requests from localhost:8080 to localhost:6543.
 
 Install modules [mod_proxy][7] and [mod_proxy_http][8]. Uncomment lines in `httpd.conf`:
 
+```
     # httpd.conf
     LoadModule proxy_module modules/mod_proxy.so
     LoadModule proxy_http_module modules/mod_proxy_http.so
+```
 
 Add to httpd-vhosts.conf:
 
+```
     # httpd-vhosts.conf
 
     <VirtualHost localhost:6543>
@@ -127,25 +161,7 @@ Add to httpd-vhosts.conf:
         ProxyPassReverse /same/path/ http://localhost:6543
 
     </VirtualHost>
-
-## Running
-
-Set the local postgres connection string for the database called `orc`:
-
-    $ export DATABASE_URL="user=admin host=localhost dbname=orc password=password sslmode=disable"
-
-Set the port (5000 by default):
-
-    $ export PORT="6543"
-
-Run:
-
-    $ run.sh
-
-Test user credentials to login the system (`number` in `[0-19]`):
-
-    Login: user<number>
-    Password: secret<number>
+```
 
 [1]: https://golang.org
 [2]: http://www.postgresql.org
