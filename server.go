@@ -2,14 +2,14 @@ package main
 
 import (
     "flag"
-    "github.com/klenin/orc/db"
+    "log"
+    "os"
+    "net/http"
     "database/sql"
+    "github.com/klenin/orc/db"
     "github.com/klenin/orc/resources"
     "github.com/klenin/orc/router"
     "github.com/klenin/orc/mvc/controllers"
-    "log"
-    "net/http"
-    "os"
 )
 
 var err error
