@@ -1,12 +1,12 @@
 package mailer
 
 import (
-    "os"
     "bytes"
-    "github.com/klenin/orc/utils"
     "log"
     "net/smtp"
     "text/template"
+    "github.com/klenin/orc/utils"
+    "github.com/klenin/orc/config"
 )
 
 const HASH_SIZE = 32
@@ -40,11 +40,11 @@ type SmtpTemplateData struct {
 }
 
 var Admin_ = &Admin{
-    Name:       os.Getenv("ADMIN_NAME"),
-    Email:      os.Getenv("EMAIL"),
-    Password:   os.Getenv("EMAIL_PASSWORD"),
-    SMTPServer: os.Getenv("SMTP_SERVER"),
-    Port:       os.Getenv("SMTP_PORT")}
+    Name:       config.GetValue("ADMIN_NAME"),
+    Email:      config.GetValue("EMAIL"),
+    Password:   config.GetValue("EMAIL_PASSWORD"),
+    SMTPServer: config.GetValue("SMTP_SERVER"),
+    Port:       config.GetValue("SMTP_PORT")}
 
 var auth = smtp.PlainAuth(
     "",
