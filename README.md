@@ -51,6 +51,11 @@ Test user credentials to login the system (`number` in `[0-19]`):
     Login: user<number>
     Password: secret<number>
 
+Administrator credentials to login the system:
+
+    Login: admin
+    Password: password
+
 ## External dependencies
 
 - [package pq][4] ([godoc](http://godoc.org/github.com/lib/pq))
@@ -63,56 +68,64 @@ Consequently, there is no need to install them separately.
 
 Create a database `orc`:
 
+```sql
     CREATE DATABASE orc;
+```
 
 Create a user account called `admin` and grant permission for database called `orc`:
 
+```sql
     CREATE USER admin WITH PASSWORD 'admin';
     GRANT ALL PRIVILEGES ON DATABASE orc to admin;
+```
 
-## Setting Admin credentials
+## Configuration
+
+Configuration is a set of key-value string pairs, which should be specified in some of following ways
+
+1. Preparing the configuration file, which is `~/.orcrc`, where `~` means home path, by default
+    * Configuration file should consist of nonempty lines in format `<key>=<value>`.
+    * File path could be overriden by `ORC_CONFIG_PATH` environment variable.
+2. Setting up configuration environment variables. The name of variable is <key> prefixed with `ORC_` string.
+
+Configuration could be set up simultaneously throught both ways. In this case, environment variables have higher priority.
+
+### Setting Admin credentials
 
 In order to send emails with team invitations, login confirmations etc., You need to configure Admin credentials.
 In this context, admin is the person who represents project's service.
 
-Set following environment variables fo executable:
-ADMIN_NAME -- admin's name
-EMAIL -- the email to send messages from
-EMAIL_PASSWORD -- mailbox password
-SMTP_SERVER -- mailing servise SMTP address
-SMTP_PORT -- mailing service SMTP port
-SERVER_URI -- server URI to use with mailing templates
+Set following config keys:
+`ADMIN_NAME` -- admin's name
+`EMAIL` -- the email to send messages from
+`EMAIL_PASSWORD` -- mailbox password
+`SMTP_SERVER` -- mailing servise SMTP address
+`SMTP_PORT` -- mailing service SMTP port
+`SERVER_URI` -- server URI to use with mailing templates
+
+
+### Database and port anvironment variables
+
+In order to connect to posgres database, `DATABASE_URL` config key should be set;
+Set the port (5000 by default) through `PORT` config key:
+
 
 ###example:
 
 ```console
-export \
-    ADMIN_NAME="Admin" \
-    EMAIL="example@gmail.com" \
-    SMTP_SERVER="smtp.gmail.com" \
-    SMTP_PORT="587" \
-    EMAIL_PASSWORD="password" \
-    SERVER_URI="https://server/link/"
+$ export \
+    ORC_ADMIN_NAME="Admin Name" \
+    ORC_EMAIL="example@gmail.com" \
+    ORC_SMTP_SERVER="smtp.gmail.com" \
+    ORC_SMTP_PORT="587" \
+    ORC_EMAIL_PASSWORD="password" \
+    ORC_SERVER_URI="https://server/link/" \
+    ORC_DATABASE_URL="user=admin host=localhost dbname=orc password=password sslmode=disable" \
+    ORC_CONFIG_PATH="./server_config"
+$ echo -e "PORT=6543\nEMAIL_PASSWORD="qwerty" > ./server_config
 ```
 
-Administrator credentials to login the system:
-
-    Login: admin
-    Password: password
-
-## Database and port anvironment variables
-
-Set the local postgres connection string for the database called `orc`:
-
-```console
-    $ export DATABASE_URL="user=admin host=localhost dbname=orc password=password sslmode=disable"
-```
-
-Set the port (5000 by default):
-
-```console
-    $ export PORT="6543"
-```
+In this example two config keys are set throught `server_config` file of `cwd`, but the value of `EMAIL_PASSWORD` key would be loaded from `ORC_EMAIL_PASSWORD` env var, as it has higher priority.
 
 ## Running as heroku app
 
