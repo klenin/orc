@@ -1,6 +1,6 @@
 package models
 
-import  "github.com/orc/db"
+import  "github.com/klenin/orc/db"
 
 type Blank struct {
     personal bool

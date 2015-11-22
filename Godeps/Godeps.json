@@ -1,14 +1,15 @@
 {
-	"ImportPath": "github.com/orc",
-	"GoVersion": "go1.2",
+	"ImportPath": "github.com/klenin/orc",
+	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
 			"ImportPath": "github.com/gorilla/securecookie",
-			"Rev": "1b0c7f6e9ab3d7f500fd7d50c7ad835ff428139b"
+			"Rev": "e95799a481bbcc3d01c2ad5178524cb8bec9f370"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Rev": "6577a6a8a8b66cc558ebe37f51ca07833bfa433b"
+			"Comment": "go1.0-cutoff-60-gffe986a",
+			"Rev": "ffe986aba3e6cfcded8b06615965941408891ef0"
 		}
 	]
 }

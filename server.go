@@ -2,14 +2,15 @@ package main
 
 import (
     "flag"
-    "github.com/orc/db"
-    "database/sql"
-    "github.com/orc/resources"
-    "github.com/orc/router"
-    "github.com/orc/mvc/controllers"
     "log"
-    "net/http"
     "os"
+    "net/http"
+    "database/sql"
+    "github.com/klenin/orc/db"
+    "github.com/klenin/orc/resources"
+    "github.com/klenin/orc/router"
+    "github.com/klenin/orc/mvc/controllers"
+    "github.com/klenin/orc/config"
 )
 
 var err error
@@ -17,7 +18,7 @@ var err error
 func main() {
     log.Println("Server started.")
 
-    db.DB, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
+    db.DB, err = sql.Open("postgres", config.GetValue("DATABASE_URL"))
     defer db.DB.Close()
 
     if err != nil {
@@ -50,7 +51,7 @@ func main() {
     http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
     http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))
 
-    port := os.Getenv("PORT")
+    port := config.GetValue("PORT")
     if port == "" {
         port = "5000"
     }
