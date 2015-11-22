@@ -1,6 +1,7 @@
 package mailer
 
 import (
+    "os"
     "bytes"
     "log"
     "net/smtp"
