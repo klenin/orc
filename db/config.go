@@ -1,8 +1,5 @@
 package db
 
-const user string = "admin"
-const dbname string = "orc"
-const password string = "admin"
 
 var Tables = []string{
     "events",
