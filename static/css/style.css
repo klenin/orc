@@ -94,11 +94,6 @@ a:hover {
     color: #4c9ac3;
 }
 
-#footer {
-    position: fixed;
-    margin-top: -100px;
-}
-
 #content {
     background: white;
     border: 1px solid #4c9ac3;
