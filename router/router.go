@@ -30,10 +30,10 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
             allParams := make([]reflect.Value, 0)
             cMethod.Func.Call(append(append(allParams, *controller), params...))
         } else {
-            http.Error(w, "Unable to locate index method in controller.", http.StatusMethodNotAllowed)
+            http.Error(w, "Unable to locate method in controller.", http.StatusMethodNotAllowed)
         }
     } else {
-        http.Error(w, "Unable to locate default controller.", http.StatusMethodNotAllowed)
+        http.Error(w, "Unable to locate controller.", http.StatusMethodNotAllowed)
     }
 }
 
