@@ -55,9 +55,9 @@ func main() {
     http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
     http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))
 
-    port := config.GetValue("PORT")
+    addr := config.GetValue("HOSTNAME") + ":" + config.GetValue("PORT")
 
-    if err := http.ListenAndServe(":" + port, nil); err != nil {
+    if err := http.ListenAndServe(addr, nil); err != nil {
         log.Println("Error listening: ", err.Error())
         os.Exit(1)
     }

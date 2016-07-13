@@ -14,6 +14,7 @@ const PROJECT_NAME = "orc"
 var configEnvPrefix = strings.ToUpper(PROJECT_NAME) + "_";
 
 var config = map[string]string{
+	"HOSTNAME": "localhost",
 	"PORT": "5000",
 }
 
