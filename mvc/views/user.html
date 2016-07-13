@@ -20,7 +20,10 @@
         <div hidden="true" id="dialog-group-request" title="Анкета группы"></div>
         <div hidden="true" id="dialog-add-person" title="Добавить участника"></div>
         <div id="error"></div>
-        <p id="userData"></p>
+        {{with index .userData 0}}
+            Логин: {{.login}}<br>
+            {{.name}}: {{.value}}
+        {{end}}
 
         <div id="tabs">
             <ul>
@@ -151,9 +154,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
             "/usercontroller/resetpassword"
         );
     })
-
-    $("#userData").append($("<div/>").text("Логин: "+{{.}}.userData[0].login));
-    $("#userData").append($("<div/>").text({{.}}.userData[0].name+": "+{{.}}.userData[0].value));
 
     $("#my-group-table").jqGrid({
         url: "/handler/usergroupsload",
