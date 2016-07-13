@@ -52,9 +52,6 @@ func main() {
     http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))
 
     port := config.GetValue("PORT")
-    if port == "" {
-        port = "5000"
-    }
 
     if err := http.ListenAndServe(":" + port, nil); err != nil {
         log.Println("Error listening: ", err.Error())
