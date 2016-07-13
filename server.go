@@ -26,6 +26,10 @@ func main() {
         os.Exit(1)
     }
 
+    if err = db.DB.Ping(); err != nil {
+        log.Fatalln("Error DB ping:", err.Error())
+    }
+
     log.Println("DB CONNECTED")
 
     testData := flag.Bool("test-data", false, "to load test data")
