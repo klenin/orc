@@ -172,10 +172,12 @@ func (this *UserController) ShowCabinet() {
         return
     }
 
+    var tplParams map[string]interface{}
     if role == "admin" {
-        model := Model{Columns: db.Tables, ColNames: db.TableNames}
-        this.Render([]string{"mvc/views/"+role+".html"}, role, model)
-
+        tplParams = map[string]interface{}{
+            "Columns": db.Tables,
+            "ColNames": db.TableNames,
+        }
     } else {
         groups := this.GetModel("groups")
         persons := this.GetModel("persons")
@@ -241,18 +243,17 @@ func (this *UserController) ShowCabinet() {
             ColNames:  events.GetColNames(),
             Caption:   events.GetCaption()}
 
-        this.Render(
-            []string{"mvc/views/"+role+".html"},
-            role,
-            map[string]interface{}{
-                "group": groupsModel,
-                "reg": regsModel,
-                "groupreg": groupRegsModel,
-                "faces": facesModel,
-                "params": paramsModel,
-                "events": eventsModel,
-                "userData": data})
+        tplParams = map[string]interface{}{
+            "group": groupsModel,
+            "reg": regsModel,
+            "groupreg": groupRegsModel,
+            "faces": facesModel,
+            "params": paramsModel,
+            "events": eventsModel,
+            "userData": data,
+        }
     }
+    this.Render([]string{"mvc/views/"+role+".html"}, role, tplParams)
 }
 
 //-----------------------------------------------------------------------------
