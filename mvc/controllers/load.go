@@ -73,12 +73,15 @@ func (this *GridController) Load(tableName string) {
         where, params, _ := model.WhereByParams(filters, 1)
 
         if !isAdmin {
-            where = ` WHERE events.id = 1 AND users.enabled = true AND `+where
-        } else {
-            if where != "" {
-                where = " WHERE "+where
+            if where != `` {
+                where = ` ( ` + where + ` ) AND `
             }
+            where += ` events.id = 1 AND users.enabled = true `
         }
+        if where != `` {
+            where = ` WHERE ` + where
+        }
+
         where += ` ORDER BY faces.id `+sord
         query += where+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
         rows := db.Query(query, append(params, []interface{}{limit, start}...))
