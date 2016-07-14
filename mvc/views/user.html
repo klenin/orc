@@ -100,7 +100,7 @@ require(["grid_lib", "group_lib", "blank", "user_lib", "utils"],
 function(gridLib, groupLib, blank, userLib, utils) {
 
     var valid = false;
-    console.log({{.}});
+    var serverData = {{.}};
 
     $("#password-1").blur(function() {
         var pattern = /^.{6,36}$/;
@@ -160,8 +160,8 @@ function(gridLib, groupLib, blank, userLib, utils) {
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
-        colNames: {{.group.ColNames}},
-        colModel: gridLib.SetPrimitive({{.group.ColModel}}),
+        colNames: serverData.group.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.group.ColModel),
         pager: "#my-group-table-pager",
         gridview: true,
         sortname: "id",
@@ -175,7 +175,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         caption: "Мои группы",
         sortname: "id",
         sortorder: "asc",
-        editurl: "/gridcontroller/editgridrow/"+{{.group.TableName}},
+        editurl: "/gridcontroller/editgridrow/" + serverData.group.TableName,
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: '+jqXHR.status+'\n'
                 +'textStatus: '+textStatus+'\n'
@@ -183,7 +183,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             alert('HTTP message body: '+jqXHR.responseText);
         },
 
-        subGrid: {{.group.Sub}},
+        subGrid: serverData.group.Sub,
         subGridOptions: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
@@ -207,20 +207,20 @@ function(gridLib, groupLib, blank, userLib, utils) {
             );
 
             $("#"+subgrid_id+"_t").jqGrid({
-                url: "/handler/"+{{.group.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
+                url: "/handler/" + serverData.group.SubTableName.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
-                colNames: {{.group.SubColNames}},
-                colModel: gridLib.SetPrimitive({{.group.SubColModel}}),
+                colNames: serverData.group.SubColNames,
+                colModel: gridLib.SetPrimitive(serverData.group.SubColModel),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
-                caption: {{.group.SubCaption}},
+                caption: serverData.group.SubCaption,
                 sortname: "num",
                 sortorder: "asc",
                 height: "100%",
                 width: $("#my-group-table").width()-65,
-                editurl: "/gridcontroller/editgridrow/"+{{.group.SubTableName}},
+                editurl: "/gridcontroller/editgridrow/" + serverData.group.SubTableName,
                 loadError: function(jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: '+jqXHR.status+'\n'
                         +'textStatus: '+textStatus+'\n'
@@ -287,12 +287,12 @@ function(gridLib, groupLib, blank, userLib, utils) {
                         var filter = {};
 
                         $("#params-table").jqGrid({
-                            url: "/gridcontroller/load/"+{{.params.TableName}},
+                            url: "/gridcontroller/load/" + serverData.params.TableName,
                             datatype: "json",
                             mtype: "POST",
                             treeGrid: false,
-                            colNames: {{.params.ColNames}},
-                            colModel: gridLib.SetPrimitive({{.params.ColModel}}),
+                            colNames: serverData.params.ColNames,
+                            colModel: gridLib.SetPrimitive(serverData.params.ColModel),
                             pager: "#params-table-pager",
                             gridview: true,
                             viewrecords: true,
@@ -300,7 +300,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                             width: "auto",
                             rowNum: 1,
                             rownumWidth: 20,
-                            caption: {{.params.Caption}},
+                            caption: serverData.params.Caption,
                             sortname: "id",
                             sortorder: "asc",
                             loadError: function (jqXHR, textStatus, errorThrown) {
@@ -347,8 +347,8 @@ function(gridLib, groupLib, blank, userLib, utils) {
                             datatype: "json",
                             mtype: "POST",
                             treeGrid: false,
-                            colNames: {{.faces.ColNames}},
-                            colModel: gridLib.SetPrimitive({{.faces.ColModel}}),
+                            colNames: serverData.faces.ColNames,
+                            colModel: gridLib.SetPrimitive(serverData.faces.ColModel),
                             pager: "#faces-table-pager",
                             gridview: true,
                             viewrecords: true,
@@ -358,7 +358,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                             rownumbers: true,
                             rownumWidth: 20,
                             rowList: [5, 10, 20, 50],
-                            caption: {{.faces.Caption}},
+                            caption: serverData.faces.Caption,
                             sortname: "id",
                             sortorder: "asc",
                             loadError: function (jqXHR, textStatus, errorThrown) {
@@ -476,7 +476,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             onClickButton: function() {
                 var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                 if (!groupId) return false;
-                groupLib.Register("dialog-reg-group", groupId, false, false, {{.events}});
+                groupLib.Register("dialog-reg-group", groupId, false, false, serverData.events);
             }
         }
     );
@@ -486,11 +486,11 @@ function(gridLib, groupLib, blank, userLib, utils) {
     }).trigger("resize");
 
     $("#group-table").jqGrid({
-        url: "/handler/"+{{.group.TableName}}.replace(/_/g, "")+"load",
+        url: "/handler/" + serverData.group.TableName.replace(/_/g, "")+"load",
         datatype: "json",
         mtype: "POST",
-        colNames: {{.group.ColNames}},
-        colModel: gridLib.SetPrimitive({{.group.ColModel}}),
+        colNames: serverData.group.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.group.ColModel),
         pager: "#group-table-pager",
         gridview: true,
         sortname: "id",
@@ -519,12 +519,12 @@ function(gridLib, groupLib, blank, userLib, utils) {
     }).trigger("resize");
 
     $("#reg-table").jqGrid({
-        url: "/handler/"+{{.reg.TableName}}.replace(/_/g, "")+"load",
+        url: "/handler/" + serverData.reg.TableName.replace(/_/g, "")+"load",
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
-        colNames: {{.reg.ColNames}},
-        colModel: gridLib.SetPrimitive({{.reg.ColModel}}),
+        colNames: serverData.reg.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.reg.ColModel),
         pager: "#reg-table-pager",
         gridview: true,
         sortname: "id",
@@ -535,7 +535,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: {{.reg.Caption}},
+        caption: serverData.reg.Caption,
         sortname: "id",
         sortorder: "asc",
         loadError: function(jqXHR, textStatus, errorThrown) {
@@ -583,8 +583,8 @@ function(gridLib, groupLib, blank, userLib, utils) {
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
-        colNames: {{.groupreg.ColNames}},
-        colModel: gridLib.SetPrimitive({{.groupreg.ColModel}}),
+        colNames: serverData.groupreg.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#groupreg-table-pager",
         gridview: true,
         sortname: "id",
@@ -605,7 +605,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             alert('HTTP message body: '+jqXHR.responseText);
         },
 
-        subGrid: {{.groupreg.Sub}},
+        subGrid: serverData.groupreg.Sub,
         subGridOptions: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
@@ -620,23 +620,23 @@ function(gridLib, groupLib, blank, userLib, utils) {
             var group_id = $("#groupreg-table").jqGrid("getCell", row_id, "group_id");
             var event_id = $("#groupreg-table").jqGrid("getCell", row_id, "event_id");
 
-            console.log("groupreg.ColModel: ", gridLib.SetPrimitive({{.groupreg.ColModel}}));
+            console.log("groupreg.ColModel: ", gridLib.SetPrimitive(serverData.groupreg.ColModel));
 
             $("#"+subgrid_id+"_t").jqGrid({
-                url: "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
+                url: "/handler/" + serverData.groupreg.SubTableName.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
-                colNames: {{.groupreg.SubColNames}},
-                colModel: gridLib.SetPrimitive({{.groupreg.SubColModel}}),
+                colNames: serverData.groupreg.SubColNames,
+                colModel: gridLib.SetPrimitive(serverData.groupreg.SubColModel),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
-                caption: {{.groupreg.SubCaption}},
+                caption: serverData.groupreg.SubCaption,
                 sortname: "num",
                 sortorder: "asc",
                 height: "100%",
                 width: $("#groupreg-table").width()-65,
-                editurl: "/gridcontroller/editgridrow/"+{{.groupreg.SubTableName}},
+                editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName,
                 loadError: function (jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: '+jqXHR.status+'\n'
                         +'textStatus: '+textStatus+'\n'
@@ -702,8 +702,8 @@ function(gridLib, groupLib, blank, userLib, utils) {
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
-        colNames: {{.groupreg.ColNames}},
-        colModel: gridLib.SetPrimitive({{.groupreg.ColModel}}),
+        colNames: serverData.groupreg.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#my-teams-table-pager",
         gridview: true,
         sortname: "id",
@@ -724,7 +724,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
             alert('HTTP message body: '+jqXHR.responseText);
         },
 
-        subGrid: {{.groupreg.Sub}},
+        subGrid: serverData.groupreg.Sub,
         subGridOptions: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
@@ -740,19 +740,19 @@ function(gridLib, groupLib, blank, userLib, utils) {
             var event_id = $("#my-teams-table").jqGrid("getCell", row_id, "event_id");
 
             $("#"+subgrid_id+"_t").jqGrid({
-                url: "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
+                url: "/handler/" + serverData.groupreg.SubTableName.replace(/_/g, "")+"load/"+group_id,
                 datatype: "json",
                 mtype: "POST",
-                colNames: {{.groupreg.SubColNames}},
-                colModel: gridLib.SetPrimitive({{.groupreg.SubColModel}}),
+                colNames: serverData.groupreg.SubColNames,
+                colModel: gridLib.SetPrimitive(serverData.groupreg.SubColModel),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
-                caption: {{.groupreg.SubCaption}},
+                caption: serverData.groupreg.SubCaption,
                 sortname: "num",
                 sortorder: "asc",
                 height: "100%",
-                editurl: "/gridcontroller/editgridrow/"+{{.groupreg.SubTableName}},
+                editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName,
                 loadError: function (jqXHR, textStatus, errorThrown) {
                     alert('HTTP status code: '+jqXHR.status+'\n'
                         +'textStatus: '+textStatus+'\n'
@@ -825,12 +825,12 @@ function(gridLib, groupLib, blank, userLib, utils) {
     }).trigger("resize");
 
     $("#teams-table").jqGrid({
-        url: "/handler/"+{{.groupreg.TableName}}.replace(/_/g, "")+"load",
+        url: "/handler/" + serverData.groupreg.TableName.replace(/_/g, "")+"load",
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
-        colNames: {{.groupreg.ColNames}},
-        colModel: gridLib.SetPrimitive({{.groupreg.ColModel}}),
+        colNames: serverData.groupreg.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#teams-table-pager",
         gridview: true,
         sortname: "id",
