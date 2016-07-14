@@ -155,6 +155,15 @@ function(gridLib, groupLib, blank, userLib, utils) {
         );
     })
 
+    $.extend($.jgrid.defaults, {
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: '+jqXHR.status+'\n'
+                    +'textStatus: '+textStatus+'\n'
+                    +'errorThrown: '+errorThrown);
+            alert('HTTP message body: '+jqXHR.responseText);
+        }
+    });
+
     $("#my-group-table").jqGrid({
         url: "/handler/usergroupsload",
         datatype: "json",
@@ -176,12 +185,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
         sortname: "id",
         sortorder: "asc",
         editurl: "/gridcontroller/editgridrow/" + serverData.group.TableName,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
 
         subGrid: serverData.group.Sub,
         subGridOptions: {
@@ -221,12 +224,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 height: "100%",
                 width: $("#my-group-table").width()-65,
                 editurl: "/gridcontroller/editgridrow/" + serverData.group.SubTableName,
-                loadError: function(jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
                 gridComplete: function() {
                     var rows = $("#"+subgrid_id+"_t").getDataIDs();
                     for (var i = 0; i < rows.length; i++) {
@@ -303,12 +300,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                             caption: serverData.params.Caption,
                             sortname: "id",
                             sortorder: "asc",
-                            loadError: function (jqXHR, textStatus, errorThrown) {
-                                alert('HTTP status code: '+jqXHR.status+'\n'
-                                    +'textStatus: '+textStatus+'\n'
-                                    +'errorThrown: '+errorThrown);
-                                alert('HTTP message body (jqXHR.responseText): '+'\n'+jqXHR.responseText);
-                            },
                             loadComplete: function() {
                                 $("#faces-table").trigger('reloadGrid');
                             },
@@ -361,12 +352,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                             caption: serverData.faces.Caption,
                             sortname: "id",
                             sortorder: "asc",
-                            loadError: function (jqXHR, textStatus, errorThrown) {
-                                alert('HTTP status code: '+jqXHR.status+'\n'
-                                    +'textStatus: '+textStatus+'\n'
-                                    +'errorThrown: '+errorThrown);
-                                alert('HTTP message body: '+jqXHR.responseText);
-                            },
                             beforeRequest: function() {
                                 $("#faces-table").setGridParam({ postData: {
                                     "filters": filter ? filter : null,
@@ -503,13 +488,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         rowList: [5, 10, 20, 50],
         caption: "Группы, в которых я состою",
         sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
+        sortorder: "asc"
     });
 
     $("#group-table").jqGrid("hideCol", ["id"]);
@@ -537,13 +516,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         rowList: [5, 10, 20, 50],
         caption: serverData.reg.Caption,
         sortname: "id",
-        sortorder: "asc",
-        loadError: function(jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
+        sortorder: "asc"
     });
 
     $("#reg-table").jqGrid("hideCol", ["id"]);
@@ -598,12 +571,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
         caption: "Регистрации групп",
         sortname: "id",
         sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
 
         subGrid: serverData.groupreg.Sub,
         subGridOptions: {
@@ -636,13 +603,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 sortorder: "asc",
                 height: "100%",
                 width: $("#groupreg-table").width()-65,
-                editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName,
-                loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
+                editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName
             });
 
             $("#"+subgrid_id+"_t").navGrid(
@@ -717,12 +678,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
         caption: "Регистрации команд",
         sortname: "id",
         sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
 
         subGrid: serverData.groupreg.Sub,
         subGridOptions: {
@@ -752,13 +707,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 sortname: "num",
                 sortorder: "asc",
                 height: "100%",
-                editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName,
-                loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
+                editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName
             });
 
             $("#"+subgrid_id+"_t").navGrid(
@@ -843,13 +792,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         rowList: [5, 10, 20, 50],
         caption: "Регистрации команд, в которых я состою",
         sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        }
+        sortorder: "asc"
     });
 
     $("#teams-table").jqGrid("hideCol", ["id"]);
