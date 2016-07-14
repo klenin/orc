@@ -156,6 +156,12 @@ function(gridLib, groupLib, blank, userLib, utils) {
     })
 
     $.extend($.jgrid.defaults, {
+        datatype: "json",
+        mtype: "POST",
+        height: "100%",
+        width: "auto",
+        sortname: "id",
+        sortorder: "asc",
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: '+jqXHR.status+'\n'
                     +'textStatus: '+textStatus+'\n'
@@ -166,24 +172,17 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
     $("#my-group-table").jqGrid({
         url: "/handler/usergroupsload",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.group.ColNames,
         colModel: gridLib.SetPrimitive(serverData.group.ColModel),
         pager: "#my-group-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: "Мои группы",
-        sortname: "id",
-        sortorder: "asc",
         editurl: "/gridcontroller/editgridrow/" + serverData.group.TableName,
 
         subGrid: serverData.group.Sub,
@@ -211,8 +210,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
             $("#"+subgrid_id+"_t").jqGrid({
                 url: "/handler/" + serverData.group.SubTableName.replace(/_/g, "")+"load/"+group_id,
-                datatype: "json",
-                mtype: "POST",
                 colNames: serverData.group.SubColNames,
                 colModel: gridLib.SetPrimitive(serverData.group.SubColModel),
                 rowNum: 5,
@@ -220,8 +217,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 pager: "#"+subgrid_id+"_p",
                 caption: serverData.group.SubCaption,
                 sortname: "num",
-                sortorder: "asc",
-                height: "100%",
                 width: $("#my-group-table").width()-65,
                 editurl: "/gridcontroller/editgridrow/" + serverData.group.SubTableName,
                 gridComplete: function() {
@@ -285,21 +280,15 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
                         $("#params-table").jqGrid({
                             url: "/gridcontroller/load/" + serverData.params.TableName,
-                            datatype: "json",
-                            mtype: "POST",
                             treeGrid: false,
                             colNames: serverData.params.ColNames,
                             colModel: gridLib.SetPrimitive(serverData.params.ColModel),
                             pager: "#params-table-pager",
                             gridview: true,
                             viewrecords: true,
-                            height: "100%",
-                            width: "auto",
                             rowNum: 1,
                             rownumWidth: 20,
                             caption: serverData.params.Caption,
-                            sortname: "id",
-                            sortorder: "asc",
                             loadComplete: function() {
                                 $("#faces-table").trigger('reloadGrid');
                             },
@@ -335,23 +324,17 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
                         $("#faces-table").jqGrid({
                             url: "/gridcontroller/load/search",
-                            datatype: "json",
-                            mtype: "POST",
                             treeGrid: false,
                             colNames: serverData.faces.ColNames,
                             colModel: gridLib.SetPrimitive(serverData.faces.ColModel),
                             pager: "#faces-table-pager",
                             gridview: true,
                             viewrecords: true,
-                            height: "100%",
-                            width: "auto",
                             rowNum: 5,
                             rownumbers: true,
                             rownumWidth: 20,
                             rowList: [5, 10, 20, 50],
                             caption: serverData.faces.Caption,
-                            sortname: "id",
-                            sortorder: "asc",
                             beforeRequest: function() {
                                 $("#faces-table").setGridParam({ postData: {
                                     "filters": filter ? filter : null,
@@ -472,23 +455,16 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
     $("#group-table").jqGrid({
         url: "/handler/" + serverData.group.TableName.replace(/_/g, "")+"load",
-        datatype: "json",
-        mtype: "POST",
         colNames: serverData.group.ColNames,
         colModel: gridLib.SetPrimitive(serverData.group.ColModel),
         pager: "#group-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: "Группы, в которых я состою",
-        sortname: "id",
-        sortorder: "asc"
+        caption: "Группы, в которых я состою"
     });
 
     $("#group-table").jqGrid("hideCol", ["id"]);
@@ -499,24 +475,17 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
     $("#reg-table").jqGrid({
         url: "/handler/" + serverData.reg.TableName.replace(/_/g, "")+"load",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.reg.ColNames,
         colModel: gridLib.SetPrimitive(serverData.reg.ColModel),
         pager: "#reg-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: serverData.reg.Caption,
-        sortname: "id",
-        sortorder: "asc"
+        caption: serverData.reg.Caption
     });
 
     $("#reg-table").jqGrid("hideCol", ["id"]);
@@ -553,24 +522,17 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
     $("#groupreg-table").jqGrid({
         url: "/handler/usergroupregistrationsload/0",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.groupreg.ColNames,
         colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#groupreg-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: "Регистрации групп",
-        sortname: "id",
-        sortorder: "asc",
 
         subGrid: serverData.groupreg.Sub,
         subGridOptions: {
@@ -591,8 +553,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
             $("#"+subgrid_id+"_t").jqGrid({
                 url: "/handler/" + serverData.groupreg.SubTableName.replace(/_/g, "")+"load/"+group_id,
-                datatype: "json",
-                mtype: "POST",
                 colNames: serverData.groupreg.SubColNames,
                 colModel: gridLib.SetPrimitive(serverData.groupreg.SubColModel),
                 rowNum: 5,
@@ -600,8 +560,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 pager: "#"+subgrid_id+"_p",
                 caption: serverData.groupreg.SubCaption,
                 sortname: "num",
-                sortorder: "asc",
-                height: "100%",
                 width: $("#groupreg-table").width()-65,
                 editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName
             });
@@ -660,24 +618,17 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
     $("#my-teams-table").jqGrid({
         url: "/handler/usergroupregistrationsload/1",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.groupreg.ColNames,
         colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#my-teams-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: "Регистрации команд",
-        sortname: "id",
-        sortorder: "asc",
 
         subGrid: serverData.groupreg.Sub,
         subGridOptions: {
@@ -696,8 +647,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
             $("#"+subgrid_id+"_t").jqGrid({
                 url: "/handler/" + serverData.groupreg.SubTableName.replace(/_/g, "")+"load/"+group_id,
-                datatype: "json",
-                mtype: "POST",
                 colNames: serverData.groupreg.SubColNames,
                 colModel: gridLib.SetPrimitive(serverData.groupreg.SubColModel),
                 rowNum: 5,
@@ -705,8 +654,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 pager: "#"+subgrid_id+"_p",
                 caption: serverData.groupreg.SubCaption,
                 sortname: "num",
-                sortorder: "asc",
-                height: "100%",
                 editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName
             });
 
@@ -775,24 +722,17 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
     $("#teams-table").jqGrid({
         url: "/handler/" + serverData.groupreg.TableName.replace(/_/g, "")+"load",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.groupreg.ColNames,
         colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#teams-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: "Регистрации команд, в которых я состою",
-        sortname: "id",
-        sortorder: "asc"
+        caption: "Регистрации команд, в которых я состою"
     });
 
     $("#teams-table").jqGrid("hideCol", ["id"]);
