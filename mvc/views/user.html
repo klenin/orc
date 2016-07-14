@@ -13,7 +13,7 @@
         Личный кабинет
     </div></br>
 
-    <div id="cabinet" class="left">
+    <div id="cabinet">
         <div hidden="true" id="dialog-reg-group" title="Регистрация группы"></div>
         <div hidden="true" id="dialog-person-request" title="Анкета"></div>
         <div hidden="true" id="dialog-group-person-request" title="Анкета"></div>
@@ -91,13 +91,20 @@
 </div>
 
 <script type="text/javascript">
-
-$(function() {
-    $("#tabs").tabs();
-});
-
 require(["grid_lib", "group_lib", "blank", "user_lib", "utils"],
 function(gridLib, groupLib, blank, userLib, utils) {
+
+    function updateJqGridWidths() {
+        $(".ui-jqgrid-btable").each(function(id, elem){
+            var $elem = $(elem);
+            var $uiJqgrid = $elem.parents('.ui-jqgrid').first();
+            $elem.setGridWidth($uiJqgrid.parent().width() - ($uiJqgrid.outerWidth(true) - $uiJqgrid.width()));
+        });
+    }
+
+    $("#tabs").tabs({
+        activate: updateJqGridWidths
+    });
 
     var valid = false;
     var serverData = {{.}};
@@ -159,7 +166,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         datatype: "json",
         mtype: "POST",
         height: "100%",
-        width: "auto",
+        shrinkToFit: true,
         sortname: "id",
         sortorder: "asc",
         loadError: function (jqXHR, textStatus, errorThrown) {
@@ -217,7 +224,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 pager: "#"+subgrid_id+"_p",
                 caption: serverData.group.SubCaption,
                 sortname: "num",
-                width: $("#my-group-table").width()-65,
                 editurl: "/gridcontroller/editgridrow/" + serverData.group.SubTableName,
                 gridComplete: function() {
                     var rows = $("#"+subgrid_id+"_t").getDataIDs();
@@ -389,9 +395,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 $("#add-person_"+subgrid_id+"_t").hide();
             }
 
-            $(window).bind("resize", function() {
-                $("#"+subgrid_id+"_t").setGridWidth($("#my-group-table").width(), true);
-            }).trigger("resize");
+            updateJqGridWidths();
         }
     });
 
@@ -449,10 +453,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
         }
     );
 
-    $(window).bind("resize", function() {
-        $("#my-group-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
-
     $("#group-table").jqGrid({
         url: "/handler/" + serverData.group.TableName.replace(/_/g, "")+"load",
         colNames: serverData.group.ColNames,
@@ -468,10 +468,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
     });
 
     $("#group-table").jqGrid("hideCol", ["id"]);
-
-    $(window).bind("resize", function() {
-        $("#group-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
 
     $("#reg-table").jqGrid({
         url: "/handler/" + serverData.reg.TableName.replace(/_/g, "")+"load",
@@ -516,10 +512,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
         }
     );
 
-    $(window).bind("resize", function() {
-        $("#reg-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
-
     $("#groupreg-table").jqGrid({
         url: "/handler/usergroupregistrationsload/0",
         treeGrid: false,
@@ -560,7 +552,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 pager: "#"+subgrid_id+"_p",
                 caption: serverData.groupreg.SubCaption,
                 sortname: "num",
-                width: $("#groupreg-table").width()-65,
                 editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName
             });
 
@@ -591,9 +582,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
             $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
 
-            $(window).bind("resize", function() {
-                $("#"+subgrid_id+"_t").setGridWidth($("#groupreg-table").width(), true);
-            }).trigger("resize");
+            updateJqGridWidths();
         }
     });
 
@@ -611,10 +600,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
             search: false
         }
     );
-
-    $(window).bind("resize", function() {
-        $("#groupreg-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
 
     $("#my-teams-table").jqGrid({
         url: "/handler/usergroupregistrationsload/1",
@@ -684,9 +669,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
             $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
 
-            $(window).bind("resize", function() {
-                $("#"+subgrid_id+"_t").setGridWidth($("#my-teams-table").width(), true);
-            }).trigger("resize");
+            updateJqGridWidths();
         }
     });
 
@@ -715,10 +698,6 @@ function(gridLib, groupLib, blank, userLib, utils) {
             }
         }
     );
-
-    $(window).bind("resize", function() {
-        $("#my-teams-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
 
     $("#teams-table").jqGrid({
         url: "/handler/" + serverData.groupreg.TableName.replace(/_/g, "")+"load",
@@ -762,9 +741,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         }
     );
 
-    $(window).bind("resize", function() {
-        $("#teams-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
+    $(window).bind("resize", updateJqGridWidths).trigger("resize");
 
 });
 
