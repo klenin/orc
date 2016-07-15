@@ -1,9 +1,7 @@
 html, body {
     font: normal 14px Verdana;
     height: 100%;
-    margin: 20px;
-    margin-top: -0px;
-    margin-bottom: -0px;
+    margin: 5px 20px;
 }
 
 h3 {
@@ -11,8 +9,10 @@ h3 {
 }
 
 hr {
-    size: 1px;
-    color: #4c9ac3;
+    border: none;
+    height: 1px;
+    background-color: #4c9ac3;
+    clear: both;
 }
 
 #server-answer, form, label, textarea {
@@ -29,7 +29,7 @@ textarea {
     padding-top: 5px;
 }
 
-#container, #content-top div {
+#container {
     display: inline-block;
 }
 
@@ -47,7 +47,7 @@ td input, th input {
     width: auto;
 }
 
-#save-btn, #send-btn, #login-btn, #home-btn, #logout-btn, #cabinet-btn, #create-group, #close, #add-person, #reset-btn, #edit-history-btn {
+.btn, #save-btn, #send-btn, #login-btn, #logout-btn, #cabinet-btn, #create-group, #close, #add-person, #reset-btn, #edit-history-btn {
     color: #4c9ac3;
     background: white;
     cursor: pointer;
@@ -105,30 +105,12 @@ a:hover {
     background: #FFFAF0;
 }
 
-.div-top-left {
-    padding: 0px;
-    margin: 0px;
-    width: 50%;
-    float: left;
-    display: block;
-}
-
-.div-top-right {
-    padding: 0px;
-    margin: 0px;
-    width: 50%;
-    float: right;
-    display: block;
-}
-
 .left {
     float: left;
-    display: block;
 }
 
 .right {
     float: right;
-    display: block;
 }
 
 ul {
