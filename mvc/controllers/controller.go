@@ -14,8 +14,6 @@ import (
 
 const HASH_SIZE = 32
 
-var err error
-
 type BaseController struct{}
 
 type Controller struct {
