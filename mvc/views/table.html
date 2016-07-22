@@ -42,14 +42,15 @@
 <script type="text/javascript">
 require(["utils", "subgrid_lib", "grid_lib", "user_lib", "blank", "group_lib"],
 function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
+    var serverData = {{.}};
 
     $("#grid-table").jqGrid({
-        url: "/gridcontroller/load/" + {{.model.TableName}},
+        url: "/gridcontroller/load/" + serverData.model.TableName,
         datatype: "json",
         mtype: "POST",
         treeGrid: false,
-        colNames: {{.model.ColNames}},
-        colModel: gridLib.SetPrimitive({{.model.ColModel}}),
+        colNames: serverData.model.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.model.ColModel),
         pager: "#grid-table-pager",
         gridview: true,
         viewrecords: true,
@@ -59,14 +60,14 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: {{.model.Caption}},
+        caption: serverData.model.Caption,
         sortname: "id",
         sortorder: "asc",
         multiselect: true,
         multiselectWidth: 20,
         multiboxonly: true,
         sortable: true,
-        editurl: "/gridcontroller/editgridrow/" + {{.model.TableName}},
+        editurl: "/gridcontroller/editgridrow/" + serverData.model.TableName,
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code ' + jqXHR.status + '\n'
                 + 'textStatus ' + textStatus + '\n'
@@ -79,7 +80,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             $($("#grid-table tbody tr").children()[1]).css("width", "24px");
         },
 
-        subGrid: {{.model.Sub}},
+        subGrid: serverData.model.Sub,
         subGridOptionsfaces: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
@@ -92,9 +93,9 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                                     subgrid_id,
                                     row_id,
                                     "0",
-                                    {{.model.TableName}},
+                                    serverData.model.TableName,
                                     "grid-table",
-                                    {"faces": {{.faces}}, "params": {{.params}}}
+                                    {"faces": serverData.faces, "params": serverData.params}
                                 );
                             }
     });
@@ -103,7 +104,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         "#grid-table-pager",
         {   // buttons
             edit: true,
-            add: {{.model.TableName}} == "users" ? false : true,
+            add: serverData.model.TableName == "users" ? false : true,
             del: true,
             refresh: false,
             view: false,
@@ -116,7 +117,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             errorTextFormat: function(data) { return gridLib.errTextFormat(data, "grid-table"); },
             afterShowForm: gridLib.resizeSelectWidth,
             beforeShowForm: function() {
-                if ({{.model.TableName}} == "registrations") {
+                if (serverData.model.TableName == "registrations") {
                     var id = gridLib.getCurrRowId("grid-table");
                     var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
                     if (event_id == 1) {
@@ -176,7 +177,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 $.ajax({
                     method: "post",
                     type: "post",
-                    url: "/gridcontroller/jsontoexcel/" + {{.model.TableName}},
+                    url: "/gridcontroller/jsontoexcel/" + serverData.model.TableName,
                     async: false,
                     data: JSON.stringify(data),
                     ContentType: "charset=utf-8",
@@ -186,7 +187,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                         // document.location = "data:application/octet-stream;filename=data.csv," + encodeURIComponent(data);
 
                         var link = document.createElement("a");
-                        link.download = {{.model.TableName}}+(new Date()).getTime()+".csv";
+                        link.download = serverData.model.TableName+(new Date()).getTime()+".csv";
                         link.href = "data:application/csv;charset=utf-8," + encodeURIComponent(data);
                         link.click();
                         delete link;
@@ -226,7 +227,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         }
     );
 
-    if ({{.model.TableName}} == "users") {
+    if (serverData.model.TableName == "users") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -254,7 +255,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             }
         );
 
-    } else if ({{.model.TableName}} == "events") {
+    } else if (serverData.model.TableName == "events") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -273,7 +274,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             }
         );
 
-    } else if ({{.model.TableName}} == "registrations") {
+    } else if (serverData.model.TableName == "registrations") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -287,7 +288,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             }
         );
 
-    } else if ({{.model.TableName}} == "groups") {
+    } else if (serverData.model.TableName == "groups") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -296,12 +297,12 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 onClickButton: function() {
                     var groupId = $("#grid-table").jqGrid("getGridParam", "selrow");
                     if (!groupId) return false;
-                    groupLib.Register("dialog-reg-group", groupId, false, false, {{.events}});
+                    groupLib.Register("dialog-reg-group", groupId, false, false, serverData.events);
                 }
             }
         );
 
-    } else if ({{.model.TableName}} == "group_registrations") {
+    } else if (serverData.model.TableName == "group_registrations") {
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
