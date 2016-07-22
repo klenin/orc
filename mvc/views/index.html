@@ -12,13 +12,14 @@
 
 require(["utils", "grid_lib", "group_lib", "blank"],
 function(utils, gridLib, groupLib, blank) {
+    var serverData = {{.}};
 
     $("#events-table").jqGrid({
-        url: "/gridcontroller/load/" + {{.events.TableName}},
+        url: "/gridcontroller/load/" + serverData.events.TableName,
         datatype: "json",
         mtype: "POST",
-        colNames: {{.events.ColNames}},
-        colModel: gridLib.SetPrimitive({{.events.ColModel}}),
+        colNames: serverData.events.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.events.ColModel),
         pager: "#events-table-pager",
         gridview: true,
         viewrecords: true,
