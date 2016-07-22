@@ -43,8 +43,9 @@
 require(["utils", "subgrid_lib", "grid_lib", "user_lib", "blank", "group_lib"],
 function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
     var serverData = {{.}};
+    var $gridTable = $("#grid-table");
 
-    $("#grid-table").jqGrid({
+    $gridTable.jqGrid({
         url: "/gridcontroller/load/" + serverData.model.TableName,
         datatype: "json",
         mtype: "POST",
@@ -100,7 +101,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                             }
     });
 
-    $("#grid-table").navGrid(
+    $gridTable.navGrid(
         "#grid-table-pager",
         {   // buttons
             edit: true,
@@ -119,7 +120,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             beforeShowForm: function() {
                 if (serverData.model.TableName == "registrations") {
                     var id = gridLib.getCurrRowId("grid-table");
-                    var event_id = $("#grid-table").jqGrid("getCell", id, "event_id");
+                    var event_id = $gridTable.jqGrid("getCell", id, "event_id");
                     if (event_id == 1) {
                         return;
                     }
@@ -155,22 +156,22 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         }
     );
 
-    $("#grid-table").jqGrid(
+    $gridTable.jqGrid(
         "navButtonAdd",
         "#grid-table-pager",
         {
             caption: "", buttonicon: "ui-icon-print", title: "Скачать данные из таблицы",
             onClickButton: function() {
-                var columns = $("#grid-table").getGridParam("colModel");
+                var columns = $gridTable.getGridParam("colModel");
                 var fields = [];
                 for (i = 0; i < columns.length; ++i) {
                     if (columns[i].hidden == false && columns[i].index != undefined) {
                         fields.push(columns[i].index);
                     }
                 }
-                var filters = $("#grid-table").getGridParam("postData").filters;
-                var sord = $("#grid-table").getGridParam("postData").sord;
-                var sidx = $("#grid-table").getGridParam("postData").sidx;
+                var filters = $gridTable.getGridParam("postData").filters;
+                var sord = $gridTable.getGridParam("postData").sord;
+                var sidx = $gridTable.getGridParam("postData").sidx;
                 var data = { "filters": filters ? JSON.parse(filters) : null, "sord": sord, "sidx": sidx, "fields": fields };
                 console.log("Download params: ", data);
 
@@ -203,20 +204,20 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         }
     );
 
-    $("#grid-table").jqGrid (
+    $gridTable.jqGrid (
         "navButtonAdd",
         "#grid-table-pager",
         {
             caption: "", buttonicon: "ui-icon-calculator", title: "Выбрать столбцы",
             onClickButton: function() {
-                $("#grid-table").jqGrid(
+                $gridTable.jqGrid(
                     "columnChooser",
                     {
                         done: function(perm) {
                             if (perm) {
-                                $("#grid-table").jqGrid("remapColumns", perm, true);
+                                $gridTable.jqGrid("remapColumns", perm, true);
                                 $(window).bind("resize", function() {
-                                    $("#grid-table").setGridWidth($(window).width()-50, true);
+                                    $gridTable.setGridWidth($(window).width()-50, true);
                                 }).trigger("resize");
 
                             }
@@ -229,7 +230,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
 
     switch(serverData.model.TableName) {
     case "users":
-        $("#grid-table").jqGrid(
+        $gridTable.jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
@@ -238,7 +239,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             }
         );
 
-        $("#grid-table").jqGrid(
+        $gridTable.jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
@@ -247,7 +248,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             }
         );
 
-        $("#grid-table").jqGrid(
+        $gridTable.jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
@@ -257,7 +258,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         );
         break;
     case "events":
-        $("#grid-table").jqGrid(
+        $gridTable.jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
@@ -266,7 +267,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
             }
         );
 
-        $("#grid-table").jqGrid(
+        $gridTable.jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
@@ -276,7 +277,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         );
         break;
     case "registrations":
-        $("#grid-table").jqGrid(
+        $gridTable.jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
@@ -290,13 +291,13 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         );
         break;
     case "groups":
-        $("#grid-table").jqGrid(
+        $gridTable.jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-script", title: "Регистрация группы",
                 onClickButton: function() {
-                    var groupId = $("#grid-table").jqGrid("getGridParam", "selrow");
+                    var groupId = $gridTable.jqGrid("getGridParam", "selrow");
                     if (!groupId) return false;
                     groupLib.Register("dialog-reg-group", groupId, false, false, serverData.events);
                 }
@@ -304,20 +305,20 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         );
         break;
     case "group_registrations":
-        $("#grid-table").jqGrid(
+        $gridTable.jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
             {
                 caption: "", buttonicon: "ui-icon-contact", title: "Редактировать анкету группы",
                 onClickButton: function() {
-                    var regId = $("#grid-table").jqGrid("getGridParam", "selrow");
+                    var regId = $gridTable.jqGrid("getGridParam", "selrow");
                     blank.showPersonBlankFromGroup(regId, "-1", "dialog-group-request", "false");
                 }
             }
         );
     }
 
-    $("#grid-table").jqGrid(
+    $gridTable.jqGrid(
         "filterToolbar",
         {
             stringResult: true,
@@ -327,7 +328,7 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
     );
 
     $(window).bind("resize", function() {
-        $("#grid-table").setGridWidth($(window).width()-50, true);
+        $gridTable.setGridWidth($(window).width()-50, true);
     }).trigger("resize");
 
 });
