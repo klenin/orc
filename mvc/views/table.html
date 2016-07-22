@@ -227,7 +227,8 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         }
     );
 
-    if (serverData.model.TableName == "users") {
+    switch(serverData.model.TableName) {
+    case "users":
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -254,8 +255,8 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 onClickButton: function() { userLib.SendEmailWellcomeToProfile("grid-table", $("#msg")); }
             }
         );
-
-    } else if (serverData.model.TableName == "events") {
+        break;
+    case "events":
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -273,8 +274,8 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 onClickButton: function() { gridLib.GetPersons("dialog-params", "grid-table"); }
             }
         );
-
-    } else if (serverData.model.TableName == "registrations") {
+        break;
+    case "registrations":
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -287,8 +288,8 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 }
             }
         );
-
-    } else if (serverData.model.TableName == "groups") {
+        break;
+    case "groups":
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
@@ -301,8 +302,8 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
                 }
             }
         );
-
-    } else if (serverData.model.TableName == "group_registrations") {
+        break;
+    case "group_registrations":
         $("#grid-table").jqGrid(
             "navButtonAdd",
             "#grid-table-pager",
