@@ -165,7 +165,7 @@ func loadEvents() {
 }
 
 func loadEventTypes() {
-    eventTypes := readStringsFromFile("./resources/event-type-name")
+    eventTypes := readStringsFromFile("./resources/event-type.txt")
     topicality := []bool{true, false}
     for _, eventType := range eventTypes {
         params := map[string]interface{}{"name": eventType, "description": "", "topicality": topicality[rand.Intn(2)]}
