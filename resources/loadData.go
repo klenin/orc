@@ -12,6 +12,7 @@ import (
     "strconv"
     "strings"
     "time"
+    "log"
 )
 
 const USER_COUNT = 20
@@ -55,6 +56,21 @@ func Load() {
     loadEvents()
     loadEventTypes()
     loadForms()
+}
+
+func readStringsFromFile(fileName string) []string {
+    content, err := ioutil.ReadFile(fileName)
+    if err != nil {
+        log.Fatalln("loadData:", err.Error())
+    }
+    array := strings.Split(string(content), "\n")
+    var r []string
+    for _, str := range array {
+        if str = strings.TrimSpace(str); str != "" {
+            r = append(r, str)
+        }
+    }
+    return r
 }
 
 func LoadAdmin() {
@@ -160,21 +176,17 @@ func loadEvents() {
 }
 
 func loadEventTypes() {
-    eventTypeNames, _ := ioutil.ReadFile("./resources/event-type-name")
-    eventTypeNamesSourse := strings.Split(string(eventTypeNames), "\n")
+    eventTypes := readStringsFromFile("./resources/event-type-name")
     topicality := []bool{true, false}
-    for i := 0; i < len(eventTypeNamesSourse); i++ {
-        eventTypeName := strings.TrimSpace(eventTypeNamesSourse[i])
-        params := map[string]interface{}{"name": eventTypeName, "description": "", "topicality": topicality[rand.Intn(2)]}
+    for _, eventType := range eventTypes {
+        params := map[string]interface{}{"name": eventType, "description": "", "topicality": topicality[rand.Intn(2)]}
         base.EventTypes().LoadModelData(params).QueryInsert("").Scan()
     }
 }
 
 func loadForms() {
-    formNames, _ := ioutil.ReadFile("./resources/form-name")
-    formNamesSourse := strings.Split(string(formNames), "\n")
-    for i := 0; i < len(formNamesSourse); i++ {
-        formName := strings.TrimSpace(formNamesSourse[i])
+    formNames := readStringsFromFile("./resources/form-name")
+    for _, formName := range(formNames) {
         base.Forms().
             LoadModelData(map[string]interface{}{"name": formName, "personal": true}).
             QueryInsert("").
@@ -183,10 +195,8 @@ func loadForms() {
 }
 
 func LoadParamTypes() {
-    paramTypesNames, _ := ioutil.ReadFile("./resources/param-type-name")
-    paramTypesSourse := strings.Split(string(paramTypesNames), "\n")
-    for i := 0; i < len(paramTypesSourse); i++ {
-        paramType := strings.TrimSpace(paramTypesSourse[i])
+    paramTypes := readStringsFromFile("./resources/param-type-name")
+    for _, paramType := range(paramTypes) {
         base.ParamTypes().
             LoadModelData(map[string]interface{}{"name": paramType}).
             QueryInsert("").
