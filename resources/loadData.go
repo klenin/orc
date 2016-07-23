@@ -13,41 +13,13 @@ import (
     "strings"
     "time"
     "log"
+    "fmt"
 )
 
 const USER_COUNT = 20
+const EVENTS_COUNT = 20
 
 var base = new(models.ModelManager)
-
-func random(min, max int) int {
-    return rand.Intn(max-min) + min
-}
-
-func prepare(v1, v2, v3 string) (v1_, v2_, v3_ string) {
-    if len(v1) <= 1 {
-        v1 = "0" + v1
-    }
-    if len(v2) <= 1 {
-        v2 = "0" + v2
-    }
-    if len(v3) <= 1 {
-        v3 = "0" + v3
-    }
-
-    return v1, v2, v3
-}
-
-func addDate(d, m, y string) string {
-    d, m, y = prepare(d, m, y)
-
-    return d + "-" + m + "-" + y
-}
-
-func addTime(h, m, s string) string {
-    h, m, s = prepare(h, m, s)
-
-    return h + ":" + m + ":" + s
-}
 
 func Load() {
     rand.Seed(time.Now().UnixNano())
@@ -170,23 +142,23 @@ func loadUsers() {
 }
 
 func loadEvents() {
-    eventNames, _ := ioutil.ReadFile("./resources/event-name")
-    subjectNames, _ := ioutil.ReadFile("./resources/subject-name")
-    eventNameSource := strings.Split(string(eventNames), "\n")
-    subjectNameSource := strings.Split(string(subjectNames), "\n")
-    for i := 0; i < len(eventNameSource); i++ {
-        eventName := strings.TrimSpace(eventNameSource[rand.Intn(len(eventNameSource))])
-        eventName += " по дисциплине "
-        eventName += "\"" + strings.TrimSpace(subjectNameSource[rand.Intn(len(subjectNameSource))]) + "\""
-        dateStart := addDate(strconv.Itoa(random(1894, 2014)), strconv.Itoa(random(1, 12)), strconv.Itoa(random(1, 28)))
-        dateFinish := addDate(strconv.Itoa(random(1894, 2014)), strconv.Itoa(random(1, 12)), strconv.Itoa(random(1, 28)))
-        time := addTime(strconv.Itoa(random(0, 11)), strconv.Itoa(random(1, 60)), strconv.Itoa(random(1, 60)))
+    eventNames := readStringsFromFile("./resources/event-type.txt")
+    subjectNames := readStringsFromFile("./resources/event-subject.txt")
+    for i := 0; i < EVENTS_COUNT; i++ {
+        eventName := fmt.Sprintf("%s по дисциплине \"%s\"",
+            eventNames[rand.Intn(len(eventNames))], subjectNames[rand.Intn(len(subjectNames))])
+
+        var secInYear int64 = 365 * 24 * 60 * 60
+        timeRangeFrom := time.Now().Unix() - secInYear * 5
+        timeRangeTo := time.Now().Unix() + secInYear
+        timeStart := time.Unix(timeRangeFrom + rand.Int63n(timeRangeTo - timeRangeFrom), 0)
+        timeFinish := time.Unix(timeStart.Unix() + rand.Int63n(7 * 24 * 60 * 60), 0)
         params := map[string]interface{}{
             "name": eventName,
-            "date_start": dateStart,
-            "date_finish": dateFinish,
-            "time": time,
-            "team": false,
+            "date_start": timeStart.Format("2006-01-02"),
+            "date_finish": timeFinish.Format("2006-01-02"),
+            "time": timeStart.Format("15:04:05"),
+            "team": rand.Int() % 3 == 2,
             "url": ""}
         base.Events().LoadModelData(params).QueryInsert("").Scan()
     }
