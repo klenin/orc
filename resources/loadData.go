@@ -115,25 +115,43 @@ func loadUsers() {
     base := new(controllers.BaseController)
     date := time.Now().Format("2006-01-02T15:04:05Z00:00")
 
+    type FullNames struct {
+        firstNames, lastNames, patronymics []string
+    }
+
+    male := FullNames{
+        firstNames: readStringsFromFile("./resources/first-name-male.txt"),
+        lastNames: readStringsFromFile("./resources/last-name-male.txt"),
+        patronymics: readStringsFromFile("./resources/patronymic-male.txt"),
+    }
+    female := FullNames{
+        firstNames: readStringsFromFile("./resources/first-name-female.txt"),
+        lastNames: readStringsFromFile("./resources/last-name-female.txt"),
+        patronymics: readStringsFromFile("./resources/patronymic-female.txt"),
+    }
+
     for i := 0; i < USER_COUNT; i++ {
-        userName := "user"+strconv.Itoa(i)
-        userEmail := userName+"@mail.ru"
+        userName := "user" + strconv.Itoa(i + 1)
+        userEmail := userName + "@example.com"
 
-        result, regId := base.RegistrationController().Register(userName, "secret"+strconv.Itoa(i), userEmail, "user")
+        result, regId := base.RegistrationController().Register(userName, "password", userEmail, "user")
         if result != "ok" {
-            utils.HandleErr("[loadUsers]: "+result, nil, nil)
-            continue
+            log.Fatalln("[loadUsers]:", result)
         }
 
-        query := `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
-            VALUES (4, $1, $2, NULL, $3);`
-        db.Exec(query, []interface{}{userEmail, date, regId})
+        query := `INSERT INTO param_values (param_id, value, date, reg_id)
+            VALUES ($1, $2, $3, $4);`
 
-        for k := 5; k < 8; k++ {
-            query := `INSERT INTO param_values (param_id, value, date, user_id, reg_id)
-                VALUES (`+strconv.Itoa(k)+`, '`+userName+`', $1, NULL, $2);`
-            db.Exec(query, []interface{}{date, regId})
+        db.Exec(query, []interface{}{4, userEmail, date, regId})
+        var fullNames FullNames
+        if rand.Int() % 2 == 1 {
+            fullNames = male
+        } else {
+            fullNames = female
         }
+        db.Exec(query, []interface{}{6, fullNames.firstNames[rand.Intn(len(fullNames.firstNames))], date, regId})
+        db.Exec(query, []interface{}{5, fullNames.lastNames[rand.Intn(len(fullNames.lastNames))], date, regId})
+        db.Exec(query, []interface{}{7, fullNames.patronymics[rand.Intn(len(fullNames.patronymics))], date, regId})
 
         query = `SELECT users.token FROM registrations
             INNER JOIN events ON registrations.event_id = events.id
@@ -143,8 +161,7 @@ func loadUsers() {
         res := db.Query(query, []interface{}{1, regId})
 
         if len(res) == 0 {
-            utils.HandleErr("[loadUsers]: ", errors.New("Data are not faund."), nil)
-            continue
+            log.Fatalln("[loadUsers]:", "Data are not found")
         }
 
         token := res[0].(map[string]interface{})["token"].(string)
