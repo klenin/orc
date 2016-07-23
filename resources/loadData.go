@@ -19,8 +19,6 @@ const USER_COUNT = 20
 var base = new(models.ModelManager)
 
 func random(min, max int) int {
-    rand.Seed(int64(time.Now().Second()))
-
     return rand.Intn(max-min) + min
 }
 
@@ -51,6 +49,8 @@ func addTime(h, m, s string) string {
 }
 
 func Load() {
+    rand.Seed(int64(time.Now().Second()))
+
     loadUsers()
     loadEvents()
     loadEventTypes()
@@ -100,7 +100,6 @@ func loadUsers() {
     date := time.Now().Format("2006-01-02T15:04:05Z00:00")
 
     for i := 0; i < USER_COUNT; i++ {
-        rand.Seed(int64(i))
         userName := "user"+strconv.Itoa(i)
         userEmail := userName+"@mail.ru"
 
@@ -143,7 +142,6 @@ func loadEvents() {
     eventNameSource := strings.Split(string(eventNames), "\n")
     subjectNameSource := strings.Split(string(subjectNames), "\n")
     for i := 0; i < len(eventNameSource); i++ {
-        rand.Seed(int64(i))
         eventName := strings.TrimSpace(eventNameSource[rand.Intn(len(eventNameSource))])
         eventName += " по дисциплине "
         eventName += "\"" + strings.TrimSpace(subjectNameSource[rand.Intn(len(subjectNameSource))]) + "\""
@@ -166,7 +164,6 @@ func loadEventTypes() {
     eventTypeNamesSourse := strings.Split(string(eventTypeNames), "\n")
     topicality := []bool{true, false}
     for i := 0; i < len(eventTypeNamesSourse); i++ {
-        //rand.Seed(int64(i))
         eventTypeName := strings.TrimSpace(eventTypeNamesSourse[i])
         params := map[string]interface{}{"name": eventTypeName, "description": "", "topicality": topicality[rand.Intn(2)]}
         base.EventTypes().LoadModelData(params).QueryInsert("").Scan()
