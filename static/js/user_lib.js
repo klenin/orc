@@ -1,33 +1,22 @@
 define(["utils", "grid_lib"], function(utils, gridLib) {
 
-    function GetServerMsg(msg) {
-        console.log("GetServerMsg");
-
-        if (msg === "ok") {
-            return "Пароль изменен";
-        } else if (msg === "badPassword") {
-            return "Неверные значения паролей. Пароль должен иметь длину от 6 до 36 символов";
-        } else if (msg === "differentPasswords") {
-            return "Пароли не совпадают";
-        }
-    }
+    var serverMsg = {
+        ok: "Пароль изменен",
+        badPassword: "Пароль должен иметь длину от 6 до 36 символов",
+        differentPasswords: "Пароли не совпадают"
+    };
 
     function CheckPass(passId1, passId2) {
-        console.log("CheckPass");
-
         var pattern = /^.{6,36}$/;
+        var pass1 = $("#"+passId1).val(), pass2 = $("#"+passId2).val();
 
-        if (pattern.test($("#"+passId1).val())
-            && pattern.test($("#"+passId2).val())
-            && $("#"+passId1).val() === $("#"+passId2).val()) {
-            return { "result": true, "msg": GetServerMsg("ok") };
+        if (pass1 !== pass2)
+            return { "result": false, "msg": serverMsg.differentPasswords };
 
-        } else if ($("#"+passId1).val() !== $("#"+passId2).val()) {
-            return { "result": false, "msg": GetServerMsg("differentPasswords") };
+        if (!pattern.test(pass1) || !pattern.test(pass2))
+            return { "result": false, "msg": serverMsg.badPassword };
 
-        } else if (!pattern.test($("#"+passId1).val()) || !pattern.test($("#"+passId2).val())) {
-            return { "result": false, "msg": GetServerMsg("badPassword") };
-        }
+        return { "result": true, "msg": serverMsg.ok };
     }
 
     function ResetPassword(dialogId, gridId, passId1, passId2) {
