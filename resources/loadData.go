@@ -49,7 +49,7 @@ func addTime(h, m, s string) string {
 }
 
 func Load() {
-    rand.Seed(int64(time.Now().Second()))
+    rand.Seed(time.Now().UnixNano())
 
     loadUsers()
     loadEvents()
