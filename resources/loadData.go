@@ -174,7 +174,7 @@ func loadEventTypes() {
 }
 
 func loadForms() {
-    formNames := readStringsFromFile("./resources/form-name")
+    formNames := readStringsFromFile("./resources/form-name.txt")
     for _, formName := range(formNames) {
         base.Forms().
             LoadModelData(map[string]interface{}{"name": formName, "personal": true}).
