@@ -58,7 +58,7 @@ func QueryRow(query string, params []interface{}) *sql.Row {
     return result
 }
 
-func QueryCreateSecuence(tableName string) {
+func QueryCreateSequence(tableName string) {
     Exec("CREATE SEQUENCE "+tableName+"_id_seq;", nil)
 }
 
@@ -66,7 +66,7 @@ func QueryCreateTable(m interface{}) {
     model := reflect.ValueOf(m)
     tableName := model.Elem().FieldByName("tableName").String()
 
-    QueryCreateSecuence(tableName)
+    QueryCreateSequence(tableName)
     query := "CREATE TABLE IF NOT EXISTS %s ("
     mF := model.Elem().FieldByName("fields").Elem().Type()
     for i := 0; i < mF.Elem().NumField(); i++ {
