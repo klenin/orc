@@ -6,15 +6,7 @@ function(utils, gridLib, datepicker, kladr) {
 
         var block;
 
-        if (data["type"] === "region"
-            || data["type"] === "district"
-            || data["type"] === "city"
-            || data["type"] === "street"
-            || data["type"] === "building"
-            || data["type"] === "text"
-            || data["type"] === "email"
-            || data["type"] === "password"
-            || data["type"] === "phon") {
+        if (["region", "district", "city", "street", "building", "text", "email", "password", "phon"].indexOf(data["type"]) >= 0) {
             block = $("<input/>", {type: data["type"]});
 
         } else if (data["type"] === "textarea") {
