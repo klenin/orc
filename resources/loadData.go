@@ -21,6 +21,135 @@ const EVENTS_COUNT = 20
 
 var base = new(models.ModelManager)
 
+func ClearDatabase() {
+    for k, v := range db.Tables {
+        db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE;", v), nil)
+        db.Exec(fmt.Sprintf("DROP SEQUENCE IF EXISTS %s_id_seq;", v), nil)
+        db.QueryCreateTable(base.GetModel(db.Tables[k]))
+    }
+}
+
+func CreateRegistrationEvent() {
+    var eventId int
+    base.GetModel("events").
+            LoadModelData(map[string]interface{}{
+        "name": "Регистрация для входа в систему",
+        "date_start": "2006-01-02",
+        "date_finish": "2006-01-02",
+        "time": "00:00:00"}).
+            QueryInsert("RETURNING id").
+            Scan(&eventId)
+
+    var formId1 int
+    base.GetModel("forms").
+            LoadModelData(map[string]interface{}{"name": "Регистрационные данные", "personal": true}).
+            QueryInsert("RETURNING id").
+            Scan(&formId1)
+
+    base.GetModel("events_forms").
+            LoadModelData(map[string]interface{}{"form_id": formId1, "event_id": eventId}).
+            QueryInsert("").
+            Scan()
+
+    var paramTextTypeId int
+    paramTypes := base.GetModel("param_types")
+    paramTypes.LoadModelData(map[string]interface{}{"name": "text"}).
+            QueryInsert("RETURNING id").
+            Scan(&paramTextTypeId)
+
+    var paramPassTypeId int
+    paramTypes.LoadModelData(map[string]interface{}{"name": "password"}).
+            QueryInsert("RETURNING id").
+            Scan(&paramPassTypeId)
+
+    params := base.GetModel("params")
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Логин",
+        "form_id":       formId1,
+        "param_type_id": paramTextTypeId,
+        "identifier":    2,
+        "required":      true,
+        "editable":      true}).
+            QueryInsert("").
+            Scan()
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Пароль",
+        "form_id":       formId1,
+        "param_type_id": paramPassTypeId,
+        "identifier":    3,
+        "required":      true,
+        "editable":      true}).
+            QueryInsert("").
+            Scan()
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Подтвердите пароль",
+        "form_id":       formId1,
+        "param_type_id": paramPassTypeId,
+        "identifier":    4,
+        "required":      true,
+        "editable":      true}).
+            QueryInsert("").
+            Scan()
+
+    var paramEmailTypeId int
+    paramTypes.LoadModelData(map[string]interface{}{"name": "email"}).
+            QueryInsert("RETURNING id").
+            Scan(&paramEmailTypeId)
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "E-mail",
+        "form_id":       formId1,
+        "param_type_id": paramTextTypeId,
+        "identifier":    5,
+        "required":      true,
+        "editable":      true}).
+            QueryInsert("").
+            Scan()
+
+    var formId2 int
+    base.GetModel("forms").
+            LoadModelData(map[string]interface{}{"name": "Общие сведения", "personal": true}).
+            QueryInsert("RETURNING id").
+            Scan(&formId2)
+
+    base.GetModel("events_forms").
+            LoadModelData(map[string]interface{}{"form_id": formId2, "event_id": eventId}).
+            QueryInsert("").
+            Scan()
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Фамилия",
+        "form_id":       formId2,
+        "param_type_id": paramTextTypeId,
+        "identifier":    6,
+        "required":      true,
+        "editable":      true}).
+            QueryInsert("").
+            Scan()
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Имя",
+        "form_id":       formId2,
+        "param_type_id": paramTextTypeId,
+        "identifier":    7,
+        "required":      true,
+        "editable":      true}).
+            QueryInsert("").
+            Scan()
+
+    params.LoadModelData(map[string]interface{}{
+        "name":          "Отчество",
+        "form_id":       formId2,
+        "param_type_id": paramTextTypeId,
+        "identifier":    8,
+        "required":      true,
+        "editable":      true}).
+            QueryInsert("").
+            Scan()
+}
+
 func Load() {
     rand.Seed(time.Now().UnixNano())
 

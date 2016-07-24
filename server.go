@@ -33,7 +33,8 @@ func main() {
     flag.Parse()
 
     if *resetDB == true {
-        new(controllers.BaseController).IndexController().Init(*testData)
+        resources.ClearDatabase()
+        resources.CreateRegistrationEvent()
         resources.LoadAdmin()
         resources.LoadParamTypes()
     }
