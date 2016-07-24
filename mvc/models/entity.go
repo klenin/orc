@@ -287,67 +287,39 @@ func (this Entity) GenerateWherePart(counter int) (string, []interface{}) {
     return strings.Join(key, " "+this.GetConditionName()+" "), val
 }
 
-func (this *Entity) Select_(fields []string) []interface{} {
-    query := "SELECT %s FROM %s"
-    if len(this.wherePart) != 0 {
-        where, params := this.GenerateWherePart(1)
-        params = append(params, this.orderBy)
-        query += " WHERE %s ORDER BY $" + strconv.Itoa(len(params))
-
-        switch this.limit.(type) {
-        case string:
-            query += " LIMIT ALL"
-            break
-        case int:
-            query += " LIMIT $" + strconv.Itoa(len(params))
-            params = append(params, this.limit)
-            break
-        default:
-            panic("Invalid type of limit")
-        }
-
-        params = append(params, this.offset)
-        query += " OFFSET $" + strconv.Itoa(len(params)) + ";"
-
-        return db.Query(fmt.Sprintf(query, strings.Join(fields, ", "), this.tableName, where), params)
-    } else {
-        query += " ORDER BY $1 LIMIT $2 OFFSET $3;"
-
-        return db.Query(
-            fmt.Sprintf(query, strings.Join(fields, ", "), this.tableName),
-            []interface{}{this.GetOrder(), this.GetLimit(), this.GetOffset()})
-    }
-}
-
-func (this *Entity) Select(fields []string, filters map[string]interface{}) (result []interface{}) {
+func (this *Entity) _select(fields []string, whereCond string, whereParam []interface{}) []interface{} {
     if len(fields) == 0 {
         return nil
     }
-
-    where, params, _ := this.Where(filters, 1)
-    if where != "" {
-        where = " WHERE " + where
+    query := fmt.Sprintf("SELECT %s FROM %s", strings.Join(fields, ", "), this.GetTableName())
+    var params []interface{}
+    if whereCond != "" {
+        query += " WHERE " + whereCond
+        params = append(params, whereParam...)
     }
-    query := `SELECT ` + strings.Join(fields, ", ") + ` FROM ` + this.GetTableName() + where
-    query += ` ORDER BY ` + this.GetTableName() + "." + this.orderBy
-    query += ` `+ this.sorting
-
-    switch this.limit.(type) {
-    case string:
-        query += " LIMIT ALL"
-        break
-    case int:
+    params = append(params, this.GetTableName() + "." + this.GetOrder() + " " + this.GetSorting())
+    query += " ORDER BY $" + strconv.Itoa(len(params))
+    if l, f := this.GetLimit().(int); f {
+        params = append(params, l)
         query += " LIMIT $" + strconv.Itoa(len(params))
-        params = append(params, this.GetLimit())
-        break
-    default:
-        panic("Invalid type of limit")
     }
-
     params = append(params, this.GetOffset())
-    query += ` OFFSET $` + strconv.Itoa(len(params)) + `;`
-
+    query += " OFFSET $" + strconv.Itoa(len(params))
     return db.Query(query, params)
+}
+
+func (this *Entity) Select_(fields []string) []interface{} {
+    var whereCond string
+    var whereParam []interface{}
+    if len(this.wherePart) != 0 {
+        whereCond, whereParam = this.GenerateWherePart(1)
+    }
+    return this._select(fields, whereCond, whereParam)
+}
+
+func (this *Entity) Select(fields []string, filters map[string]interface{}) ([]interface{}) {
+    where, params, _ := this.Where(filters, 1)
+    return this._select(fields, where, params)
 }
 
 func (this *Entity) Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int) {
