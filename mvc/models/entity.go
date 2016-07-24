@@ -457,33 +457,26 @@ func (this *Entity) Delete(id int) {
 }
 
 func (this *Entity) QueryUpdate() *sql.Row {
-    j := 1
-    query := "UPDATE %s SET "
+    query := fmt.Sprintf("UPDATE %s SET ", this.tableName)
     tFields := reflect.ValueOf(this.fields).Type().Elem()
     vFields := reflect.ValueOf(this.fields).Elem()
     params := make([]interface{}, 0)
 
+    var set []string
     for i := 1; i < tFields.NumField(); i++ {
-        value, ok := utils.UpdateOrNot(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
-        if !ok {
-            continue
+        if value, ok := utils.UpdateOrNot(tFields.Field(i).Tag.Get("type"), vFields.Field(i)); ok {
+            params = append(params, value)
+            set = append(set, tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(len(params)))
         }
-        query += tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(j) + ", "
-        params = append(params, value)
-        j++
     }
-    query = query[0 : len(query)-2]
+    query += strings.Join(set, ", ")
 
     if len(this.wherePart) != 0 {
-        query += " WHERE %s;"
-        v1, v2 := this.GenerateWherePart(j)
-
-        return db.QueryRow(fmt.Sprintf(query, this.tableName, v1), append(params, v2...))
-    } else {
-        query += ";"
-
-        return db.QueryRow(fmt.Sprintf(query, this.tableName), params)
+        v1, v2 := this.GenerateWherePart(len(params) + 1)
+        query += " WHERE " + v1
+        params = append(params, v2...)
     }
+    return db.QueryRow(query + ";", params)
 }
 
 func (this *Entity) Update(isAdmin bool, userId int, params, where map[string]interface{}) {
