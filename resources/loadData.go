@@ -29,6 +29,73 @@ func ClearDatabase() {
     }
 }
 
+func getEntityIdByName(model models.EntityInterface, name string) (id int) {
+    if items := model.LoadWherePart(map[string]interface{}{"name": name}).Select_([]string{"id"}); len(items) > 0 {
+        return items[0].(map[string]interface{})["id"].(int)
+    }
+    return -1
+}
+
+func getOrCreateParamType(name string) (id int) {
+    model := base.GetModel("param_types")
+    if id = getEntityIdByName(model, name); id != -1 {
+        return id
+    }
+    model.LoadModelData(map[string]interface{}{"name": name}).
+            QueryInsert("RETURNING id").Scan(&id)
+    return id
+}
+
+func createFormParam(name string, formId, typeId, identifier int) {
+    params := base.GetModel("params")
+    params.LoadModelData(map[string]interface{}{
+        "name":          name,
+        "form_id":       formId,
+        "param_type_id": typeId,
+        "identifier":    identifier,
+        "required":      true,
+        "editable":      true}).
+            QueryInsert("").Scan()
+}
+
+func getOrCreateRegForm() (id int) {
+    name := "Регистрационные данные"
+    model := base.GetModel("forms")
+    if id = getEntityIdByName(model, name); id != -1 {
+        return id
+    }
+    model.LoadModelData(map[string]interface{}{"name": name, "personal": true}).
+            QueryInsert("RETURNING id").Scan(&id)
+    paramTextTypeId := getOrCreateParamType("text")
+    paramPassTypeId := getOrCreateParamType("password")
+    createFormParam("Логин", id, paramTextTypeId, 2)
+    createFormParam("Пароль", id, paramPassTypeId, 3)
+    createFormParam("Подтвердите пароль", id, paramPassTypeId, 4)
+    createFormParam("E-mail", id, paramTextTypeId, 5)
+    return id
+}
+
+func getOrCreateNamesForm() (id int) {
+    name := "Общие сведения"
+    model := base.GetModel("forms")
+    if id = getEntityIdByName(model, name); id != -1 {
+        return id
+    }
+    model.LoadModelData(map[string]interface{}{"name": name, "personal": true}).
+            QueryInsert("RETURNING id").Scan(&id)
+    paramTextTypeId := getOrCreateParamType("text")
+    createFormParam("Фамилия", id, paramTextTypeId, 6)
+    createFormParam("Имя", id, paramTextTypeId, 7)
+    createFormParam("Отчество", id, paramTextTypeId, 8)
+    return id
+}
+
+func addFormToEvent(formId, eventId int) {
+    base.GetModel("events_forms").
+            LoadModelData(map[string]interface{}{"form_id": formId, "event_id": eventId}).
+            QueryInsert("").Scan()
+}
+
 func CreateRegistrationEvent() {
     var eventId int
     base.GetModel("events").
@@ -37,117 +104,9 @@ func CreateRegistrationEvent() {
         "date_start": "2006-01-02",
         "date_finish": "2006-01-02",
         "time": "00:00:00"}).
-            QueryInsert("RETURNING id").
-            Scan(&eventId)
-
-    var formId1 int
-    base.GetModel("forms").
-            LoadModelData(map[string]interface{}{"name": "Регистрационные данные", "personal": true}).
-            QueryInsert("RETURNING id").
-            Scan(&formId1)
-
-    base.GetModel("events_forms").
-            LoadModelData(map[string]interface{}{"form_id": formId1, "event_id": eventId}).
-            QueryInsert("").
-            Scan()
-
-    var paramTextTypeId int
-    paramTypes := base.GetModel("param_types")
-    paramTypes.LoadModelData(map[string]interface{}{"name": "text"}).
-            QueryInsert("RETURNING id").
-            Scan(&paramTextTypeId)
-
-    var paramPassTypeId int
-    paramTypes.LoadModelData(map[string]interface{}{"name": "password"}).
-            QueryInsert("RETURNING id").
-            Scan(&paramPassTypeId)
-
-    params := base.GetModel("params")
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Логин",
-        "form_id":       formId1,
-        "param_type_id": paramTextTypeId,
-        "identifier":    2,
-        "required":      true,
-        "editable":      true}).
-            QueryInsert("").
-            Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Пароль",
-        "form_id":       formId1,
-        "param_type_id": paramPassTypeId,
-        "identifier":    3,
-        "required":      true,
-        "editable":      true}).
-            QueryInsert("").
-            Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Подтвердите пароль",
-        "form_id":       formId1,
-        "param_type_id": paramPassTypeId,
-        "identifier":    4,
-        "required":      true,
-        "editable":      true}).
-            QueryInsert("").
-            Scan()
-
-    var paramEmailTypeId int
-    paramTypes.LoadModelData(map[string]interface{}{"name": "email"}).
-            QueryInsert("RETURNING id").
-            Scan(&paramEmailTypeId)
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "E-mail",
-        "form_id":       formId1,
-        "param_type_id": paramTextTypeId,
-        "identifier":    5,
-        "required":      true,
-        "editable":      true}).
-            QueryInsert("").
-            Scan()
-
-    var formId2 int
-    base.GetModel("forms").
-            LoadModelData(map[string]interface{}{"name": "Общие сведения", "personal": true}).
-            QueryInsert("RETURNING id").
-            Scan(&formId2)
-
-    base.GetModel("events_forms").
-            LoadModelData(map[string]interface{}{"form_id": formId2, "event_id": eventId}).
-            QueryInsert("").
-            Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Фамилия",
-        "form_id":       formId2,
-        "param_type_id": paramTextTypeId,
-        "identifier":    6,
-        "required":      true,
-        "editable":      true}).
-            QueryInsert("").
-            Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Имя",
-        "form_id":       formId2,
-        "param_type_id": paramTextTypeId,
-        "identifier":    7,
-        "required":      true,
-        "editable":      true}).
-            QueryInsert("").
-            Scan()
-
-    params.LoadModelData(map[string]interface{}{
-        "name":          "Отчество",
-        "form_id":       formId2,
-        "param_type_id": paramTextTypeId,
-        "identifier":    8,
-        "required":      true,
-        "editable":      true}).
-            QueryInsert("").
-            Scan()
+            QueryInsert("RETURNING id").Scan(&eventId)
+    addFormToEvent(getOrCreateRegForm(), eventId);
+    addFormToEvent(getOrCreateNamesForm(), eventId);
 }
 
 func Load() {
