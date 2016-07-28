@@ -274,9 +274,6 @@ func loadForms() {
 func LoadParamTypes() {
     paramTypes := readStringsFromFile("./resources/param-type-name.txt")
     for _, paramType := range(paramTypes) {
-        base.ParamTypes().
-            LoadModelData(map[string]interface{}{"name": paramType}).
-            QueryInsert("").
-            Scan()
+        getOrCreateParamType(paramType);
     }
 }
