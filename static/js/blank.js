@@ -6,15 +6,16 @@ function(utils, gridLib, datepicker, kladr) {
 
         var block;
 
-        if (["region", "district", "city", "street", "building", "text", "email", "password", "phon"].indexOf(data["type"]) >= 0) {
-            block = $("<input/>", {type: data["type"]});
-
-        } else if (data["type"] === "textarea") {
-            block = $("<textarea/>", {});
-
-        } else if (data["type"] === "date") {
-            block = $("<input/>", {type: "date"});
-            datepicker.initDatePicker(block);
+        switch (data["type"]) {
+            case "textarea":
+                block = $("<textarea/>", {});
+                break;
+            case "date":
+                block = $("<input/>", {type: "date"});
+                datepicker.initDatePicker(block);
+                break;
+            default:
+                block = $("<input/>", {type: data["type"]});
         }
 
         block.attr("id", data["param_id"]);
