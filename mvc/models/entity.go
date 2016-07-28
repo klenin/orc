@@ -153,20 +153,15 @@ func (this *Entity) SetLimit(limit interface{}) *Entity {
         if limit.(string) != "ALL" {
             panic("[Entity::SetLimit] Invalid value")
         }
-        this.limit = limit
-
-        return this
     case int:
         if limit.(int) < 0 {
             panic("[Entity::SetLimit] Invalid value")
         }
-        this.limit = limit
-
-        return this
-
     default:
         panic("[Entity::SetLimit] Invalid type")
     }
+    this.limit = limit
+    return this
 }
 
 func (this *Entity) GetLimit() interface{} {
@@ -585,6 +580,4 @@ func (this *ModelManager) GetModel(tableName string) EntityInterface {
     default:
         panic("Table is dont exists!")
     }
-
-    return nil
 }
