@@ -28,7 +28,21 @@ func loadEvents() {
 			"time": timeStart.Format("15:04:05"),
 			"team": rand.Int() % 3 == 2,
 			"url": ""}
-		base.Events().LoadModelData(params).QueryInsert("").Scan()
+		var eventId int
+		base.Events().LoadModelData(params).QueryInsert("RETURNING id").Scan(&eventId)
+
+		formIds := base.Forms().SetLimit(10).Select_([]string{"id"})
+		addedFormIds := map[int]bool{}
+		count := rand.Intn(len(formIds))
+		for i := 0; i < count; i++ {
+			r := rand.Intn(len(formIds))
+			id := formIds[r].(map[string]interface{})["id"].(int)
+			if addedFormIds[id] {
+				continue
+			}
+			addFormToEvent(id, eventId)
+			addedFormIds[id] = true
+		}
 	}
 }
 
