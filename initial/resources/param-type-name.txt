@@ -7,3 +7,4 @@ building
 text
 password
 textarea
+tel

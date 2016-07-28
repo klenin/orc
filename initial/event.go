@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 	"fmt"
+	"log"
 )
 
 const EVENT_COUNT = 20
@@ -41,6 +42,9 @@ func loadEventTypes() {
 }
 
 func addFormToEvent(formId, eventId int) {
+	if formId == -1 {
+		log.Fatalln("Invalid formId")
+	}
 	base.GetModel("events_forms").
 		LoadModelData(map[string]interface{}{"form_id": formId, "event_id": eventId}).
 		QueryInsert("").Scan()
@@ -55,6 +59,6 @@ func createRegistrationEvent() {
 		"date_finish": "2006-01-02",
 		"time": "00:00:00"}).
 		QueryInsert("RETURNING id").Scan(&eventId)
-	addFormToEvent(getOrCreateRegForm(), eventId);
-	addFormToEvent(getOrCreateNamesForm(), eventId);
+	addFormToEvent(getEntityIdByName(base.Forms(), "Регистрационные данные"), eventId);
+	addFormToEvent(getEntityIdByName(base.Forms(), "Общие сведения"), eventId);
 }

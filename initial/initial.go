@@ -11,9 +11,10 @@ import (
 func Init(resetDB, loadTestData bool) {
 	if resetDB {
 		clearDatabase()
-		createRegistrationEvent()
 		loadAdmin()
 		loadParamTypes()
+		loadForms()
+		createRegistrationEvent()
 	}
 
 	if loadTestData {
@@ -22,7 +23,6 @@ func Init(resetDB, loadTestData bool) {
 		loadUsers()
 		loadEvents()
 		loadEventTypes()
-		loadForms()
 	}
 }
 

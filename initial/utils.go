@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"log"
+	"encoding/json"
 )
 
 func readStringsFromFile(fileName string) []string {
@@ -20,6 +21,18 @@ func readStringsFromFile(fileName string) []string {
 		}
 	}
 	return r
+}
+
+func readJsonFile(fileName string) (result interface{}) {
+	content, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		log.Fatalln("loadData:", err.Error())
+	}
+	err = json.Unmarshal(content, &result)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return result
 }
 
 func getEntityIdByName(model models.EntityInterface, name string) int {
