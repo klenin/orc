@@ -20,8 +20,8 @@ func Init(resetDB, loadTestData bool) {
 	if loadTestData {
 		rand.Seed(time.Now().UnixNano())
 
-		loadUsers()
-		loadEvents()
+		generateUsers(20)
+		generateEvents(20)
 		loadEventTypes()
 	}
 }

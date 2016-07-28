@@ -12,8 +12,6 @@ import (
 	"log"
 )
 
-const USER_COUNT = 20
-
 func loadAdmin() {
 	base := new(controllers.BaseController)
 	date := time.Now().Format("2006-01-02T15:04:05Z00:00")
@@ -52,7 +50,7 @@ func loadAdmin() {
 	base.RegistrationController().ConfirmUser(token)
 }
 
-func loadUsers() {
+func generateUsers(count int) {
 	base := new(controllers.BaseController)
 	date := time.Now().Format("2006-01-02T15:04:05Z00:00")
 
@@ -71,7 +69,7 @@ func loadUsers() {
 		patronymics: readStringsFromFile(getResourcePath("patronymic-female.txt")),
 	}
 
-	for i := 0; i < USER_COUNT; i++ {
+	for i := 0; i < count; i++ {
 		userName := "user" + strconv.Itoa(i + 1)
 		userEmail := userName + "@example.com"
 

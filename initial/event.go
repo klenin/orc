@@ -7,12 +7,10 @@ import (
 	"log"
 )
 
-const EVENT_COUNT = 20
-
-func loadEvents() {
+func generateEvents(count int) {
 	eventNames := readStringsFromFile(getResourcePath("event-type.txt"))
 	subjectNames := readStringsFromFile(getResourcePath("event-subject.txt"))
-	for i := 0; i < EVENT_COUNT; i++ {
+	for i := 0; i < count; i++ {
 		eventName := fmt.Sprintf("%s по дисциплине \"%s\"",
 			eventNames[rand.Intn(len(eventNames))], subjectNames[rand.Intn(len(subjectNames))])
 
