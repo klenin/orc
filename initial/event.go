@@ -1,0 +1,60 @@
+package initial
+
+import (
+	"math/rand"
+	"time"
+	"fmt"
+)
+
+const EVENT_COUNT = 20
+
+func loadEvents() {
+	eventNames := readStringsFromFile(getResourcePath("event-type.txt"))
+	subjectNames := readStringsFromFile(getResourcePath("event-subject.txt"))
+	for i := 0; i < EVENT_COUNT; i++ {
+		eventName := fmt.Sprintf("%s по дисциплине \"%s\"",
+			eventNames[rand.Intn(len(eventNames))], subjectNames[rand.Intn(len(subjectNames))])
+
+		var secInYear int64 = 365 * 24 * 60 * 60
+		timeRangeFrom := time.Now().Unix() - secInYear * 5
+		timeRangeTo := time.Now().Unix() + secInYear
+		timeStart := time.Unix(timeRangeFrom + rand.Int63n(timeRangeTo - timeRangeFrom), 0)
+		timeFinish := time.Unix(timeStart.Unix() + rand.Int63n(7 * 24 * 60 * 60), 0)
+		params := map[string]interface{}{
+			"name": eventName,
+			"date_start": timeStart.Format("2006-01-02"),
+			"date_finish": timeFinish.Format("2006-01-02"),
+			"time": timeStart.Format("15:04:05"),
+			"team": rand.Int() % 3 == 2,
+			"url": ""}
+		base.Events().LoadModelData(params).QueryInsert("").Scan()
+	}
+}
+
+func loadEventTypes() {
+	eventTypes := readStringsFromFile(getResourcePath("event-type.txt"))
+	topicality := []bool{true, false}
+	for _, eventType := range eventTypes {
+		params := map[string]interface{}{"name": eventType, "description": "", "topicality": topicality[rand.Intn(2)]}
+		base.EventTypes().LoadModelData(params).QueryInsert("").Scan()
+	}
+}
+
+func addFormToEvent(formId, eventId int) {
+	base.GetModel("events_forms").
+		LoadModelData(map[string]interface{}{"form_id": formId, "event_id": eventId}).
+		QueryInsert("").Scan()
+}
+
+func createRegistrationEvent() {
+	var eventId int
+	base.GetModel("events").
+		LoadModelData(map[string]interface{}{
+		"name": "Регистрация для входа в систему",
+		"date_start": "2006-01-02",
+		"date_finish": "2006-01-02",
+		"time": "00:00:00"}).
+		QueryInsert("RETURNING id").Scan(&eventId)
+	addFormToEvent(getOrCreateRegForm(), eventId);
+	addFormToEvent(getOrCreateNamesForm(), eventId);
+}
