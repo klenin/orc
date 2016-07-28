@@ -322,129 +322,78 @@ func (this *Entity) Select(fields []string, filters map[string]interface{}) ([]i
     return this._select(fields, where, params)
 }
 
-func (this *Entity) Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int) {
-    where = ""
+func (this *Entity) Where(filters map[string]interface{}, i int) (string, []interface{}, int) {
     if filters == nil {
-        return where, nil, -1
+        return "", nil, -1
     }
-    i := num
+    where := ""
+    params := []interface{}{}
 
     groupOp := filters["groupOp"].(string)
-    rules := filters["rules"].([]interface{})
+    if groupOp != "AND" && groupOp != "OR" {
+        panic("`groupOp` parameter is not allowed!")
+    }
+    var rules []interface{}
+    if filters["rules"] != nil {
+        rules = filters["rules"].([]interface{})
+    }
     var groups []interface{}
     if filters["groups"] != nil {
         groups = filters["groups"].([]interface{})
     }
 
-    if len(rules) > 10 {
-        log.Println("More 10 rules for serching!")
-    }
-
-    firstElem := true
-
     for _, v := range rules {
-        if !firstElem {
-            if groupOp != "AND" && groupOp != "OR" {
-                log.Println("`groupOp` parameter is not allowed!")
-                continue
-            }
+        if where != "" {
             where += " " + groupOp + " "
-        } else {
-            firstElem = false
         }
-
         rule := v.(map[string]interface{})
 
-        switch rule["op"].(string) {
-        case "eq":// equal
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text = $"+strconv.Itoa(i)
+        where += fmt.Sprintf("%s.%s::text ", this.GetTableName(), rule["field"].(string))
+        op := rule["op"].(string)
+        if val, ok := map[string]string{
+            "eq": "= $%d",
+            "ne": "<> $%d",
+            "bw": "LIKE $%d||'%%'",
+            "bn": "NOT LIKE $%d||'%%'",
+            "ew": "LIKE '%%'||$%d",
+            "en": "NOT LIKE '%%'||$%d",
+            "cn": "LIKE '%%'||$%d||'%%'",
+            "nc": "NOT LIKE '%%'||$%d||'%%'",
+        }[op]; ok {
+            where += fmt.Sprintf(val, i)
             params = append(params, rule["data"])
             i += 1
-            break
-        case "ne":// not equal
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text <> $"+strconv.Itoa(i)
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "bw":// begins with
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE $"+strconv.Itoa(i)+"||'%'"
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "bn":// does not begin with
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE $"+strconv.Itoa(i)+"||'%'"
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "ew":// ends with
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "en":// does not end with
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "cn":// contains
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "nc":// does not contain
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "nu":// is null
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text IS NULL"
-            break
-        case "nn":// is not null
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text IS NOT NULL"
-            break
-        case "in":// is in
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text IN ("
-            result := strings.Split(rule["data"].(string), ",")
-            for k := range result {
-                where += "$"+strconv.Itoa(i)+", "
-                params = append(params, result[k])
-                i += 1
+        } else if val, ok := map[string]string{
+            "nu": "IS NULL",
+            "nn": "IS NOT NULL",
+        }[op]; ok {
+            where += val
+        } else if val, ok := map[string]string{
+            "in": "IN",
+            "ni": "NOT IN",
+        }[op]; ok {
+            values := strings.Split(rule["data"].(string), ",")
+            arr := []string{}
+            for _, value := range values {
+                arr = append(arr, "$" + strconv.Itoa(i))
+                params = append(params, value)
             }
-            where = where[:len(where)-2]
-            where += ")"
-            break
-        case "ni":// is not in
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT IN ("
-            result := strings.Split(rule["data"].(string), ",")
-            for k := range result {
-                where += "$"+strconv.Itoa(i)+", "
-                params = append(params, result[k])
-                i += 1
-            }
-            where = where[:len(where)-2]
-            where += ")"
-            break
-        default:
+            where += val + " (" + strings.Join(arr, ", ") + ")"
+        } else {
             panic("`op` parameter is not allowed!")
         }
     }
 
     for _, v := range groups {
-        filters1 := v.(map[string]interface{})
-        where1, params1, num1 :=  this.Where(filters1, i)
-        i = num1
-        if where != "" {
-            if !firstElem {
-                if groupOp != "AND" && groupOp != "OR" {
-                    log.Println("`groupOp` parameter is not allowed!")
-                    continue
-                }
+        var groupWhere string
+        var groupParams []interface{}
+        groupWhere, groupParams, i = this.Where(v.(map[string]interface{}), i)
+        if groupWhere != "" {
+            if where != "" {
                 where += " " + groupOp + " "
-            } else {
-                firstElem = false
             }
-            where += "(" + where1 + ")"
-            params = append(params, params1...)
+            where += "(" + groupWhere + ")"
+            params = append(params, groupParams...)
         }
     }
 
