@@ -107,3 +107,32 @@ func generateUsers(count int) {
 		base.RegistrationController().ConfirmUser(token)
 	}
 }
+
+func generateUserGroups(count int) {
+	faces := base.Faces().Select_([]string{"id"})
+
+	for i := 1; i <= count; i++ {
+		creatorFaceId := faces[rand.Intn(len(faces))].(map[string]interface{})["id"].(int)
+
+		var groupId int
+		base.Groups().LoadModelData(map[string]interface{}{
+			"face_id": creatorFaceId,
+			"name": "group" + strconv.Itoa(i),
+		}).QueryInsert("RETURNING id").Scan(&groupId)
+
+		addedFacesId := map[int]bool{}
+		c := rand.Intn(len(faces))
+		for i := 0; i < c; i++ {
+			faceId := faces[rand.Intn(len(faces))].(map[string]interface{})["id"].(int)
+			if addedFacesId[faceId] {
+				continue
+			}
+			base.Persons().LoadModelData(map[string]interface{}{
+				"group_id": groupId,
+				"face_id": faceId,
+				"status": rand.Intn(2) == 0,
+			}).QueryInsert("").Scan()
+			addedFacesId[faceId] = true
+		}
+	}
+}

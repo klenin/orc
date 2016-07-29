@@ -21,6 +21,7 @@ func Init(resetDB, loadTestData bool) {
 		rand.Seed(time.Now().UnixNano())
 
 		generateUsers(20)
+		generateUserGroups(10)
 		generateEvents(20)
 		loadEventTypes()
 	}
