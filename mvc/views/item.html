@@ -15,8 +15,8 @@
 </div>
 
 <script type="text/javascript">
-require(["utils", "kladr/kladr", "blank", "grid_lib"],
-function(utils, kladr, blank, gridLib) {
+require(["utils", "blank", "grid_lib"],
+function(utils, blank, gridLib) {
     var serverData = {{.}};
 
     var valid = false;
@@ -27,7 +27,7 @@ function(utils, kladr, blank, gridLib) {
     }
 
     blank.getListHistoryEvents("history", forms);
-    kladr.kladr();
+
     $("#now").append($("<input/>", {
         type: "button",
         value: "отправить запрос",
