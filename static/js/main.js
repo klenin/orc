@@ -4,7 +4,7 @@
         jquery: "vendor/jquery/dist/jquery.min",
         jqGrid: "vendor/jqGrid/js/jquery.jqGrid.min",
         "jquery-ui": "vendor/jquery-ui/jquery-ui.min",
-        kladr: "js/kladr/kladr",
+        kladr: "js/kladr-wrapper",
         datepicker: "js/datepicker/datepicker",
         utils: "js/utils",
         grid_lib: "js/grid_lib",
