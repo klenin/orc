@@ -42,6 +42,7 @@ func main() {
     http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js"))))
     http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
     http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))
+    http.Handle("/vendor/", http.StripPrefix("/vendor/", http.FileServer(http.Dir("./static/vendor"))))
 
     addr := config.GetValue("HOSTNAME") + ":" + config.GetValue("PORT")
     log.Println("Server listening on", addr)
