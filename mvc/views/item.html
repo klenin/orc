@@ -17,8 +17,10 @@
 <script type="text/javascript">
 require(["utils", "kladr/kladr", "blank", "grid_lib"],
 function(utils, kladr, blank, gridLib) {
+    var serverData = {{.}};
+
     var valid = false;
-    var forms = blank.showBlank({{.}}.data, "form-event", {{.}}.role, false, "true", blank.drawParam);
+    var forms = blank.showBlank(serverData.data, "form-event", serverData.role, false, "true", blank.drawParam);
     if (!forms) {
         $("#server-answer").text("Данные отсутсвуют.").css("color", "red");
         return false;
@@ -83,7 +85,7 @@ function(utils, kladr, blank, gridLib) {
 
     $("#save-btn").click(function() {
 
-        var event_id = {{.}}.data[0]["event_id"];
+        var event_id = serverData.data[0]["event_id"];
 
         if (!valid && event_id == 1) {
             $("#now #server-answer").text("Проверьте данные о логине и пароле.").css("color", "red");
