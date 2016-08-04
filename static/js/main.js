@@ -20,6 +20,12 @@
     }
 });
 
+require(["jquery", "user_lib"], function($, userLib) {
+    $(document).ready(function() {
+        userLib.CheckSession();
+    });
+});
+
 require(["jquery", "utils"], function($, utils) {
     function loginCallback(data) {
         if (data.result === "ok") {
