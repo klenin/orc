@@ -29,6 +29,7 @@ func generateEvents(count int) {
 		var eventId int
 		base.Events().LoadModelData(params).QueryInsert("RETURNING id").Scan(&eventId)
 
+		addFormToEvent(getEntityIdByName(base.Forms(), "All field types"), eventId);
 		formIds := base.Forms().SetLimit(10).Select_([]string{"id"})
 		addedFormIds := map[int]bool{}
 		count := rand.Intn(len(formIds))

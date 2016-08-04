@@ -16,6 +16,26 @@
     {"name": "Отчество", "type": "text"}
   ]
 }, {
+  "name": "All field types",
+  "personal": true,
+  "params": [
+    {"name": "Text", "type": "text"},
+    {"name": "Text area", "type": "textarea"},
+    {"name": "Password", "type": "password"},
+    {"name": "Email", "type": "email"},
+    {"name": "Telephone", "type": "tel"},
+    {"name": "Number", "type": "number"},
+    {"name": "Date", "type": "date"},
+    {"name": "Time", "type": "time"},
+    {"name": "Date and time", "type": "datetime"},
+    {"name": "Address", "type": "address"},
+    {"name": "Region", "type": "region"},
+    {"name": "District", "type": "district"},
+    {"name": "City", "type": "city"},
+    {"name": "Street", "type": "street"},
+    {"name": "Building", "type": "building"}
+  ]
+}, {
   "name": "Дополнительные сведения",
   "personal": true,
   "params": [
