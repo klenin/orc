@@ -1,7 +1,7 @@
 define(["utils", "datepicker/datepicker"], function(utils, datepicker) {
 
     function resizeSelectWidth(form) {
-        var maxWidth = 0, newMaxWidth = 0, i,
+        var maxWidth = 0, i,
             elems = form.find('tr.FormData > td.DataTD > .FormElement');
         for (i = 0; i < elems.length; i++) {
             $(elems[i]).attr("size", $(elems[i]).val().length+10);
