@@ -3,9 +3,8 @@
 {{template "header"}}
 
 <script type="text/javascript">
-
-require(["utils", "grid_lib", "group_lib", "blank"],
-function(utils, gridLib, groupLib, blank) {
+require(["jquery", "utils", "grid_lib", "group_lib", "blank", "jqGrid"],
+function($, utils, gridLib, groupLib, blank) {
     var serverData = {{.}};
 
     $("#events-table").jqGrid({

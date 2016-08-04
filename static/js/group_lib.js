@@ -1,4 +1,4 @@
-define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
+define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, blank) {
 
     function Register(dialogId, groupId, eventId, groups, events) {
         if ((!groupId && !eventId) || (!eventId && !events) || (!groupId && !groups)) {

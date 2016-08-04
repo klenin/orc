@@ -1,5 +1,5 @@
-define(["utils", "blank", "grid_lib"],
-function(utils, blank, gridLib) {
+define(["jquery", "utils", "blank", "grid_lib"],
+function($, utils, blank, gridLib) {
 
     function AddSubTable(subgrid_id, row_id, index, tableName, gridId, data) {
         console.log("AddSubTable");

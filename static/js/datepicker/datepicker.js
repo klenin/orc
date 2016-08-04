@@ -1,4 +1,4 @@
-define(function() {
+define(['jquery-ui'], function() {
 
     function initDatePicker(root) {
 

@@ -85,8 +85,8 @@
 </div>
 
 <script type="text/javascript">
-require(["grid_lib", "group_lib", "blank", "user_lib", "utils"],
-function(gridLib, groupLib, blank, userLib, utils) {
+require(["jquery", "grid_lib", "group_lib", "blank", "user_lib", "utils", "jqGrid"],
+function($, gridLib, groupLib, blank, userLib, utils) {
 
     function updateJqGridWidths() {
         $(".ui-jqgrid-btable").each(function(id, elem){

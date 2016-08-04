@@ -9,8 +9,8 @@
 </div>
 
 <script type="text/javascript">
-require(["utils", "blank", "grid_lib"],
-function(utils, blank, gridLib) {
+require(["jquery", "utils", "blank", "grid_lib"],
+function($, utils, blank, gridLib) {
     var serverData = {{.}};
 
     var valid = false;
@@ -109,7 +109,6 @@ function(utils, blank, gridLib) {
         );
     });
 });
-
 </script>
 
 {{template "footer"}}

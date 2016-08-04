@@ -1,5 +1,5 @@
-define(["utils", "grid_lib", "datepicker/datepicker", "kladr/kladr"],
-function(utils, gridLib, datepicker, kladr) {
+define(["jquery", "utils", "grid_lib", "datepicker", "kladr"],
+function($, utils, gridLib, datepicker, kladr) {
 
     function drawParam(data, admin) {
         console.log("drawParam");

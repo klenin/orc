@@ -7,6 +7,7 @@
 </div>
 
 <script type="text/javascript">
+require(["jquery"], function($) {
 $(document).ready(function() {
     var table = $("<table/>", {style: "border: 1px solid #4c9ac3; color: black;"});
     var data = {{.}};
@@ -29,6 +30,7 @@ $(document).ready(function() {
     }
 
     $("#list").append(table);
+});
 });
 </script>
 

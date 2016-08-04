@@ -1,4 +1,4 @@
-define(function() {
+define(['jquery', 'vendor/jquery.kladr/jquery.kladr.min'], function($) {
 
 function kladr() {
     var token = '51dfe5d42fb2b43e3300006e';

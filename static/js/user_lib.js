@@ -1,4 +1,4 @@
-define(["utils", "grid_lib"], function(utils, gridLib) {
+define(["jquery", "utils", "grid_lib"], function($, utils, gridLib) {
 
     var serverMsg = {
         ok: "Пароль изменен",

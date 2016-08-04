@@ -1,4 +1,4 @@
-define(["utils", "datepicker/datepicker"], function(utils, datepicker) {
+define(["jquery", "utils", "datepicker"], function($, utils, datepicker) {
 
     function resizeSelectWidth(form) {
         var maxWidth = 0, i,
