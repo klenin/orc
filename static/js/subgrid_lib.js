@@ -13,7 +13,6 @@ function(utils, blank, gridLib) {
         var subTableName    = "";
         var subColNames     = [];
         var subColModel     = [];
-        var subData         = [];
         var subColumns      = [];
 
         function collbackSUB(data) {
