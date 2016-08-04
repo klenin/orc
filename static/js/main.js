@@ -1,6 +1,26 @@
-﻿require(["utils"],
-function(utils) {
+﻿requirejs.config({
+    baseUrl: "/",
+    paths: {
+        jquery: "vendor/jquery/dist/jquery.min",
+        jqGrid: "vendor/jqGrid/js/jquery.jqGrid.min",
+        "jquery-ui": "vendor/jquery-ui/jquery-ui.min",
+        kladr: "js/kladr/kladr",
+        datepicker: "js/datepicker/datepicker",
+        utils: "js/utils",
+        grid_lib: "js/grid_lib",
+        subgrid_lib: "js/subgrid_lib",
+        group_lib: "js/group_lib",
+        blank: "js/blank",
+        user_lib: "js/user_lib"
+    },
+    shim: {
+        jqGrid: {
+            deps: ["vendor/jqGrid/js/minified/i18n/grid.locale-ru"]
+        }
+    }
+});
 
+require(["jquery", "utils"], function($, utils) {
     function loginCallback(data) {
         if (data.result === "ok") {
             $("#events #server-answer").empty();
