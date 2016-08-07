@@ -171,7 +171,7 @@ define(["utils", "datepicker/datepicker"], function(utils, datepicker) {
                     model.searchoptions.dataInit = timePicker;
                     model.formatter = timeFormat;
                     break;
-                case "timestamp":
+                case "datetime":
                     // datetimepicker
                     model.editoptions.dataInit = datepicker.initDatePicker;
                     model.searchoptions.dataInit = datepicker.initDatePicker;
