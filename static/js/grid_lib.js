@@ -1,4 +1,4 @@
-define(["jquery", "utils", "datepicker"], function($, utils, datepicker) {
+define(["jquery", "utils", "datepicker"], function($, utils) {
 
     function resizeSelectWidth(form) {
         var maxWidth = 0, i,
@@ -161,8 +161,8 @@ define(["jquery", "utils", "datepicker"], function($, utils, datepicker) {
         colModel.forEach(function(model) {
             switch (model.type) {
                 case "date":
-                    model.editoptions.dataInit = datepicker.initDatePicker;
-                    model.searchoptions.dataInit = datepicker.initDatePicker;
+                    model.searchoptions.dataInit = model.editoptions.dataInit =
+                        function(elem) { $(elem).datepicker() };
                     model.formatter = dateFormat;
                     break;
                 case "time":

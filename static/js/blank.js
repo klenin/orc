@@ -1,5 +1,5 @@
 define(["jquery", "utils", "grid_lib", "datepicker", "kladr"],
-function($, utils, gridLib, datepicker) {
+function($, utils, gridLib) {
 
     function drawParam(data, admin) {
         console.log("drawParam");
@@ -27,8 +27,8 @@ function($, utils, gridLib, datepicker) {
                 });
                 break;
             case "date":
-                block = $("<input/>", {type: "date"});
-                datepicker.initDatePicker(block);
+                block = $("<input/>", {type: "text"});
+                block.one("DOMNodeInserted", block.datepicker.bind(block));
                 break;
             default:
                 block = $("<input/>", {type: data["type"]});
