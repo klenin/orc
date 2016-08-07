@@ -11,6 +11,7 @@ requirejs.config({
 
 define(['jquery', 'jquery-jqGrid'], function($, jqGrid) {
     $.extend($.jgrid.defaults, {
+        datatype: "json",
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: '+jqXHR.status+'\n'
                 +'textStatus: '+textStatus+'\n'

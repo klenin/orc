@@ -9,7 +9,6 @@ function($, utils, gridLib, groupLib, blank) {
 
     $("#events-table").jqGrid({
         url: "/gridcontroller/load/" + serverData.events.TableName,
-        datatype: "json",
         mtype: "POST",
         colNames: serverData.events.ColNames,
         colModel: gridLib.SetPrimitive(serverData.events.ColModel),

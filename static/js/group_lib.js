@@ -28,7 +28,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
 
             $("#group-reg-groups-table").jqGrid({
                 url: "/handler/usergroupsload",
-                datatype: "json",
                 mtype: "POST",
                 treeGrid: false,
                 colNames: groups.ColNames,
@@ -73,7 +72,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
 
                     $("#"+subgrid_id+"_t").jqGrid({
                         url: "/handler/"+groups.SubTableName.replace(/_/g, "")+"load/"+group_id,
-                        datatype: "json",
                         mtype: "POST",
                         colNames: groups.SubColNames,
                         colModel: gridLib.SetPrimitive(groups.SubColModel),
@@ -155,7 +153,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
 
             $("#"+dialogId+" #group-reg-events-table").jqGrid({
                 url: "/gridcontroller/load/events",
-                datatype: "json",
                 mtype: "POST",
                 treeGrid: false,
                 colNames: events.ColNames,

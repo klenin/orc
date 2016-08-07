@@ -42,7 +42,6 @@ function($, utils, blank, gridLib) {
 
         $("#" + subTId).jqGrid({
             url:         url,
-            datatype:    "json",
             mtype:       "POST",
             colNames:    subColNames,
             colModel:    subColModel,
@@ -121,7 +120,6 @@ function($, utils, blank, gridLib) {
 
                     $("#params-table").jqGrid({
                         url: "/gridcontroller/load/"+data["params"].TableName,
-                        datatype: "json",
                         mtype: "POST",
                         treeGrid: false,
                         colNames: data["params"].ColNames,
@@ -171,7 +169,6 @@ function($, utils, blank, gridLib) {
 
                     $("#faces-table").jqGrid({
                         url: "/gridcontroller/load/search",
-                        datatype: "json",
                         mtype: "POST",
                         treeGrid: false,
                         colNames: data["faces"].ColNames,
