@@ -49,7 +49,6 @@ function($, utils, blank, gridLib) {
             pager:       subPId,
             caption:     subTableCaption,
             sortname:    "num",
-            sortorder:   "asc",
             height:      "100%",
             // width:       /*$("#"+gridId).width()*/"100%",
             multiselect: true,
@@ -131,7 +130,6 @@ function($, utils, blank, gridLib) {
                         rownumWidth: 20,
                         caption: data["params"].Caption,
                         sortname: "id",
-                        sortorder: "asc",
                         loadComplete: function() {
                             $("#faces-table").trigger('reloadGrid');
                         },
@@ -181,7 +179,6 @@ function($, utils, blank, gridLib) {
                         rowList: [5, 10, 20, 50],
                         caption: data["faces"].Caption,
                         sortname: "id",
-                        sortorder: "asc",
                         beforeRequest: function() {
                             $("#faces-table").setGridParam({ postData: {
                                 "filters": filter ? filter : null,

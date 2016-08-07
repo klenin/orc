@@ -43,7 +43,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                 rowList: [5, 10, 20, 50],
                 caption: "Мои группы",
                 sortname: "id",
-                sortorder: "asc",
                 editurl: "/gridcontroller/editgridrow/"+groups.TableName,
 
                 subGrid: groups.Sub,
@@ -78,7 +77,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                         pager: "#"+subgrid_id+"_p",
                         caption: groups.SubCaption,
                         sortname: "num",
-                        sortorder: "asc",
                         height: "100%",
                         width: $("#group-reg-groups-table").width()-65,
                         editurl: "/gridcontroller/editgridrow/"+groups.SubTableName,
@@ -165,8 +163,7 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                 rownumWidth: 20,
                 rowList: [5, 10, 20, 50],
                 caption: events.Caption,
-                sortname: "id",
-                sortorder: "asc"
+                sortname: "id"
             });
 
             $("#"+dialogId+" #group-reg-events-table").jqGrid("hideCol", ["id"]);
