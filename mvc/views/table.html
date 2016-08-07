@@ -41,7 +41,6 @@ function($, utils, subGridLib, gridLib, userLib, blank, groupLib) {
 
     $gridTable.jqGrid({
         url: "/gridcontroller/load/" + serverData.model.TableName,
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.model.ColNames,
         colModel: gridLib.SetPrimitive(serverData.model.ColModel),

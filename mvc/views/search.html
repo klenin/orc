@@ -28,7 +28,6 @@ function($, gridLib, blank) {
 
     $("#params-table").jqGrid({
         url: "/gridcontroller/load/" + serverData.params.TableName,
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.params.ColNames,
         colModel: gridLib.SetPrimitive(serverData.params.ColModel),
@@ -77,7 +76,6 @@ function($, gridLib, blank) {
 
     $("#faces-table").jqGrid({
         url: "/gridcontroller/load/search",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.faces.ColNames,
         colModel: gridLib.SetPrimitive(serverData.faces.ColModel),
@@ -115,7 +113,6 @@ function($, gridLib, blank) {
 
             $("#" + subgrid_id + "_t").jqGrid({
                 url: "/handler/"+serverData.faces.SubTableName.replace(/_/g, "")+"load/"+user_id,
-                mtype: "POST",
                 colNames: serverData.faces.SubColNames,
                 colModel: gridLib.SetPrimitive(serverData.faces.SubColModel),
                 rowNum: 5,
