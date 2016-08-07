@@ -158,25 +158,26 @@ define(["utils", "datepicker/datepicker"], function(utils, datepicker) {
     }
 
     function SetPrimitive(colModel) {
-        console.log(colModel);
-        for (i = 0; i < colModel.length; ++i) {
-            if (colModel[i].type != undefined && colModel[i].type === "date") {
-                colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["formatter"] = dateFormat;
-            } else if (colModel[i].type != undefined && colModel[i].type === "time") {
-                colModel[i]["editrules"]["custom_func"] = timeValidator;
-                colModel[i]["editoptions"]["dataInit"] = timePicker;
-                colModel[i]["searchoptions"]["dataInit"] = timePicker;
-                colModel[i]["formatter"] = timeFormat;
-            } else if (colModel[i].type != undefined && colModel[i].type === "timestamp") {
-                // datetimepicker
-                colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["formatter"] = timeStampFormat;
+        colModel.forEach(function(model) {
+            switch (model.type) {
+                case "date":
+                    model.editoptions.dataInit = datepicker.initDatePicker;
+                    model.searchoptions.dataInit = datepicker.initDatePicker;
+                    model.formatter = dateFormat;
+                    break;
+                case "time":
+                    model.editrules.custom_func = timeValidator;
+                    model.editoptions.dataInit = timePicker;
+                    model.searchoptions.dataInit = timePicker;
+                    model.formatter = timeFormat;
+                    break;
+                case "timestamp":
+                    // datetimepicker
+                    model.editoptions.dataInit = datepicker.initDatePicker;
+                    model.searchoptions.dataInit = datepicker.initDatePicker;
+                    model.formatter = timeStampFormat;
             }
-            continue;
-        }
+        });
         return colModel;
     }
 
