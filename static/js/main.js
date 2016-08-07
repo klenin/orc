@@ -6,6 +6,7 @@
         "jquery-ui": "vendor/jquery-ui/jquery-ui.min",
         kladr: "js/kladr-wrapper",
         datepicker: "js/datepicker-wrapper",
+        timepicker: "js/timepicker-wrapper",
         utils: "js/utils",
         grid_lib: "js/grid_lib",
         subgrid_lib: "js/subgrid_lib",

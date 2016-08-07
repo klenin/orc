@@ -131,10 +131,6 @@ define(["jquery", "utils", "datepicker"], function($, utils) {
     }
 
 //-----------------------------------------------------------------------------
-    function timePicker(e) {
-        $(e).timepicker({"timeFormat": "HH:mm:ss"});
-    }
-
     function timeFormat(cellvalue, options, rowObject) {
         return cellvalue != undefined ? cellvalue.slice(11, 19) : "";
     }
@@ -161,22 +157,18 @@ define(["jquery", "utils", "datepicker"], function($, utils) {
         colModel.forEach(function(model) {
             switch (model.type) {
                 case "date":
-                    model.searchoptions.dataInit = model.editoptions.dataInit =
-                        function(elem) { $(elem).datepicker() };
                     model.formatter = dateFormat;
                     break;
                 case "time":
                     model.editrules.custom_func = timeValidator;
-                    model.editoptions.dataInit = timePicker;
-                    model.searchoptions.dataInit = timePicker;
                     model.formatter = timeFormat;
                     break;
                 case "datetime":
-                    // datetimepicker
-                    model.editoptions.dataInit = datepicker.initDatePicker;
-                    model.searchoptions.dataInit = datepicker.initDatePicker;
                     model.formatter = timeStampFormat;
             }
+            if (["date", "time", "datetime"].indexOf(model.type) >= 0)
+                model.searchoptions.dataInit = model.editoptions.dataInit =
+                    function(elem) { $(elem)[model.type + "picker"](); };
         });
         return colModel;
     }

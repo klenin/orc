@@ -1,4 +1,4 @@
-define(["jquery", "utils", "grid_lib", "datepicker", "kladr"],
+define(["jquery", "utils", "grid_lib", "datepicker", "timepicker", "kladr"],
 function($, utils, gridLib) {
 
     function drawParam(data, admin) {
@@ -27,8 +27,10 @@ function($, utils, gridLib) {
                 });
                 break;
             case "date":
+            case "time":
+            case "datetime":
                 block = $("<input/>", {type: "text"});
-                block.one("DOMNodeInserted", block.datepicker.bind(block));
+                block.one("DOMNodeInserted", block[data["type"] + "picker"].bind(block));
                 break;
             default:
                 block = $("<input/>", {type: data["type"]});
