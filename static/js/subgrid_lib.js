@@ -136,12 +136,6 @@ function($, utils, blank, gridLib) {
                         caption: data["params"].Caption,
                         sortname: "id",
                         sortorder: "asc",
-                        loadError: function (jqXHR, textStatus, errorThrown) {
-                            alert('HTTP status code: '+jqXHR.status+'\n'
-                                +'textStatus: '+textStatus+'\n'
-                                +'errorThrown: '+errorThrown);
-                            alert('HTTP message body (jqXHR.responseText): '+'\n'+jqXHR.responseText);
-                        },
                         loadComplete: function() {
                             $("#faces-table").trigger('reloadGrid');
                         },
@@ -194,12 +188,6 @@ function($, utils, blank, gridLib) {
                         caption: data["faces"].Caption,
                         sortname: "id",
                         sortorder: "asc",
-                        loadError: function (jqXHR, textStatus, errorThrown) {
-                            alert('HTTP status code: '+jqXHR.status+'\n'
-                                +'textStatus: '+textStatus+'\n'
-                                +'errorThrown: '+errorThrown);
-                            alert('HTTP message body: '+jqXHR.responseText);
-                        },
                         beforeRequest: function() {
                             $("#faces-table").setGridParam({ postData: {
                                 "filters": filter ? filter : null,

@@ -47,12 +47,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                 sortname: "id",
                 sortorder: "asc",
                 editurl: "/gridcontroller/editgridrow/"+groups.TableName,
-                loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
 
                 subGrid: groups.Sub,
                 subGridOptions: {
@@ -92,12 +86,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                         height: "100%",
                         width: $("#group-reg-groups-table").width()-65,
                         editurl: "/gridcontroller/editgridrow/"+groups.SubTableName,
-                        loadError: function(jqXHR, textStatus, errorThrown) {
-                            alert('HTTP status code: '+jqXHR.status+'\n'
-                                +'textStatus: '+textStatus+'\n'
-                                +'errorThrown: '+errorThrown);
-                            alert('HTTP message body: '+jqXHR.responseText);
-                        },
                         gridComplete: function() {
                             var rows = $("#"+subgrid_id+"_t").getDataIDs();
                             for (var i = 0; i < rows.length; i++) {
@@ -184,13 +172,7 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                 rowList: [5, 10, 20, 50],
                 caption: events.Caption,
                 sortname: "id",
-                sortorder: "asc",
-                loadError: function(jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
+                sortorder: "asc"
             });
 
             $("#"+dialogId+" #group-reg-events-table").jqGrid("hideCol", ["id"]);

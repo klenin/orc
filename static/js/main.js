@@ -2,8 +2,8 @@
     baseUrl: "/",
     paths: {
         jquery: "vendor/jquery/dist/jquery.min",
-        jqGrid: "vendor/jqGrid/js/jquery.jqGrid.min",
         "jquery-ui": "vendor/jquery-ui/jquery-ui.min",
+        jqGrid: "js/jqGrid-wrapper",
         kladr: "js/kladr-wrapper",
         datepicker: "js/datepicker-wrapper",
         timepicker: "js/timepicker-wrapper",

@@ -63,12 +63,6 @@ function($, utils, subGridLib, gridLib, userLib, blank, groupLib) {
         multiboxonly: true,
         sortable: true,
         editurl: "/gridcontroller/editgridrow/" + serverData.model.TableName,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code ' + jqXHR.status + '\n'
-                + 'textStatus ' + textStatus + '\n'
-                + 'errorThrown ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
-        },
         gridComplete: function() {
             $("#grid-table_cb").css("width", "20px");
             $("#grid-table tbody tr").children().first("td").css("width", "24px");

@@ -162,13 +162,7 @@ function($, gridLib, groupLib, blank, userLib, utils) {
         height: "100%",
         shrinkToFit: true,
         sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                    +'textStatus: '+textStatus+'\n'
-                    +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        }
+        sortorder: "asc"
     });
 
     $("#my-group-table").jqGrid({

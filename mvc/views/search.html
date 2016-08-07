@@ -46,12 +46,6 @@ function($, gridLib, blank) {
         sortname: "id",
         sortorder: "asc",
         multiselect: true,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
-        },
         loadComplete: function() {
             $("#faces-table").trigger('reloadGrid');
         },
@@ -102,12 +96,6 @@ function($, gridLib, blank) {
         sortname: "id",
         sortorder: "asc",
         multiselect: true,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
-        },
         beforeRequest: function() {
             $("#faces-table").setGridParam({ postData: {
                 "filters": filter ? filter : null,
@@ -142,13 +130,7 @@ function($, gridLib, blank) {
                 height: "100%",
                 width: $("#faces-table").width()-65,
                 editurl: "/gridcontroller/editgridrow/"+serverData.faces.SubTableName,
-                multiselect: true,
-                loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: ' + jqXHR.status + '\n'
-                        + 'textStatus: ' + textStatus + '\n'
-                        + 'errorThrown: ' + errorThrown);
-                    alert('HTTP message body: ' + jqXHR.responseText);
-                },
+                multiselect: true
             });
 
             $("#"+subgrid_id + "_t").navGrid(

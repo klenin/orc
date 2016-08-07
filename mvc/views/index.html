@@ -24,13 +24,7 @@ function($, utils, gridLib, groupLib, blank) {
         rowList: [5, 10, 20, 50],
         // caption: {{.events.Caption}},
         sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
-        },
+        sortorder: "asc"
     });
 
     $("#events-table").navGrid(
