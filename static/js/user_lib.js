@@ -75,7 +75,7 @@ define(["utils", "grid_lib"], function(utils, gridLib) {
         location.href = "/usercontroller/login/"+user_id;
     }
 
-    function SendEmailWellcomeToProfile(gridId, dialog) {
+    function SendEmailWelcomeToProfile(gridId, dialog) {
         var user_id = gridLib.getCurrRowId(gridId);
         if (user_id == -1) return false;
 
@@ -108,7 +108,7 @@ define(["utils", "grid_lib"], function(utils, gridLib) {
         CheckPass: CheckPass,
         CheckSession: CheckSession,
         Login: Login,
-        SendEmailWellcomeToProfile: SendEmailWellcomeToProfile,
+        SendEmailWelcomeToProfile: SendEmailWelcomeToProfile,
         ConfirmOrRejectPersonRequest: ConfirmOrRejectPersonRequest,
     };
 

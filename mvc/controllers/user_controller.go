@@ -283,14 +283,14 @@ func (this *UserController) Login(userId string) {
     http.Redirect(this.Response, this.Request, "/usercontroller/showcabinet", 200)
 }
 
-func (this *UserController) SendEmailWellcomeToProfile() {
+func (this *UserController) SendEmailWelcomeToProfile() {
     if !this.isAdmin() {
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
     request, err := utils.ParseJS(this.Request, this.Response)
-    if utils.HandleErr("[UserController::SendEmailWellcomeToProfile]: ", err, this.Response) {
+    if utils.HandleErr("[UserController::SendEmailWelcomeToProfile]: ", err, this.Response) {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
@@ -322,7 +322,7 @@ func (this *UserController) SendEmailWellcomeToProfile() {
     email := data[0].(map[string]interface{})["value"].(string)
 
     token := utils.GetRandSeq(HASH_SIZE)
-    if !mailer.SendEmailWellcomeToProfile(to, email, token) {
+    if !mailer.SendEmailWelcomeToProfile(to, email, token) {
         utils.SendJSReply(map[string]interface{}{"result": "Проверьте правильность email."}, this.Response)
         return
     }
