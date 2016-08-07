@@ -13,6 +13,7 @@ define(['jquery', 'jquery-jqGrid'], function($, jqGrid) {
     $.extend($.jgrid.defaults, {
         datatype: "json",
         mtype: "POST",
+        sortname: "id",
         loadError: function (jqXHR, textStatus, errorThrown) {
             alert('HTTP status code: '+jqXHR.status+'\n'
                 +'textStatus: '+textStatus+'\n'

@@ -129,7 +129,6 @@ function($, utils, blank, gridLib) {
                         rowNum: 1,
                         rownumWidth: 20,
                         caption: data["params"].Caption,
-                        sortname: "id",
                         loadComplete: function() {
                             $("#faces-table").trigger('reloadGrid');
                         },
@@ -178,7 +177,6 @@ function($, utils, blank, gridLib) {
                         rownumWidth: 20,
                         rowList: [5, 10, 20, 50],
                         caption: data["faces"].Caption,
-                        sortname: "id",
                         beforeRequest: function() {
                             $("#faces-table").setGridParam({ postData: {
                                 "filters": filter ? filter : null,

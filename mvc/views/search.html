@@ -41,7 +41,6 @@ function($, gridLib, blank) {
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: serverData.params.Caption,
-        sortname: "id",
         multiselect: true,
         loadComplete: function() {
             $("#faces-table").trigger('reloadGrid');
@@ -88,7 +87,6 @@ function($, gridLib, blank) {
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: serverData.faces.Caption,
-        sortname: "id",
         multiselect: true,
         beforeRequest: function() {
             $("#faces-table").setGridParam({ postData: {

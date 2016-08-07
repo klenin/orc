@@ -33,7 +33,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                 colModel: gridLib.SetPrimitive(groups.ColModel),
                 pager: "#group-reg-groups-table-pager",
                 gridview: true,
-                sortname: "id",
                 viewrecords: true,
                 height: "100%",
                 width: "auto",
@@ -42,7 +41,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                 rownumWidth: 20,
                 rowList: [5, 10, 20, 50],
                 caption: "Мои группы",
-                sortname: "id",
                 editurl: "/gridcontroller/editgridrow/"+groups.TableName,
 
                 subGrid: groups.Sub,
@@ -154,7 +152,6 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                 colModel: gridLib.SetPrimitive(events.ColModel),
                 pager: "#group-reg-events-table-pager",
                 gridview: true,
-                sortname: "id",
                 viewrecords: true,
                 height: "100%",
                 width: "auto",
@@ -162,8 +159,7 @@ define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, bla
                 rownumbers: true,
                 rownumWidth: 20,
                 rowList: [5, 10, 20, 50],
-                caption: events.Caption,
-                sortname: "id"
+                caption: events.Caption
             });
 
             $("#"+dialogId+" #group-reg-events-table").jqGrid("hideCol", ["id"]);
