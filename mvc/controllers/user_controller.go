@@ -172,10 +172,12 @@ func (this *UserController) ShowCabinet() {
         return
     }
 
+    var tplParams map[string]interface{}
     if role == "admin" {
-        model := Model{Columns: db.Tables, ColNames: db.TableNames}
-        this.Render([]string{"mvc/views/"+role+".html"}, role, model)
-
+        tplParams = map[string]interface{}{
+            "Columns": db.Tables,
+            "ColNames": db.TableNames,
+        }
     } else {
         groups := this.GetModel("groups")
         persons := this.GetModel("persons")
@@ -241,18 +243,17 @@ func (this *UserController) ShowCabinet() {
             ColNames:  events.GetColNames(),
             Caption:   events.GetCaption()}
 
-        this.Render(
-            []string{"mvc/views/"+role+".html"},
-            role,
-            map[string]interface{}{
-                "group": groupsModel,
-                "reg": regsModel,
-                "groupreg": groupRegsModel,
-                "faces": facesModel,
-                "params": paramsModel,
-                "events": eventsModel,
-                "userData": data})
+        tplParams = map[string]interface{}{
+            "group": groupsModel,
+            "reg": regsModel,
+            "groupreg": groupRegsModel,
+            "faces": facesModel,
+            "params": paramsModel,
+            "events": eventsModel,
+            "userData": data,
+        }
     }
+    this.Render([]string{"mvc/views/"+role+".html"}, role, tplParams)
 }
 
 //-----------------------------------------------------------------------------
@@ -282,14 +283,14 @@ func (this *UserController) Login(userId string) {
     http.Redirect(this.Response, this.Request, "/usercontroller/showcabinet", 200)
 }
 
-func (this *UserController) SendEmailWellcomeToProfile() {
+func (this *UserController) SendEmailWelcomeToProfile() {
     if !this.isAdmin() {
         http.Redirect(this.Response, this.Request, "/", http.StatusForbidden)
         return
     }
 
     request, err := utils.ParseJS(this.Request, this.Response)
-    if utils.HandleErr("[UserController::SendEmailWellcomeToProfile]: ", err, this.Response) {
+    if utils.HandleErr("[UserController::SendEmailWelcomeToProfile]: ", err, this.Response) {
         utils.SendJSReply(map[string]interface{}{"result": err.Error()}, this.Response)
         return
     }
@@ -321,7 +322,7 @@ func (this *UserController) SendEmailWellcomeToProfile() {
     email := data[0].(map[string]interface{})["value"].(string)
 
     token := utils.GetRandSeq(HASH_SIZE)
-    if !mailer.SendEmailWellcomeToProfile(to, email, token) {
+    if !mailer.SendEmailWelcomeToProfile(to, email, token) {
         utils.SendJSReply(map[string]interface{}{"result": "Проверьте правильность email."}, this.Response)
         return
     }

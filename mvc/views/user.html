@@ -9,16 +9,21 @@
 
 <div id="container">
 
-    <div id="title" class="left"></div></br>
+    <div class="left">
+        Личный кабинет
+    </div></br>
 
-    <div id="cabinet" class="left">
+    <div id="cabinet">
         <div hidden="true" id="dialog-reg-group" title="Регистрация группы"></div>
         <div hidden="true" id="dialog-person-request" title="Анкета"></div>
         <div hidden="true" id="dialog-group-person-request" title="Анкета"></div>
         <div hidden="true" id="dialog-group-request" title="Анкета группы"></div>
         <div hidden="true" id="dialog-add-person" title="Добавить участника"></div>
         <div id="error"></div>
-        <p id="userData"></p>
+        {{with index .userData 0}}
+            Логин: {{.login}}<br>
+            {{.name}}: {{.value}}
+        {{end}}
 
         <div id="tabs">
             <ul>
@@ -86,18 +91,23 @@
 </div>
 
 <script type="text/javascript">
-
-$("#title").append("Личный кабинет");
-
-$(function() {
-    $("#tabs").tabs();
-});
-
 require(["grid_lib", "group_lib", "blank", "user_lib", "utils"],
 function(gridLib, groupLib, blank, userLib, utils) {
 
+    function updateJqGridWidths() {
+        $(".ui-jqgrid-btable").each(function(id, elem){
+            var $elem = $(elem);
+            var $uiJqgrid = $elem.parents('.ui-jqgrid').first();
+            $elem.setGridWidth($uiJqgrid.parent().width() - ($uiJqgrid.outerWidth(true) - $uiJqgrid.width()));
+        });
+    }
+
+    $("#tabs").tabs({
+        activate: updateJqGridWidths
+    });
+
     var valid = false;
-    console.log({{.}});
+    var serverData = {{.}};
 
     $("#password-1").blur(function() {
         var pattern = /^.{6,36}$/;
@@ -152,38 +162,37 @@ function(gridLib, groupLib, blank, userLib, utils) {
         );
     })
 
-    $("#userData").append($("<div/>").text("Логин: "+{{.}}.userData[0].login));
-    $("#userData").append($("<div/>").text({{.}}.userData[0].name+": "+{{.}}.userData[0].value));
+    $.extend($.jgrid.defaults, {
+        datatype: "json",
+        mtype: "POST",
+        height: "100%",
+        shrinkToFit: true,
+        sortname: "id",
+        sortorder: "asc",
+        loadError: function (jqXHR, textStatus, errorThrown) {
+            alert('HTTP status code: '+jqXHR.status+'\n'
+                    +'textStatus: '+textStatus+'\n'
+                    +'errorThrown: '+errorThrown);
+            alert('HTTP message body: '+jqXHR.responseText);
+        }
+    });
 
     $("#my-group-table").jqGrid({
         url: "/handler/usergroupsload",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
-        colNames: {{.group.ColNames}},
-        colModel: gridLib.SetPrimitive({{.group.ColModel}}),
+        colNames: serverData.group.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.group.ColModel),
         pager: "#my-group-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: "Мои группы",
-        sortname: "id",
-        sortorder: "asc",
-        editurl: "/gridcontroller/editgridrow/"+{{.group.TableName}},
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
+        editurl: "/gridcontroller/editgridrow/" + serverData.group.TableName,
 
-        subGrid: {{.group.Sub}},
+        subGrid: serverData.group.Sub,
         subGridOptions: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
@@ -207,26 +216,15 @@ function(gridLib, groupLib, blank, userLib, utils) {
             );
 
             $("#"+subgrid_id+"_t").jqGrid({
-                url: "/handler/"+{{.group.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
-                datatype: "json",
-                mtype: "POST",
-                colNames: {{.group.SubColNames}},
-                colModel: gridLib.SetPrimitive({{.group.SubColModel}}),
+                url: "/handler/" + serverData.group.SubTableName.replace(/_/g, "")+"load/"+group_id,
+                colNames: serverData.group.SubColNames,
+                colModel: gridLib.SetPrimitive(serverData.group.SubColModel),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
-                caption: {{.group.SubCaption}},
+                caption: serverData.group.SubCaption,
                 sortname: "num",
-                sortorder: "asc",
-                height: "100%",
-                width: $("#my-group-table").width()-65,
-                editurl: "/gridcontroller/editgridrow/"+{{.group.SubTableName}},
-                loadError: function(jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
+                editurl: "/gridcontroller/editgridrow/" + serverData.group.SubTableName,
                 gridComplete: function() {
                     var rows = $("#"+subgrid_id+"_t").getDataIDs();
                     for (var i = 0; i < rows.length; i++) {
@@ -287,28 +285,16 @@ function(gridLib, groupLib, blank, userLib, utils) {
                         var filter = {};
 
                         $("#params-table").jqGrid({
-                            url: "/gridcontroller/load/"+{{.params.TableName}},
-                            datatype: "json",
-                            mtype: "POST",
+                            url: "/gridcontroller/load/" + serverData.params.TableName,
                             treeGrid: false,
-                            colNames: {{.params.ColNames}},
-                            colModel: gridLib.SetPrimitive({{.params.ColModel}}),
+                            colNames: serverData.params.ColNames,
+                            colModel: gridLib.SetPrimitive(serverData.params.ColModel),
                             pager: "#params-table-pager",
                             gridview: true,
                             viewrecords: true,
-                            height: "100%",
-                            width: "auto",
                             rowNum: 1,
                             rownumWidth: 20,
-                            caption: {{.params.Caption}},
-                            sortname: "id",
-                            sortorder: "asc",
-                            loadError: function (jqXHR, textStatus, errorThrown) {
-                                alert('HTTP status code: '+jqXHR.status+'\n'
-                                    +'textStatus: '+textStatus+'\n'
-                                    +'errorThrown: '+errorThrown);
-                                alert('HTTP message body (jqXHR.responseText): '+'\n'+jqXHR.responseText);
-                            },
+                            caption: serverData.params.Caption,
                             loadComplete: function() {
                                 $("#faces-table").trigger('reloadGrid');
                             },
@@ -344,29 +330,17 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
                         $("#faces-table").jqGrid({
                             url: "/gridcontroller/load/search",
-                            datatype: "json",
-                            mtype: "POST",
                             treeGrid: false,
-                            colNames: {{.faces.ColNames}},
-                            colModel: gridLib.SetPrimitive({{.faces.ColModel}}),
+                            colNames: serverData.faces.ColNames,
+                            colModel: gridLib.SetPrimitive(serverData.faces.ColModel),
                             pager: "#faces-table-pager",
                             gridview: true,
                             viewrecords: true,
-                            height: "100%",
-                            width: "auto",
                             rowNum: 5,
                             rownumbers: true,
                             rownumWidth: 20,
                             rowList: [5, 10, 20, 50],
-                            caption: {{.faces.Caption}},
-                            sortname: "id",
-                            sortorder: "asc",
-                            loadError: function (jqXHR, textStatus, errorThrown) {
-                                alert('HTTP status code: '+jqXHR.status+'\n'
-                                    +'textStatus: '+textStatus+'\n'
-                                    +'errorThrown: '+errorThrown);
-                                alert('HTTP message body: '+jqXHR.responseText);
-                            },
+                            caption: serverData.faces.Caption,
                             beforeRequest: function() {
                                 $("#faces-table").setGridParam({ postData: {
                                     "filters": filter ? filter : null,
@@ -421,9 +395,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
                 $("#add-person_"+subgrid_id+"_t").hide();
             }
 
-            $(window).bind("resize", function() {
-                $("#"+subgrid_id+"_t").setGridWidth($("#my-group-table").width(), true);
-            }).trigger("resize");
+            updateJqGridWidths();
         }
     });
 
@@ -476,74 +448,40 @@ function(gridLib, groupLib, blank, userLib, utils) {
             onClickButton: function() {
                 var groupId = $("#my-group-table").jqGrid("getGridParam", "selrow");
                 if (!groupId) return false;
-                groupLib.Register("dialog-reg-group", groupId, false, false, {{.events}});
+                groupLib.Register("dialog-reg-group", groupId, false, false, serverData.events);
             }
         }
     );
 
-    $(window).bind("resize", function() {
-        $("#my-group-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
-
     $("#group-table").jqGrid({
-        url: "/handler/"+{{.group.TableName}}.replace(/_/g, "")+"load",
-        datatype: "json",
-        mtype: "POST",
-        colNames: {{.group.ColNames}},
-        colModel: gridLib.SetPrimitive({{.group.ColModel}}),
+        url: "/handler/" + serverData.group.TableName.replace(/_/g, "")+"load",
+        colNames: serverData.group.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.group.ColModel),
         pager: "#group-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: "Группы, в которых я состою",
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
+        caption: "Группы, в которых я состою"
     });
 
     $("#group-table").jqGrid("hideCol", ["id"]);
 
-    $(window).bind("resize", function() {
-        $("#group-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
-
     $("#reg-table").jqGrid({
-        url: "/handler/"+{{.reg.TableName}}.replace(/_/g, "")+"load",
-        datatype: "json",
-        mtype: "POST",
+        url: "/handler/" + serverData.reg.TableName.replace(/_/g, "")+"load",
         treeGrid: false,
-        colNames: {{.reg.ColNames}},
-        colModel: gridLib.SetPrimitive({{.reg.ColModel}}),
+        colNames: serverData.reg.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.reg.ColModel),
         pager: "#reg-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: {{.reg.Caption}},
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function(jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
+        caption: serverData.reg.Caption
     });
 
     $("#reg-table").jqGrid("hideCol", ["id"]);
@@ -574,38 +512,21 @@ function(gridLib, groupLib, blank, userLib, utils) {
         }
     );
 
-    $(window).bind("resize", function() {
-        $("#reg-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
-
     $("#groupreg-table").jqGrid({
         url: "/handler/usergroupregistrationsload/0",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
-        colNames: {{.groupreg.ColNames}},
-        colModel: gridLib.SetPrimitive({{.groupreg.ColModel}}),
+        colNames: serverData.groupreg.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#groupreg-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: "Регистрации групп",
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
 
-        subGrid: {{.groupreg.Sub}},
+        subGrid: serverData.groupreg.Sub,
         subGridOptions: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
@@ -620,29 +541,18 @@ function(gridLib, groupLib, blank, userLib, utils) {
             var group_id = $("#groupreg-table").jqGrid("getCell", row_id, "group_id");
             var event_id = $("#groupreg-table").jqGrid("getCell", row_id, "event_id");
 
-            console.log("groupreg.ColModel: ", gridLib.SetPrimitive({{.groupreg.ColModel}}));
+            console.log("groupreg.ColModel: ", gridLib.SetPrimitive(serverData.groupreg.ColModel));
 
             $("#"+subgrid_id+"_t").jqGrid({
-                url: "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
-                datatype: "json",
-                mtype: "POST",
-                colNames: {{.groupreg.SubColNames}},
-                colModel: gridLib.SetPrimitive({{.groupreg.SubColModel}}),
+                url: "/handler/" + serverData.groupreg.SubTableName.replace(/_/g, "")+"load/"+group_id,
+                colNames: serverData.groupreg.SubColNames,
+                colModel: gridLib.SetPrimitive(serverData.groupreg.SubColModel),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
-                caption: {{.groupreg.SubCaption}},
+                caption: serverData.groupreg.SubCaption,
                 sortname: "num",
-                sortorder: "asc",
-                height: "100%",
-                width: $("#groupreg-table").width()-65,
-                editurl: "/gridcontroller/editgridrow/"+{{.groupreg.SubTableName}},
-                loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
+                editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName
             });
 
             $("#"+subgrid_id+"_t").navGrid(
@@ -672,9 +582,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
             $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
 
-            $(window).bind("resize", function() {
-                $("#"+subgrid_id+"_t").setGridWidth($("#groupreg-table").width(), true);
-            }).trigger("resize");
+            updateJqGridWidths();
         }
     });
 
@@ -693,38 +601,21 @@ function(gridLib, groupLib, blank, userLib, utils) {
         }
     );
 
-    $(window).bind("resize", function() {
-        $("#groupreg-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
-
     $("#my-teams-table").jqGrid({
         url: "/handler/usergroupregistrationsload/1",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
-        colNames: {{.groupreg.ColNames}},
-        colModel: gridLib.SetPrimitive({{.groupreg.ColModel}}),
+        colNames: serverData.groupreg.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#my-teams-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: "Регистрации команд",
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        },
 
-        subGrid: {{.groupreg.Sub}},
+        subGrid: serverData.groupreg.Sub,
         subGridOptions: {
             "plusicon": "ui-icon-triangle-1-e",
             "minusicon": "ui-icon-triangle-1-s",
@@ -740,25 +631,15 @@ function(gridLib, groupLib, blank, userLib, utils) {
             var event_id = $("#my-teams-table").jqGrid("getCell", row_id, "event_id");
 
             $("#"+subgrid_id+"_t").jqGrid({
-                url: "/handler/"+{{.groupreg.SubTableName}}.replace(/_/g, "")+"load/"+group_id,
-                datatype: "json",
-                mtype: "POST",
-                colNames: {{.groupreg.SubColNames}},
-                colModel: gridLib.SetPrimitive({{.groupreg.SubColModel}}),
+                url: "/handler/" + serverData.groupreg.SubTableName.replace(/_/g, "")+"load/"+group_id,
+                colNames: serverData.groupreg.SubColNames,
+                colModel: gridLib.SetPrimitive(serverData.groupreg.SubColModel),
                 rowNum: 5,
                 rowList: [5, 10, 20, 50],
                 pager: "#"+subgrid_id+"_p",
-                caption: {{.groupreg.SubCaption}},
+                caption: serverData.groupreg.SubCaption,
                 sortname: "num",
-                sortorder: "asc",
-                height: "100%",
-                editurl: "/gridcontroller/editgridrow/"+{{.groupreg.SubTableName}},
-                loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
+                editurl: "/gridcontroller/editgridrow/" + serverData.groupreg.SubTableName
             });
 
             $("#"+subgrid_id+"_t").navGrid(
@@ -788,9 +669,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
 
             $("#"+subgrid_id+"_t").jqGrid("hideCol", ["id"]);
 
-            $(window).bind("resize", function() {
-                $("#"+subgrid_id+"_t").setGridWidth($("#my-teams-table").width(), true);
-            }).trigger("resize");
+            updateJqGridWidths();
         }
     });
 
@@ -820,36 +699,19 @@ function(gridLib, groupLib, blank, userLib, utils) {
         }
     );
 
-    $(window).bind("resize", function() {
-        $("#my-teams-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
-
     $("#teams-table").jqGrid({
-        url: "/handler/"+{{.groupreg.TableName}}.replace(/_/g, "")+"load",
-        datatype: "json",
-        mtype: "POST",
+        url: "/handler/" + serverData.groupreg.TableName.replace(/_/g, "")+"load",
         treeGrid: false,
-        colNames: {{.groupreg.ColNames}},
-        colModel: gridLib.SetPrimitive({{.groupreg.ColModel}}),
+        colNames: serverData.groupreg.ColNames,
+        colModel: gridLib.SetPrimitive(serverData.groupreg.ColModel),
         pager: "#teams-table-pager",
         gridview: true,
-        sortname: "id",
         viewrecords: true,
-        height: "100%",
-        width: "auto",
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
-        caption: "Регистрации команд, в которых я состою",
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                +'textStatus: '+textStatus+'\n'
-                +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        }
+        caption: "Регистрации команд, в которых я состою"
     });
 
     $("#teams-table").jqGrid("hideCol", ["id"]);
@@ -879,9 +741,7 @@ function(gridLib, groupLib, blank, userLib, utils) {
         }
     );
 
-    $(window).bind("resize", function() {
-        $("#teams-table").setGridWidth($(window).width()-100, true);
-    }).trigger("resize");
+    $(window).bind("resize", updateJqGridWidths).trigger("resize");
 
 });
 

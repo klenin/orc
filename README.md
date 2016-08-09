@@ -1,8 +1,6 @@
 ORC
 ===
 
-Course work.
-
 **ORC** helps participants to simplify interaction with
 organizers of various competitions, events, tournaments, seminars,
 conferences, etc.

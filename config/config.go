@@ -13,9 +13,10 @@ const PROJECT_NAME = "orc"
 
 var configEnvPrefix = strings.ToUpper(PROJECT_NAME) + "_";
 
-type Config map[string]string
-
-var config Config = readConfig()
+var config = map[string]string{
+	"HOSTNAME": "localhost",
+	"PORT": "5000",
+}
 
 func getEnv(key string, defaultValue string) string {
 	value := os.Getenv(configEnvPrefix + key)
@@ -25,9 +26,7 @@ func getEnv(key string, defaultValue string) string {
 	return value
 }
 
-func readConfig() Config {
-	config := make(Config)
-
+func init() {
 	usr, err := user.Current()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -43,14 +42,12 @@ func readConfig() Config {
 	for i := 0; scanner.Scan(); i++ {
 		words := strings.SplitN(scanner.Text(), "=", 2)
 		if len(words) < 2 {
-	        log.Printf("Error : config line %d is not correct", i)
-	        os.Exit(1)
+			log.Fatal("Error : config line %d is not correct", i)
 		}
 		key, value := words[0], words[1]
 		config[key] = value
 	}
-	return config
-}	
+}
 
 func GetValue(key string) string {
 	value, _ := config[key]

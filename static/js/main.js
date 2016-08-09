@@ -40,12 +40,4 @@ function(utils) {
         utils.postRequest(null, logoutCallback, "/registrationcontroller/logout");
     });
 
-    $("#cabinet-btn").click(function() {
-        location.href = "/usercontroller/showcabinet/users/";
-    });
-
-    $("#home-btn").click(function() {
-        location.href = "/";
-    });
-
 });

@@ -6,15 +6,7 @@ function(utils, gridLib, datepicker, kladr) {
 
         var block;
 
-        if (data["type"] === "region"
-            || data["type"] === "district"
-            || data["type"] === "city"
-            || data["type"] === "street"
-            || data["type"] === "building"
-            || data["type"] === "text"
-            || data["type"] === "email"
-            || data["type"] === "password"
-            || data["type"] === "phon") {
+        if (["region", "district", "city", "street", "building", "text", "email", "password", "phon"].indexOf(data["type"]) >= 0) {
             block = $("<input/>", {type: data["type"]});
 
         } else if (data["type"] === "textarea") {
@@ -38,7 +30,7 @@ function(utils, gridLib, datepicker, kladr) {
             block.attr("required", true);
         }
 
-        var lable = $("<label/>", {
+        var label = $("<label/>", {
             text: data["param_name"],
         });
 
@@ -50,7 +42,7 @@ function(utils, gridLib, datepicker, kladr) {
             block.attr("wasChanged", true);
         });
 
-        return $("<p/>").append(lable).append(block);
+        return $("<p/>").append(label).append(block);
     }
 
     function showParam(data, admin) {
@@ -64,14 +56,14 @@ function(utils, gridLib, datepicker, kladr) {
         block.text(data["value"]);
         block.attr("param_val_id", data["param_val_id"]);
 
-        var lable = $("<label/>", {
+        var label = $("<label/>", {
             text: data["param_name"],
             style: "color: #CC6600; font-weight: bold;",
         });
 
         block.attr("readonly", true);
 
-        return $("<p/>").append(lable).append(block);
+        return $("<p/>").append(label).append(block);
     }
 
     function getFormData(id) {

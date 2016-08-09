@@ -133,9 +133,9 @@ func AttendAnEvent(to, address, eventName, groupName string) bool {
     return SendEmail(address, AttendAnEventEmailTmp, context)
 }
 
-func SendEmailWellcomeToProfile(to, address, token string) bool {
-    log.Println("SendEmailWellcomeToProfile: address: ", address)
-    log.Println("SendEmailWellcomeToProfile: to: ", to)
+func SendEmailWelcomeToProfile(to, address, token string) bool {
+    log.Println("SendEmailWelcomeToProfile: address: ", address)
+    log.Println("SendEmailWelcomeToProfile: to: ", to)
 
     context := &SmtpTemplateData{
         From: Admin_.Name,

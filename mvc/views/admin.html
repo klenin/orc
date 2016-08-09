@@ -2,30 +2,16 @@
 {{template "header"}}
 
 <div id="container">
-    <div id="title" class="left"></div><br/>
-    <div id="cabinet" class="left"></div>
+    <div id="title" class="left">
+        <strong>Личный кабинет <i>admin</i></strong>
+    </div><br/>
+    <div id="cabinet" class="left">
+        {{range $index, $elem := .Columns}}
+            <a id="{{$elem}}" href="/gridcontroller/creategrid/{{$elem}}" class="tables">{{index $.ColNames $index}}</a>
+        {{end}}
+        <a id="search" href="/gridcontroller/creategrid/search" class="tables">Поиск участников</a>
+    </div>
 </div>
-
-<script type="text/javascript">
-    $("#title").append("<strong>Личный кабинет <i>admin</i></strong>");
-
-    $("#cabinet").empty();
-
-    for (var i = 0; i < {{.Columns}}.length; ++i) {
-        $("<a/>", {
-            class: "tables",
-            text: {{.ColNames}}[i],
-            id: {{.Columns}}[i],
-            href: "/gridcontroller/creategrid/" + {{.Columns}}[i]
-        }).appendTo("#cabinet");
-    }
-    $("<a/>", {
-        class: "tables",
-        text: "Поиск участников",
-        id: "search",
-        href: "/gridcontroller/creategrid/search"
-    }).appendTo("#cabinet");
-</script>
 
 {{template "footer"}}
 {{end}}

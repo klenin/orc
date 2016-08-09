@@ -58,7 +58,7 @@ func QueryRow(query string, params []interface{}) *sql.Row {
     return result
 }
 
-func QueryCreateSecuence(tableName string) {
+func QueryCreateSequence(tableName string) {
     Exec("CREATE SEQUENCE "+tableName+"_id_seq;", nil)
 }
 
@@ -66,7 +66,7 @@ func QueryCreateTable(m interface{}) {
     model := reflect.ValueOf(m)
     tableName := model.Elem().FieldByName("tableName").String()
 
-    QueryCreateSecuence(tableName)
+    QueryCreateSequence(tableName)
     query := "CREATE TABLE IF NOT EXISTS %s ("
     mF := model.Elem().FieldByName("fields").Elem().Type()
     for i := 0; i < mF.Elem().NumField(); i++ {
@@ -186,55 +186,35 @@ func ConvertData(columns []string, size int64, rows *sql.Rows) []interface{} {
     return answer
 }
 
-var QueryGetCaptFaceIdAndRegId = `SELECT faces.id, registrations.id
+var QueryGetCommon = `SELECT faces.id, registrations.id
     FROM regs_groupregs
     INNER JOIN group_registrations
         ON group_registrations.id = regs_groupregs.groupreg_id
     INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
+    INNER JOIN events ON events.id = registrations.event_id
+    INNER JOIN events_forms ON events_forms.event_id = events.id
+    INNER JOIN forms ON forms.id = events_forms.form_id
+    INNER JOIN params ON forms.id = params.form_id
+    INNER JOIN param_types ON param_types.id = params.param_type_id
+    INNER JOIN param_values ON params.id = param_values.param_id
+        AND param_values.reg_id = registrations.id`
+
+var QueryGetCaptFaceIdAndRegId = QueryGetCommon + `
     INNER JOIN groups ON groups.id = group_registrations.group_id
     INNER JOIN faces ON faces.id = groups.face_id
         AND faces.id = registrations.face_id
-    INNER JOIN events ON events.id = registrations.event_id
-    INNER JOIN events_forms ON events_forms.event_id = events.id
-    INNER JOIN forms ON forms.id = events_forms.form_id
-    INNER JOIN params ON forms.id = params.form_id
-    INNER JOIN param_types ON param_types.id = params.param_type_id
-    INNER JOIN param_values ON params.id = param_values.param_id
-        AND param_values.reg_id = registrations.id
     WHERE group_registrations.id = $1 AND forms.personal = FALSE;`
 
-var QueryGetCaptRegIdByGroupRegIdAndFaceId = `SELECT registrations.id
-    FROM regs_groupregs
-    INNER JOIN group_registrations
-        ON group_registrations.id = regs_groupregs.groupreg_id
-    INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
+var QueryGetCaptRegIdByGroupRegIdAndFaceId = QueryGetCommon + `
     INNER JOIN faces ON faces.id = registrations.face_id
     INNER JOIN groups ON groups.face_id = faces.id
         AND groups.id = group_registrations.group_id
-    INNER JOIN events ON events.id = registrations.event_id
-    INNER JOIN events_forms ON events_forms.event_id = events.id
-    INNER JOIN forms ON forms.id = events_forms.form_id
-    INNER JOIN params ON forms.id = params.form_id
-    INNER JOIN param_types ON param_types.id = params.param_type_id
-    INNER JOIN param_values ON params.id = param_values.param_id
-        AND param_values.reg_id = registrations.id
     WHERE group_registrations.id = $1 AND faces.id = $2
         AND forms.personal = FALSE;`
 
-var QueryGetRegIdByGroupRegIdAndFaceId = `SELECT registrations.id
-    FROM regs_groupregs
-    INNER JOIN group_registrations
-        ON group_registrations.id = regs_groupregs.groupreg_id
-    INNER JOIN registrations ON registrations.id = regs_groupregs.reg_id
+var QueryGetRegIdByGroupRegIdAndFaceId = QueryGetCommon + `
     INNER JOIN faces ON faces.id = registrations.face_id
     INNER JOIN persons ON persons.face_id = faces.id
         AND persons.group_id = group_registrations.group_id
-    INNER JOIN events ON events.id = registrations.event_id
-    INNER JOIN events_forms ON events_forms.event_id = events.id
-    INNER JOIN forms ON forms.id = events_forms.form_id
-    INNER JOIN params ON forms.id = params.form_id
-    INNER JOIN param_types ON param_types.id = params.param_type_id
-    INNER JOIN param_values ON params.id = param_values.param_id
-        AND param_values.reg_id = registrations.id
     WHERE group_registrations.id = $1 AND faces.id = $2
         AND forms.personal = TRUE;`

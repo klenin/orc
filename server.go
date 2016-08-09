@@ -3,7 +3,6 @@ package main
 import (
     "flag"
     "log"
-    "os"
     "net/http"
     "database/sql"
     "github.com/klenin/orc/db"
@@ -16,17 +15,18 @@ import (
 var err error
 
 func main() {
-    log.Println("Server started.")
-
     db.DB, err = sql.Open("postgres", config.GetValue("DATABASE_URL"))
     defer db.DB.Close()
 
     if err != nil {
-        log.Println("Error db connection: ", err.Error())
-        os.Exit(1)
+        log.Fatalln("Error DB open:", err.Error())
     }
 
-    log.Println("DB CONNECTED")
+    if err = db.DB.Ping(); err != nil {
+        log.Fatalln("Error DB ping:", err.Error())
+    }
+
+    log.Println("Connected to DB")
 
     testData := flag.Bool("test-data", false, "to load test data")
     resetDB := flag.Bool("reset-db", false, "reset the database")
@@ -51,13 +51,7 @@ func main() {
     http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
     http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))
 
-    port := config.GetValue("PORT")
-    if port == "" {
-        port = "5000"
-    }
-
-    if err := http.ListenAndServe(":" + port, nil); err != nil {
-        log.Println("Error listening: ", err.Error())
-        os.Exit(1)
-    }
+    addr := config.GetValue("HOSTNAME") + ":" + config.GetValue("PORT")
+    log.Println("Server listening on", addr)
+    log.Fatalln("Error listening:", http.ListenAndServe(addr, nil))
 }

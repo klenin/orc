@@ -73,12 +73,15 @@ func (this *GridController) Load(tableName string) {
         where, params, _ := model.WhereByParams(filters, 1)
 
         if !isAdmin {
-            where = ` WHERE events.id = 1 AND users.enabled = true AND `+where
-        } else {
-            if where != "" {
-                where = " WHERE "+where
+            if where != `` {
+                where = ` ( ` + where + ` ) AND `
             }
+            where += ` events.id = 1 AND users.enabled = true `
         }
+        if where != `` {
+            where = ` WHERE ` + where
+        }
+
         where += ` ORDER BY faces.id `+sord
         query += where+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`
         rows := db.Query(query, append(params, []interface{}{limit, start}...))
@@ -115,16 +118,13 @@ func (this *GridController) Load(tableName string) {
     where, params, _ := model.Where(filters, 1)
 
     if tableName == "param_values" && !isAdmin {
-        w := " WHERE param_values.param_id in (4, 5, 6, 7)"
         if where != "" {
-            where = w+" AND "+where
-        } else {
-            where = w
+            where = " ( " + where + " ) AND "
         }
-    } else {
-        if where != "" {
-            where = " WHERE "+where
-        }
+        where += "param_values.param_id in (4, 5, 6, 7)"
+    }
+    if where != "" {
+        where = " WHERE " + where
     }
 
     query := `SELECT `+strings.Join(model.GetColumns(), ", ")+` FROM `+model.GetTableName()+where+` ORDER BY `+sidx+` `+sord+` LIMIT $`+strconv.Itoa(len(params)+1)+` OFFSET $`+strconv.Itoa(len(params)+2)+`;`

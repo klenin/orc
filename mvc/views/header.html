@@ -1,7 +1,6 @@
 ﻿{{define "header"}}
-
-<!doctype html>
-
+<!DOCTYPE html>
+<html>
 <head>
 
 <title>Система учета участников мероприятий</title>
@@ -64,19 +63,13 @@
 
 <body>
 
-<div id="content-top">
-    <div class="div-top-left">
-        <input type="button" id="home-btn" value="система учета участников мероприятий"/>
-    </div>
-    <div class="div-top-right">
-        <div class="right">
-          <input type="button" id="logout-btn" style="visibility: hidden" value="выход"/>
-        </div>
-        <div class="right">
-          <input type="button" id="cabinet-btn" style="visibility: hidden" value="личный кабинет"/>
-        </div>
-    </div>
+<a class="btn" href="/">Система учета участников мероприятий</a>
+<div class="right">
+    <a id="cabinet-btn" href="/usercontroller/showcabinet/" style="visibility: hidden">личный кабинет</a>
+    <button id="logout-btn" style="visibility: hidden">выход</button>
 </div>
+<hr>
+
 <script type="text/javascript">
     require(["user_lib"],
     function(userLib) {
@@ -85,6 +78,5 @@
         });
     });
 </script>
-<hr/>
 
 {{end}}

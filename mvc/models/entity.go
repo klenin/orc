@@ -153,20 +153,15 @@ func (this *Entity) SetLimit(limit interface{}) *Entity {
         if limit.(string) != "ALL" {
             panic("[Entity::SetLimit] Invalid value")
         }
-        this.limit = limit
-
-        return this
     case int:
         if limit.(int) < 0 {
             panic("[Entity::SetLimit] Invalid value")
         }
-        this.limit = limit
-
-        return this
-
     default:
         panic("[Entity::SetLimit] Invalid type")
     }
+    this.limit = limit
+    return this
 }
 
 func (this *Entity) GetLimit() interface{} {
@@ -287,192 +282,113 @@ func (this Entity) GenerateWherePart(counter int) (string, []interface{}) {
     return strings.Join(key, " "+this.GetConditionName()+" "), val
 }
 
-func (this *Entity) Select_(fields []string) []interface{} {
-    query := "SELECT %s FROM %s"
-    if len(this.wherePart) != 0 {
-        where, params := this.GenerateWherePart(1)
-        params = append(params, this.orderBy)
-        query += " WHERE %s ORDER BY $" + strconv.Itoa(len(params))
-
-        switch this.limit.(type) {
-        case string:
-            query += " LIMIT ALL"
-            break
-        case int:
-            query += " LIMIT $" + strconv.Itoa(len(params))
-            params = append(params, this.limit)
-            break
-        default:
-            panic("Invalid type of limit")
-        }
-
-        params = append(params, this.offset)
-        query += " OFFSET $" + strconv.Itoa(len(params)) + ";"
-
-        return db.Query(fmt.Sprintf(query, strings.Join(fields, ", "), this.tableName, where), params)
-    } else {
-        query += " ORDER BY $1 LIMIT $2 OFFSET $3;"
-
-        return db.Query(
-            fmt.Sprintf(query, strings.Join(fields, ", "), this.tableName),
-            []interface{}{this.GetOrder(), this.GetLimit(), this.GetOffset()})
-    }
-}
-
-func (this *Entity) Select(fields []string, filters map[string]interface{}) (result []interface{}) {
+func (this *Entity) _select(fields []string, whereCond string, whereParam []interface{}) []interface{} {
     if len(fields) == 0 {
         return nil
     }
-
-    where, params, _ := this.Where(filters, 1)
-    if where != "" {
-        where = " WHERE " + where
+    query := fmt.Sprintf("SELECT %s FROM %s", strings.Join(fields, ", "), this.GetTableName())
+    var params []interface{}
+    if whereCond != "" {
+        query += " WHERE " + whereCond
+        params = append(params, whereParam...)
     }
-    query := `SELECT ` + strings.Join(fields, ", ") + ` FROM ` + this.GetTableName() + where
-    query += ` ORDER BY ` + this.GetTableName() + "." + this.orderBy
-    query += ` `+ this.sorting
-
-    switch this.limit.(type) {
-    case string:
-        query += " LIMIT ALL"
-        break
-    case int:
+    params = append(params, this.GetTableName() + "." + this.GetOrder() + " " + this.GetSorting())
+    query += " ORDER BY $" + strconv.Itoa(len(params))
+    if l, f := this.GetLimit().(int); f {
+        params = append(params, l)
         query += " LIMIT $" + strconv.Itoa(len(params))
-        params = append(params, this.GetLimit())
-        break
-    default:
-        panic("Invalid type of limit")
     }
-
     params = append(params, this.GetOffset())
-    query += ` OFFSET $` + strconv.Itoa(len(params)) + `;`
-
+    query += " OFFSET $" + strconv.Itoa(len(params))
     return db.Query(query, params)
 }
 
-func (this *Entity) Where(filters map[string]interface{}, num int) (where string, params []interface{}, num1 int) {
-    where = ""
-    if filters == nil {
-        return where, nil, -1
+func (this *Entity) Select_(fields []string) []interface{} {
+    var whereCond string
+    var whereParam []interface{}
+    if len(this.wherePart) != 0 {
+        whereCond, whereParam = this.GenerateWherePart(1)
     }
-    i := num
+    return this._select(fields, whereCond, whereParam)
+}
+
+func (this *Entity) Select(fields []string, filters map[string]interface{}) ([]interface{}) {
+    where, params, _ := this.Where(filters, 1)
+    return this._select(fields, where, params)
+}
+
+func (this *Entity) Where(filters map[string]interface{}, i int) (string, []interface{}, int) {
+    if filters == nil {
+        return "", nil, -1
+    }
+    where := ""
+    params := []interface{}{}
 
     groupOp := filters["groupOp"].(string)
-    rules := filters["rules"].([]interface{})
+    if groupOp != "AND" && groupOp != "OR" {
+        panic("`groupOp` parameter is not allowed!")
+    }
+    var rules []interface{}
+    if filters["rules"] != nil {
+        rules = filters["rules"].([]interface{})
+    }
     var groups []interface{}
     if filters["groups"] != nil {
         groups = filters["groups"].([]interface{})
     }
 
-    if len(rules) > 10 {
-        log.Println("More 10 rules for serching!")
-    }
-
-    firstElem := true
-
     for _, v := range rules {
-        if !firstElem {
-            if groupOp != "AND" && groupOp != "OR" {
-                log.Println("`groupOp` parameter is not allowed!")
-                continue
-            }
+        if where != "" {
             where += " " + groupOp + " "
-        } else {
-            firstElem = false
         }
-
         rule := v.(map[string]interface{})
 
-        switch rule["op"].(string) {
-        case "eq":// equal
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text = $"+strconv.Itoa(i)
+        where += fmt.Sprintf("%s.%s::text ", this.GetTableName(), rule["field"].(string))
+        op := rule["op"].(string)
+        if val, ok := map[string]string{
+            "eq": "= $%d",
+            "ne": "<> $%d",
+            "bw": "LIKE $%d||'%%'",
+            "bn": "NOT LIKE $%d||'%%'",
+            "ew": "LIKE '%%'||$%d",
+            "en": "NOT LIKE '%%'||$%d",
+            "cn": "LIKE '%%'||$%d||'%%'",
+            "nc": "NOT LIKE '%%'||$%d||'%%'",
+        }[op]; ok {
+            where += fmt.Sprintf(val, i)
             params = append(params, rule["data"])
             i += 1
-            break
-        case "ne":// not equal
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text <> $"+strconv.Itoa(i)
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "bw":// begins with
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE $"+strconv.Itoa(i)+"||'%'"
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "bn":// does not begin with
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE $"+strconv.Itoa(i)+"||'%'"
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "ew":// ends with
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "en":// does not end with
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "cn":// contains
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "nc":// does not contain
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT LIKE '%'||$"+strconv.Itoa(i)+"||'%'"
-            params = append(params, rule["data"])
-            i += 1
-            break
-        case "nu":// is null
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text IS NULL"
-            break
-        case "nn":// is not null
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text IS NOT NULL"
-            break
-        case "in":// is in
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text IN ("
-            result := strings.Split(rule["data"].(string), ",")
-            for k := range result {
-                where += "$"+strconv.Itoa(i)+", "
-                params = append(params, result[k])
-                i += 1
+        } else if val, ok := map[string]string{
+            "nu": "IS NULL",
+            "nn": "IS NOT NULL",
+        }[op]; ok {
+            where += val
+        } else if val, ok := map[string]string{
+            "in": "IN",
+            "ni": "NOT IN",
+        }[op]; ok {
+            values := strings.Split(rule["data"].(string), ",")
+            arr := []string{}
+            for _, value := range values {
+                arr = append(arr, "$" + strconv.Itoa(i))
+                params = append(params, value)
             }
-            where = where[:len(where)-2]
-            where += ")"
-            break
-        case "ni":// is not in
-            where += this.GetTableName()+"."+rule["field"].(string) + "::text NOT IN ("
-            result := strings.Split(rule["data"].(string), ",")
-            for k := range result {
-                where += "$"+strconv.Itoa(i)+", "
-                params = append(params, result[k])
-                i += 1
-            }
-            where = where[:len(where)-2]
-            where += ")"
-            break
-        default:
+            where += val + " (" + strings.Join(arr, ", ") + ")"
+        } else {
             panic("`op` parameter is not allowed!")
         }
     }
 
     for _, v := range groups {
-        filters1 := v.(map[string]interface{})
-        where1, params1, num1 :=  this.Where(filters1, i)
-        i = num1
-        if where != "" {
-            if !firstElem {
-                if groupOp != "AND" && groupOp != "OR" {
-                    log.Println("`groupOp` parameter is not allowed!")
-                    continue
-                }
+        var groupWhere string
+        var groupParams []interface{}
+        groupWhere, groupParams, i = this.Where(v.(map[string]interface{}), i)
+        if groupWhere != "" {
+            if where != "" {
                 where += " " + groupOp + " "
-            } else {
-                firstElem = false
             }
-            where += "(" + where1 + ")"
-            params = append(params, params1...)
+            where += "(" + groupWhere + ")"
+            params = append(params, groupParams...)
         }
     }
 
@@ -485,33 +401,26 @@ func (this *Entity) Delete(id int) {
 }
 
 func (this *Entity) QueryUpdate() *sql.Row {
-    j := 1
-    query := "UPDATE %s SET "
+    query := fmt.Sprintf("UPDATE %s SET ", this.tableName)
     tFields := reflect.ValueOf(this.fields).Type().Elem()
     vFields := reflect.ValueOf(this.fields).Elem()
     params := make([]interface{}, 0)
 
+    var set []string
     for i := 1; i < tFields.NumField(); i++ {
-        value, ok := utils.UpdateOrNot(tFields.Field(i).Tag.Get("type"), vFields.Field(i))
-        if !ok {
-            continue
+        if value, ok := utils.UpdateOrNot(tFields.Field(i).Tag.Get("type"), vFields.Field(i)); ok {
+            params = append(params, value)
+            set = append(set, tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(len(params)))
         }
-        query += tFields.Field(i).Tag.Get("name") + "=$" + strconv.Itoa(j) + ", "
-        params = append(params, value)
-        j++
     }
-    query = query[0 : len(query)-2]
+    query += strings.Join(set, ", ")
 
     if len(this.wherePart) != 0 {
-        query += " WHERE %s;"
-        v1, v2 := this.GenerateWherePart(j)
-
-        return db.QueryRow(fmt.Sprintf(query, this.tableName, v1), append(params, v2...))
-    } else {
-        query += ";"
-
-        return db.QueryRow(fmt.Sprintf(query, this.tableName), params)
+        v1, v2 := this.GenerateWherePart(len(params) + 1)
+        query += " WHERE " + v1
+        params = append(params, v2...)
     }
+    return db.QueryRow(query + ";", params)
 }
 
 func (this *Entity) Update(isAdmin bool, userId int, params, where map[string]interface{}) {
@@ -671,6 +580,4 @@ func (this *ModelManager) GetModel(tableName string) EntityInterface {
     default:
         panic("Table is dont exists!")
     }
-
-    return nil
 }

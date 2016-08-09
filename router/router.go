@@ -10,46 +10,37 @@ import (
 type FastCGIServer struct{}
 
 func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    url := r.URL
-    parts := strings.Split(url.Path, "/")
+    parts := strings.Split(r.URL.Path, "/")
     controllerName := "indexcontroller"
     methodName := "index"
 
-    if len(parts) < 2 {
-        // index
-    } else if len(parts) < 3 {
-        if parts[1] != "" {
-            controllerName = parts[1]
-        }
-    } else {
+    if len(parts) >= 2 && parts[1] != "" {
         controllerName = parts[1]
-        if parts[2] != "" {
-            methodName = parts[2]
-        }
     }
-    controller := FindController(controllerName)
-    if controller != nil {
+    if len(parts) >= 3 && parts[2] != "" {
+        methodName = parts[2]
+    }
+
+    if controller := FindController(controllerName); controller != nil {
         controller.Elem().FieldByName("Request").Set(reflect.ValueOf(r))
         controller.Elem().FieldByName("Response").Set(reflect.ValueOf(w))
         cType := controller.Type()
-        cMethod := FindMethod(cType, methodName)
-        if cMethod != nil {
+        if cMethod := FindMethod(cType, methodName); cMethod != nil {
             params := PopulateParams(*cMethod, parts)
             allParams := make([]reflect.Value, 0)
             cMethod.Func.Call(append(append(allParams, *controller), params...))
         } else {
-            http.Error(w, "Unable to locate index method in controller.", http.StatusMethodNotAllowed)
+            http.Error(w, "Unable to locate method in controller.", http.StatusMethodNotAllowed)
         }
     } else {
-        http.Error(w, "Unable to locate default controller.", http.StatusMethodNotAllowed)
+        http.Error(w, "Unable to locate controller.", http.StatusMethodNotAllowed)
     }
 }
 
 func FindController(controllerName string) *reflect.Value {
     baseController := new(controllers.BaseController)
     cmt := reflect.TypeOf(baseController)
-    count := cmt.NumMethod()
-    for i := 0; i < count; i++ {
+    for i := 0; i < cmt.NumMethod(); i++ {
         cmt_method := cmt.Method(i)
         if strings.ToLower(cmt_method.Name) == strings.ToLower(controllerName) {
             params := make([]reflect.Value, 1)
@@ -62,8 +53,7 @@ func FindController(controllerName string) *reflect.Value {
 }
 
 func FindMethod(cType reflect.Type, methodName string) *reflect.Method {
-    count := cType.NumMethod()
-    for i := 0; i < count; i++ {
+    for i := 0; i < cType.NumMethod(); i++ {
         method := cType.Method(i)
         if strings.ToLower(method.Name) == strings.ToLower(methodName) {
             return &method
