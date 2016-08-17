@@ -26,9 +26,11 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         controller.Elem().FieldByName("Response").Set(reflect.ValueOf(w))
         cType := controller.Type()
         if cMethod := findMethod(cType, methodName); cMethod != nil {
-            params := PopulateParams(*cMethod, parts)
-            allParams := make([]reflect.Value, 0)
-            cMethod.Func.Call(append(append(allParams, *controller), params...))
+            parts = append(parts, make([]string, cMethod.Type.NumIn())...)
+            cMethod.Func.Call(append(
+                []reflect.Value{*controller},
+                stringToValueSlice(parts[3:3 + cMethod.Type.NumIn() - 1])...,
+            ))
         } else {
             http.Error(w, "Unable to locate method in controller.", http.StatusMethodNotAllowed)
         }
@@ -58,15 +60,10 @@ func findMethod(cType reflect.Type, methodName string) *reflect.Method {
     return nil
 }
 
-func PopulateParams(method reflect.Method, parts []string) []reflect.Value {
-    numParams := method.Type.NumIn() - 1
-    params := make([]reflect.Value, numParams)
-    for x := 0; x < numParams; x++ {
-        if len(parts) > (x + 3) {
-            params[x] = reflect.ValueOf(parts[x+3])
-        } else {
-            params[x] = reflect.ValueOf("")
-        }
+func stringToValueSlice(a []string) (r []reflect.Value) {
+    r = make([]reflect.Value, len(a))
+    for k, v := range a {
+        r[k] = reflect.ValueOf(v)
     }
-    return params
+    return r
 }
