@@ -21,11 +21,11 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         methodName = parts[2]
     }
 
-    if controller := FindController(controllerName); controller != nil {
+    if controller := findController(controllerName); controller != nil {
         controller.Elem().FieldByName("Request").Set(reflect.ValueOf(r))
         controller.Elem().FieldByName("Response").Set(reflect.ValueOf(w))
         cType := controller.Type()
-        if cMethod := FindMethod(cType, methodName); cMethod != nil {
+        if cMethod := findMethod(cType, methodName); cMethod != nil {
             params := PopulateParams(*cMethod, parts)
             allParams := make([]reflect.Value, 0)
             cMethod.Func.Call(append(append(allParams, *controller), params...))
@@ -37,7 +37,7 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-func FindController(controllerName string) *reflect.Value {
+func findController(controllerName string) *reflect.Value {
     baseController := new(controllers.BaseController)
     cmt := reflect.TypeOf(baseController)
     for i := 0; i < cmt.NumMethod(); i++ {
@@ -52,7 +52,7 @@ func FindController(controllerName string) *reflect.Value {
     return nil
 }
 
-func FindMethod(cType reflect.Type, methodName string) *reflect.Method {
+func findMethod(cType reflect.Type, methodName string) *reflect.Method {
     for i := 0; i < cType.NumMethod(); i++ {
         method := cType.Method(i)
         if strings.ToLower(method.Name) == strings.ToLower(methodName) {
