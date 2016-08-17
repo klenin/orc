@@ -39,9 +39,11 @@ func main() {
 
     http.Handle("/", new(router.FastCGIServer))
     http.HandleFunc("/wellcometoprofile/", controllers.WellcomeToProfile)
-    http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("./static/js"))))
-    http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
-    http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("./static/img"))))
+
+    fileServer := http.FileServer(http.Dir("./static"))
+    http.Handle("/js/", fileServer)
+    http.Handle("/css/", fileServer)
+    http.Handle("/img/", fileServer)
 
     addr := config.GetValue("HOSTNAME") + ":" + config.GetValue("PORT")
     log.Println("Server listening on", addr)
