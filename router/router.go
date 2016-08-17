@@ -40,14 +40,10 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func findController(controllerName string) *reflect.Value {
     baseController := new(controllers.BaseController)
     cmt := reflect.TypeOf(baseController)
-    for i := 0; i < cmt.NumMethod(); i++ {
-        cmt_method := cmt.Method(i)
-        if strings.ToLower(cmt_method.Name) == strings.ToLower(controllerName) {
-            params := make([]reflect.Value, 1)
-            params[0] = reflect.ValueOf(baseController)
-            result := cmt_method.Func.Call(params)
-            return &result[0]
-        }
+    if cmt_method := findMethod(cmt, controllerName); cmt_method != nil {
+        params := []reflect.Value{reflect.ValueOf(baseController)}
+        result := cmt_method.Func.Call(params)
+        return &result[0]
     }
     return nil
 }
