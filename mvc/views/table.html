@@ -1,12 +1,6 @@
 {{define "table"}}
 {{template "header"}}
 
-<link rel="stylesheet"
-      href="/css/jquery.kladr.min.css">
-
-<script type="text/javascript"
-        src="/js/kladr/jquery.kladr.min.js"></script>
-
 <div id="container">
     <table id="grid-table"></table>
     <div id="grid-table-pager"></div>
@@ -40,15 +34,13 @@
 </div>
 
 <script type="text/javascript">
-require(["utils", "subgrid_lib", "grid_lib", "user_lib", "blank", "group_lib"],
-function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
+require(["jquery", "utils", "subgrid_lib", "grid_lib", "user_lib", "blank", "group_lib", "jqGrid"],
+function($, utils, subGridLib, gridLib, userLib, blank, groupLib) {
     var serverData = {{.}};
     var $gridTable = $("#grid-table");
 
     $gridTable.jqGrid({
         url: "/gridcontroller/load/" + serverData.model.TableName,
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.model.ColNames,
         colModel: gridLib.SetPrimitive(serverData.model.ColModel),
@@ -62,19 +54,11 @@ function(utils, subGridLib, gridLib, userLib, blank, groupLib) {
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: serverData.model.Caption,
-        sortname: "id",
-        sortorder: "asc",
         multiselect: true,
         multiselectWidth: 20,
         multiboxonly: true,
         sortable: true,
         editurl: "/gridcontroller/editgridrow/" + serverData.model.TableName,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code ' + jqXHR.status + '\n'
-                + 'textStatus ' + textStatus + '\n'
-                + 'errorThrown ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
-        },
         gridComplete: function() {
             $("#grid-table_cb").css("width", "20px");
             $("#grid-table tbody tr").children().first("td").css("width", "24px");

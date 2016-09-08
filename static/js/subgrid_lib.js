@@ -1,5 +1,5 @@
-define(["utils", "blank", "grid_lib"],
-function(utils, blank, gridLib) {
+define(["jquery", "utils", "blank", "grid_lib"],
+function($, utils, blank, gridLib) {
 
     function AddSubTable(subgrid_id, row_id, index, tableName, gridId, data) {
         console.log("AddSubTable");
@@ -42,8 +42,6 @@ function(utils, blank, gridLib) {
 
         $("#" + subTId).jqGrid({
             url:         url,
-            datatype:    "json",
-            mtype:       "POST",
             colNames:    subColNames,
             colModel:    subColModel,
             rowNum:      5,
@@ -51,7 +49,6 @@ function(utils, blank, gridLib) {
             pager:       subPId,
             caption:     subTableCaption,
             sortname:    "num",
-            sortorder:   "asc",
             height:      "100%",
             // width:       /*$("#"+gridId).width()*/"100%",
             multiselect: true,
@@ -121,8 +118,6 @@ function(utils, blank, gridLib) {
 
                     $("#params-table").jqGrid({
                         url: "/gridcontroller/load/"+data["params"].TableName,
-                        datatype: "json",
-                        mtype: "POST",
                         treeGrid: false,
                         colNames: data["params"].ColNames,
                         colModel: gridLib.SetPrimitive(data["params"].ColModel),
@@ -134,14 +129,6 @@ function(utils, blank, gridLib) {
                         rowNum: 1,
                         rownumWidth: 20,
                         caption: data["params"].Caption,
-                        sortname: "id",
-                        sortorder: "asc",
-                        loadError: function (jqXHR, textStatus, errorThrown) {
-                            alert('HTTP status code: '+jqXHR.status+'\n'
-                                +'textStatus: '+textStatus+'\n'
-                                +'errorThrown: '+errorThrown);
-                            alert('HTTP message body (jqXHR.responseText): '+'\n'+jqXHR.responseText);
-                        },
                         loadComplete: function() {
                             $("#faces-table").trigger('reloadGrid');
                         },
@@ -177,8 +164,6 @@ function(utils, blank, gridLib) {
 
                     $("#faces-table").jqGrid({
                         url: "/gridcontroller/load/search",
-                        datatype: "json",
-                        mtype: "POST",
                         treeGrid: false,
                         colNames: data["faces"].ColNames,
                         colModel: gridLib.SetPrimitive(data["faces"].ColModel),
@@ -192,14 +177,6 @@ function(utils, blank, gridLib) {
                         rownumWidth: 20,
                         rowList: [5, 10, 20, 50],
                         caption: data["faces"].Caption,
-                        sortname: "id",
-                        sortorder: "asc",
-                        loadError: function (jqXHR, textStatus, errorThrown) {
-                            alert('HTTP status code: '+jqXHR.status+'\n'
-                                +'textStatus: '+textStatus+'\n'
-                                +'errorThrown: '+errorThrown);
-                            alert('HTTP message body: '+jqXHR.responseText);
-                        },
                         beforeRequest: function() {
                             $("#faces-table").setGridParam({ postData: {
                                 "filters": filter ? filter : null,

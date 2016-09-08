@@ -1,4 +1,4 @@
-define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
+define(["jquery", "utils", "grid_lib", "blank"], function($, utils, gridLib, blank) {
 
     function Register(dialogId, groupId, eventId, groups, events) {
         if ((!groupId && !eventId) || (!eventId && !events) || (!groupId && !groups)) {
@@ -28,14 +28,11 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
 
             $("#group-reg-groups-table").jqGrid({
                 url: "/handler/usergroupsload",
-                datatype: "json",
-                mtype: "POST",
                 treeGrid: false,
                 colNames: groups.ColNames,
                 colModel: gridLib.SetPrimitive(groups.ColModel),
                 pager: "#group-reg-groups-table-pager",
                 gridview: true,
-                sortname: "id",
                 viewrecords: true,
                 height: "100%",
                 width: "auto",
@@ -44,15 +41,7 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
                 rownumWidth: 20,
                 rowList: [5, 10, 20, 50],
                 caption: "Мои группы",
-                sortname: "id",
-                sortorder: "asc",
                 editurl: "/gridcontroller/editgridrow/"+groups.TableName,
-                loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
 
                 subGrid: groups.Sub,
                 subGridOptions: {
@@ -79,8 +68,6 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
 
                     $("#"+subgrid_id+"_t").jqGrid({
                         url: "/handler/"+groups.SubTableName.replace(/_/g, "")+"load/"+group_id,
-                        datatype: "json",
-                        mtype: "POST",
                         colNames: groups.SubColNames,
                         colModel: gridLib.SetPrimitive(groups.SubColModel),
                         rowNum: 5,
@@ -88,16 +75,9 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
                         pager: "#"+subgrid_id+"_p",
                         caption: groups.SubCaption,
                         sortname: "num",
-                        sortorder: "asc",
                         height: "100%",
                         width: $("#group-reg-groups-table").width()-65,
                         editurl: "/gridcontroller/editgridrow/"+groups.SubTableName,
-                        loadError: function(jqXHR, textStatus, errorThrown) {
-                            alert('HTTP status code: '+jqXHR.status+'\n'
-                                +'textStatus: '+textStatus+'\n'
-                                +'errorThrown: '+errorThrown);
-                            alert('HTTP message body: '+jqXHR.responseText);
-                        },
                         gridComplete: function() {
                             var rows = $("#"+subgrid_id+"_t").getDataIDs();
                             for (var i = 0; i < rows.length; i++) {
@@ -167,14 +147,11 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
 
             $("#"+dialogId+" #group-reg-events-table").jqGrid({
                 url: "/gridcontroller/load/events",
-                datatype: "json",
-                mtype: "POST",
                 treeGrid: false,
                 colNames: events.ColNames,
                 colModel: gridLib.SetPrimitive(events.ColModel),
                 pager: "#group-reg-events-table-pager",
                 gridview: true,
-                sortname: "id",
                 viewrecords: true,
                 height: "100%",
                 width: "auto",
@@ -182,15 +159,7 @@ define(["utils", "grid_lib", "blank"], function(utils, gridLib, blank) {
                 rownumbers: true,
                 rownumWidth: 20,
                 rowList: [5, 10, 20, 50],
-                caption: events.Caption,
-                sortname: "id",
-                sortorder: "asc",
-                loadError: function(jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: '+jqXHR.status+'\n'
-                        +'textStatus: '+textStatus+'\n'
-                        +'errorThrown: '+errorThrown);
-                    alert('HTTP message body: '+jqXHR.responseText);
-                },
+                caption: events.Caption
             });
 
             $("#"+dialogId+" #group-reg-events-table").jqGrid("hideCol", ["id"]);

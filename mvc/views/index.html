@@ -2,22 +2,13 @@
 
 {{template "header"}}
 
-<link rel="stylesheet"
-      href="/css/jquery.kladr.min.css">
-
-<script type="text/javascript"
-        src="/js/kladr/jquery.kladr.min.js"></script>
-
 <script type="text/javascript">
-
-require(["utils", "grid_lib", "group_lib", "blank"],
-function(utils, gridLib, groupLib, blank) {
+require(["jquery", "utils", "grid_lib", "group_lib", "blank", "jqGrid"],
+function($, utils, gridLib, groupLib, blank) {
     var serverData = {{.}};
 
     $("#events-table").jqGrid({
         url: "/gridcontroller/load/" + serverData.events.TableName,
-        datatype: "json",
-        mtype: "POST",
         colNames: serverData.events.ColNames,
         colModel: gridLib.SetPrimitive(serverData.events.ColModel),
         pager: "#events-table-pager",
@@ -28,16 +19,8 @@ function(utils, gridLib, groupLib, blank) {
         rowNum: 5,
         rownumbers: true,
         rownumWidth: 20,
-        rowList: [5, 10, 20, 50],
+        rowList: [5, 10, 20, 50]
         // caption: {{.events.Caption}},
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
-        },
     });
 
     $("#events-table").navGrid(

@@ -1,4 +1,4 @@
-define(["utils", "datepicker/datepicker"], function(utils, datepicker) {
+define(["jquery", "utils", "datepicker"], function($, utils) {
 
     function resizeSelectWidth(form) {
         var maxWidth = 0, i,
@@ -131,10 +131,6 @@ define(["utils", "datepicker/datepicker"], function(utils, datepicker) {
     }
 
 //-----------------------------------------------------------------------------
-    function timePicker(e) {
-        $(e).timepicker({"timeFormat": "HH:mm:ss"});
-    }
-
     function timeFormat(cellvalue, options, rowObject) {
         return cellvalue != undefined ? cellvalue.slice(11, 19) : "";
     }
@@ -158,25 +154,22 @@ define(["utils", "datepicker/datepicker"], function(utils, datepicker) {
     }
 
     function SetPrimitive(colModel) {
-        console.log(colModel);
-        for (i = 0; i < colModel.length; ++i) {
-            if (colModel[i].type != undefined && colModel[i].type === "date") {
-                colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["formatter"] = dateFormat;
-            } else if (colModel[i].type != undefined && colModel[i].type === "time") {
-                colModel[i]["editrules"]["custom_func"] = timeValidator;
-                colModel[i]["editoptions"]["dataInit"] = timePicker;
-                colModel[i]["searchoptions"]["dataInit"] = timePicker;
-                colModel[i]["formatter"] = timeFormat;
-            } else if (colModel[i].type != undefined && colModel[i].type === "timestamp") {
-                // datetimepicker
-                colModel[i]["editoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["searchoptions"]["dataInit"] = datepicker.initDatePicker;
-                colModel[i]["formatter"] = timeStampFormat;
+        colModel.forEach(function(model) {
+            switch (model.type) {
+                case "date":
+                    model.formatter = dateFormat;
+                    break;
+                case "time":
+                    model.editrules.custom_func = timeValidator;
+                    model.formatter = timeFormat;
+                    break;
+                case "datetime":
+                    model.formatter = timeStampFormat;
             }
-            continue;
-        }
+            if (["date", "time", "datetime"].indexOf(model.type) >= 0)
+                model.searchoptions.dataInit = model.editoptions.dataInit =
+                    function(elem) { $(elem)[model.type + "picker"](); };
+        });
         return colModel;
     }
 

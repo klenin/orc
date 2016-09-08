@@ -2,63 +2,17 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Система учета участников мероприятий</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="shortcut icon" type="image/png" href="/img/favicon.ico">
+    <link rel="stylesheet" type="text/css" media="screen" href="/vendor/jquery-ui/themes/redmond/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="/vendor/jqGrid/css/ui.jqgrid.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="/vendor/jquery.kladr/jquery.kladr.min.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="/vendor/jqueryui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.css">
 
-<title>Система учета участников мероприятий</title>
-
-<meta http-equiv="Content-Type"
-      content="text/html; charset=utf-8"/>
-
-<link rel="stylesheet"
-      type="text/css"
-      href="/css/style.css"/>
-
-<link rel="shortcut icon"
-      type="image/png"
-      href="/img/favicon.ico"/>
-
-<link rel="stylesheet"
-      type="text/css"
-      media="screen"
-      href="/css/redmond/jquery-ui.css"/>
-
-<link rel="stylesheet"
-      type="text/css"
-      media="screen"
-      href="/css/ui.jqgrid.css"
-      mce_href="/css/ui.jqgrid.css"/>
-
-<!-- jQuery, jQuery-UI RequireJS -->
-
-<script type="text/javascript"
-        src="/js/jquery.js"></script>
-
-<script type="text/javascript"
-        src="/js/jquery-ui.js"></script>
-
-<script data-main="/js/main"
-        src="/js/require.js"></script>
-
-<!-- jqGrid -->
-
-<script type="text/javascript"
-        src="/js/grid/grid.locale-ru.js"></script>
-
-<script type="text/javascript"
-        src="/js/grid/jquery.jqgrid.min.js"></script>
-
-<!-- Datepicker -->
-
-<script type="text/javascript"
-        src="/js/datepicker/jquery.ui.datepicker-ru.js"></script>
-
-<!-- Timepicker -->
-
-<script type="text/javascript"
-        src="/js/timepicker/jquery.ui.timepicker-ru.js"></script>
-
-<script type="text/javascript"
-        src="/js/timepicker/jquery.ui.timepicker.js"></script>
-
+    <script src="/vendor/requirejs/require.js"></script>
+    <script src="/js/main.js"></script>
 </head>
 
 <body>
@@ -69,14 +23,5 @@
     <button id="logout-btn" style="visibility: hidden">выход</button>
 </div>
 <hr>
-
-<script type="text/javascript">
-    require(["user_lib"],
-    function(userLib) {
-        $(document).ready(function() {
-            userLib.CheckSession();
-        });
-    });
-</script>
 
 {{end}}

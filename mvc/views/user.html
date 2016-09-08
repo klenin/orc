@@ -1,12 +1,6 @@
 {{define "user"}}
 {{template "header"}}
 
-<link rel="stylesheet"
-      href="/css/jquery.kladr.min.css">
-
-<script type="text/javascript"
-        src="/js/kladr/jquery.kladr.min.js"></script>
-
 <div id="container">
 
     <div class="left">
@@ -91,8 +85,8 @@
 </div>
 
 <script type="text/javascript">
-require(["grid_lib", "group_lib", "blank", "user_lib", "utils"],
-function(gridLib, groupLib, blank, userLib, utils) {
+require(["jquery", "grid_lib", "group_lib", "blank", "user_lib", "utils", "jqGrid"],
+function($, gridLib, groupLib, blank, userLib, utils) {
 
     function updateJqGridWidths() {
         $(".ui-jqgrid-btable").each(function(id, elem){
@@ -163,18 +157,8 @@ function(gridLib, groupLib, blank, userLib, utils) {
     })
 
     $.extend($.jgrid.defaults, {
-        datatype: "json",
-        mtype: "POST",
         height: "100%",
-        shrinkToFit: true,
-        sortname: "id",
-        sortorder: "asc",
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: '+jqXHR.status+'\n'
-                    +'textStatus: '+textStatus+'\n'
-                    +'errorThrown: '+errorThrown);
-            alert('HTTP message body: '+jqXHR.responseText);
-        }
+        shrinkToFit: true
     });
 
     $("#my-group-table").jqGrid({

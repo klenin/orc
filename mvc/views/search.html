@@ -1,12 +1,6 @@
 {{define "search"}}
 {{template "header"}}
 
-<link rel="stylesheet"
-      href="/css/jquery.kladr.min.css">
-
-<script type="text/javascript"
-        src="/js/kladr/jquery.kladr.min.js"></script>
-
 <div id="container">
     <p>
         <div hidden="true" id="dialog-person-request" title="Анкета"></div>
@@ -26,16 +20,14 @@
 </div>
 
 <script type="text/javascript">
-require(["grid_lib", "blank"],
-function(gridLib, blank) {
+require(["jquery", "grid_lib", "blank", "jqGrid"],
+function($, gridLib, blank) {
     var serverData = {{.}};
 
     var filter = {};
 
     $("#params-table").jqGrid({
         url: "/gridcontroller/load/" + serverData.params.TableName,
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.params.ColNames,
         colModel: gridLib.SetPrimitive(serverData.params.ColModel),
@@ -49,15 +41,7 @@ function(gridLib, blank) {
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: serverData.params.Caption,
-        sortname: "id",
-        sortorder: "asc",
         multiselect: true,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body (jqXHR.responseText): ' + '\n' + jqXHR.responseText);
-        },
         loadComplete: function() {
             $("#faces-table").trigger('reloadGrid');
         },
@@ -90,8 +74,6 @@ function(gridLib, blank) {
 
     $("#faces-table").jqGrid({
         url: "/gridcontroller/load/search",
-        datatype: "json",
-        mtype: "POST",
         treeGrid: false,
         colNames: serverData.faces.ColNames,
         colModel: gridLib.SetPrimitive(serverData.faces.ColModel),
@@ -105,15 +87,7 @@ function(gridLib, blank) {
         rownumWidth: 20,
         rowList: [5, 10, 20, 50],
         caption: serverData.faces.Caption,
-        sortname: "id",
-        sortorder: "asc",
         multiselect: true,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('HTTP status code: ' + jqXHR.status + '\n'
-                + 'textStatus: ' + textStatus + '\n'
-                + 'errorThrown: ' + errorThrown);
-            alert('HTTP message body: ' + jqXHR.responseText);
-        },
         beforeRequest: function() {
             $("#faces-table").setGridParam({ postData: {
                 "filters": filter ? filter : null,
@@ -135,8 +109,6 @@ function(gridLib, blank) {
 
             $("#" + subgrid_id + "_t").jqGrid({
                 url: "/handler/"+serverData.faces.SubTableName.replace(/_/g, "")+"load/"+user_id,
-                datatype: "json",
-                mtype: "POST",
                 colNames: serverData.faces.SubColNames,
                 colModel: gridLib.SetPrimitive(serverData.faces.SubColModel),
                 rowNum: 5,
@@ -144,17 +116,10 @@ function(gridLib, blank) {
                 pager: "#" + subgrid_id + "_p",
                 caption: serverData.faces.SubCaption,
                 sortname: "num",
-                sortorder: "asc",
                 height: "100%",
                 width: $("#faces-table").width()-65,
                 editurl: "/gridcontroller/editgridrow/"+serverData.faces.SubTableName,
-                multiselect: true,
-                loadError: function (jqXHR, textStatus, errorThrown) {
-                    alert('HTTP status code: ' + jqXHR.status + '\n'
-                        + 'textStatus: ' + textStatus + '\n'
-                        + 'errorThrown: ' + errorThrown);
-                    alert('HTTP message body: ' + jqXHR.responseText);
-                },
+                multiselect: true
             });
 
             $("#"+subgrid_id + "_t").navGrid(

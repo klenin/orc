@@ -1,5 +1,5 @@
-define(["utils", "grid_lib", "datepicker/datepicker", "kladr/kladr"],
-function(utils, gridLib, datepicker, kladr) {
+define(["jquery", "utils", "grid_lib", "datepicker", "timepicker", "kladr"],
+function($, utils, gridLib) {
 
     function drawParam(data, admin) {
         console.log("drawParam");
@@ -10,9 +10,27 @@ function(utils, gridLib, datepicker, kladr) {
             case "textarea":
                 block = $("<textarea/>", {});
                 break;
+            case "address":
+                block = $("<input/>", {type: "text"}).kladr({
+                    parentInput: null,
+                    select: null,
+                    oneString: true
+                });
+                break;
+            case "region":
+            case "district":
+            case "city":
+            case "street":
+            case "building":
+                block = $("<input/>", {type: "text"}).kladr({
+                    type: $.kladr.type[data["type"]]
+                });
+                break;
             case "date":
-                block = $("<input/>", {type: "date"});
-                datepicker.initDatePicker(block);
+            case "time":
+            case "datetime":
+                block = $("<input/>", {type: "text"});
+                block.one("DOMNodeInserted", block[data["type"] + "picker"].bind(block));
                 break;
             default:
                 block = $("<input/>", {type: data["type"]});
@@ -169,6 +187,8 @@ function(utils, gridLib, datepicker, kladr) {
 
             }
 
+            $.kladr.setDefault("parentInput", "#" + dialogId + " div#form-" + d[i]["form_id"]);
+
             var tr = $("<tr/>").appendTo($("#"+dialogId +" div#form-"+d[i]["form_id"]+" table"));
             var td = $("<td/>").appendTo(tr);
             $(td).append(drawFunc(d[i], admin));
@@ -196,8 +216,6 @@ function(utils, gridLib, datepicker, kladr) {
                 "/blankcontroller/gethistoryrequest"
             );
         });
-
-        kladr.kladr();
 
         return formIds;
     }
