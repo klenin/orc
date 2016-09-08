@@ -6,7 +6,7 @@ import (
     "net/http"
     "database/sql"
     "github.com/klenin/orc/db"
-    "github.com/klenin/orc/resources"
+    "github.com/klenin/orc/initial"
     "github.com/klenin/orc/router"
     "github.com/klenin/orc/mvc/controllers"
     "github.com/klenin/orc/config"
@@ -32,15 +32,7 @@ func main() {
     resetDB := flag.Bool("reset-db", false, "reset the database")
     flag.Parse()
 
-    if *resetDB == true {
-        new(controllers.BaseController).IndexController().Init(*testData)
-        resources.LoadAdmin()
-        resources.LoadParamTypes()
-    }
-
-    if *testData == true {
-        resources.Load()
-    }
+    initial.Init(*resetDB, *testData)
 
     // base := new(controllers.BaseController)
     // base.Index().LoadContestsFromCats()

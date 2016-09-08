@@ -44,10 +44,10 @@ or a group registration of participants in events of any type.
 There is also `run.sh` file, providing some ease of local test running e.g. database creation and filling it with local test data.
 
 
-Test user credentials to login the system (`number` in `[0-19]`):
+Test user credentials to login the system (`number` in `[1-20]`):
 
     Login: user<number>
-    Password: secret<number>
+    Password: password
 
 Administrator credentials to login the system:
 

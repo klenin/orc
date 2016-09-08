@@ -1,0 +1,107 @@
+[{
+  "name": "Регистрационные данные",
+  "personal": true,
+  "params": [
+    {"name": "Логин", "type": "text"},
+    {"name": "Пароль", "type": "password"},
+    {"name": "Подтвердите пароль", "type": "password"},
+    {"name": "Адрес электронной почты", "type": "email"}
+  ]
+}, {
+  "name": "Общие сведения",
+  "personal": true,
+  "params": [
+    {"name": "Фамилия", "type": "text"},
+    {"name": "Имя", "type": "text"},
+    {"name": "Отчество", "type": "text"}
+  ]
+}, {
+  "name": "All field types",
+  "personal": true,
+  "params": [
+    {"name": "Text", "type": "text"},
+    {"name": "Text area", "type": "textarea"},
+    {"name": "Password", "type": "password"},
+    {"name": "Email", "type": "email"},
+    {"name": "Telephone", "type": "tel"},
+    {"name": "Number", "type": "number"},
+    {"name": "Date", "type": "date"},
+    {"name": "Time", "type": "time"},
+    {"name": "Date and time", "type": "datetime"},
+    {"name": "Address", "type": "address"},
+    {"name": "Region", "type": "region"},
+    {"name": "District", "type": "district"},
+    {"name": "City", "type": "city"},
+    {"name": "Street", "type": "street"},
+    {"name": "Building", "type": "building"}
+  ]
+}, {
+  "name": "Дополнительные сведения",
+  "personal": true,
+  "params": [
+    {"name": "Размер футболки", "type": "text"},
+    {"name": "Интересы", "type": "textarea"}
+  ]
+}, {
+  "name": "Контактная информация",
+  "personal": true,
+  "params": [
+    {"name": "Мобильный телефон", "type": "tel"},
+    {"name": "Рабочий телефон", "type": "tel"},
+    {"name": "Адрес электронной почты", "type": "email"}
+  ]
+}, {
+  "name": "Мать",
+  "personal": true,
+  "params": [
+    {"name": "Фамилия", "type": "text"},
+    {"name": "Имя", "type": "text"},
+    {"name": "Отчество", "type": "text"}
+  ]
+}, {
+  "name": "Место работы",
+  "personal": true,
+  "params": [
+    {"name": "Название", "type": "text"},
+    {"name": "Должность", "type": "text"},
+    {"name": "Дата вступления в должность", "type": "date"}
+  ]
+}, {
+  "name": "Учебное учреждение",
+  "personal": true,
+  "params": [
+    {"name": "Название", "type": "text"},
+    {"name": "Курс", "type": "number"},
+    {"name": "Направление", "type": "text"},
+    {"name": "Специальность", "type": "text"},
+    {"name": "Группа", "type": "text"}
+  ]
+}, {
+  "name": "Отец",
+  "personal": true,
+  "params": [
+    {"name": "Фамилия", "type": "text"},
+    {"name": "Имя", "type": "text"},
+    {"name": "Отчество", "type": "text"}
+  ]
+}, {
+  "name": "Паспортные данные",
+  "personal": true,
+  "params": [
+    {"name": "Серия", "type": "text"},
+    {"name": "Номер", "type": "number"},
+    {"name": "Кем выдан", "type": "text"},
+    {"name": "Дата выдачи", "type": "date"},
+    {"name": "Место регистрации", "type": "address"}
+  ]
+}, {
+  "name": "Руковолитель",
+  "personal": false,
+  "params": [
+    {"name": "Фамилия", "type": "text"},
+    {"name": "Имя", "type": "text"},
+    {"name": "Отчество", "type": "text"},
+    {"name": "Должность", "type": "text"},
+    {"name": "Почетные звания", "type": "textarea"}
+  ]
+}]
