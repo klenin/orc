@@ -174,6 +174,7 @@ func SendJSReply(result interface{}, responseWriter http.ResponseWriter) {
     if HandleErr("[utils.SendJSReply] Marshal: ", err, responseWriter) {
         fmt.Fprintf(responseWriter, "%s", err.Error())
     } else {
+        responseWriter.Header().Set("Content-Type", "application/json")
         fmt.Fprintf(responseWriter, "%s", string(response))
     }
 }

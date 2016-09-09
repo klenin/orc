@@ -21,14 +21,16 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         methodName = parts[2]
     }
 
-    if controller := FindController(controllerName); controller != nil {
+    if controller := findController(controllerName); controller != nil {
         controller.Elem().FieldByName("Request").Set(reflect.ValueOf(r))
         controller.Elem().FieldByName("Response").Set(reflect.ValueOf(w))
         cType := controller.Type()
-        if cMethod := FindMethod(cType, methodName); cMethod != nil {
-            params := PopulateParams(*cMethod, parts)
-            allParams := make([]reflect.Value, 0)
-            cMethod.Func.Call(append(append(allParams, *controller), params...))
+        if cMethod := findMethod(cType, methodName); cMethod != nil {
+            parts = append(parts, make([]string, cMethod.Type.NumIn())...)
+            cMethod.Func.Call(append(
+                []reflect.Value{*controller},
+                stringToValueSlice(parts[3:3 + cMethod.Type.NumIn() - 1])...,
+            ))
         } else {
             http.Error(w, "Unable to locate method in controller.", http.StatusMethodNotAllowed)
         }
@@ -37,22 +39,18 @@ func (this FastCGIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-func FindController(controllerName string) *reflect.Value {
+func findController(controllerName string) *reflect.Value {
     baseController := new(controllers.BaseController)
     cmt := reflect.TypeOf(baseController)
-    for i := 0; i < cmt.NumMethod(); i++ {
-        cmt_method := cmt.Method(i)
-        if strings.ToLower(cmt_method.Name) == strings.ToLower(controllerName) {
-            params := make([]reflect.Value, 1)
-            params[0] = reflect.ValueOf(baseController)
-            result := cmt_method.Func.Call(params)
-            return &result[0]
-        }
+    if cmt_method := findMethod(cmt, controllerName); cmt_method != nil {
+        params := []reflect.Value{reflect.ValueOf(baseController)}
+        result := cmt_method.Func.Call(params)
+        return &result[0]
     }
     return nil
 }
 
-func FindMethod(cType reflect.Type, methodName string) *reflect.Method {
+func findMethod(cType reflect.Type, methodName string) *reflect.Method {
     for i := 0; i < cType.NumMethod(); i++ {
         method := cType.Method(i)
         if strings.ToLower(method.Name) == strings.ToLower(methodName) {
@@ -62,15 +60,10 @@ func FindMethod(cType reflect.Type, methodName string) *reflect.Method {
     return nil
 }
 
-func PopulateParams(method reflect.Method, parts []string) []reflect.Value {
-    numParams := method.Type.NumIn() - 1
-    params := make([]reflect.Value, numParams)
-    for x := 0; x < numParams; x++ {
-        if len(parts) > (x + 3) {
-            params[x] = reflect.ValueOf(parts[x+3])
-        } else {
-            params[x] = reflect.ValueOf("")
-        }
+func stringToValueSlice(a []string) (r []reflect.Value) {
+    r = make([]reflect.Value, len(a))
+    for k, v := range a {
+        r[k] = reflect.ValueOf(v)
     }
-    return params
+    return r
 }
